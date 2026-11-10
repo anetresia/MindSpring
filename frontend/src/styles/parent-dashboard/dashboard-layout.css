@@ -1,0 +1,481 @@
+
+/* ========================================
+   PARENT DASHBOARD MAIN LAYOUT
+======================================== */
+
+* {
+  box-sizing: border-box;
+}
+
+.parent-dashboard {
+  width: 100%;
+  height: 100vh;
+  min-height: 0;
+
+  display: flex;
+  position: relative;
+
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
+  background-attachment: fixed;
+
+  color: #35246f;
+  font-family: "Nunito", sans-serif;
+
+  overflow: hidden;
+}
+
+/* ========================================
+   SIDEBAR AREA
+======================================== */
+
+.parent-sidebar {
+  flex: 0 0 260px;
+  width: 260px;
+  min-width: 260px;
+  height: 100vh;
+
+  position: relative;
+  z-index: 20;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* ========================================
+   MAIN CONTENT AREA
+======================================== */
+
+.parent-main-content {
+  flex: 1 1 0;
+  width: 0;
+  min-width: 0;
+  height: 100vh;
+  min-height: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  background: transparent;
+
+  overflow: hidden;
+}
+
+/* ========================================
+   TOPBAR
+======================================== */
+
+.parent-topbar {
+  flex: 0 0 82px;
+  width: 100%;
+  height: 82px;
+  min-height: 82px;
+
+  position: relative;
+  z-index: 35;
+}
+
+/* ========================================
+   DASHBOARD SCROLL AREA
+======================================== */
+
+.parent-dashboard-scroll {
+  flex: 1 1 auto;
+
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  padding: 0;
+
+  scroll-behavior: smooth;
+  overscroll-behavior: contain;
+}
+
+/* ========================================
+   SHARED PARENT PAGE LAYOUT
+======================================== */
+
+.dashboard-content,
+.parent-profile-page,
+.learning-preferences-page,
+.rewards-page {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 100%;
+  box-sizing: border-box;
+}
+
+/* Prevent content overflow */
+
+.dashboard-content *,
+.parent-profile-page *,
+.learning-preferences-page *,
+.rewards-page * {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* ========================================
+   PROFILE PAGE LAYOUT SUPPORT
+======================================== */
+
+.parent-profile-page {
+  width: 100%;
+  min-width: 0;
+  min-height: 100%;
+  box-sizing: border-box;
+}
+
+.profile-main-card,
+.profile-account-card {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.profile-form-grid {
+  width: 100%;
+  min-width: 0;
+}
+
+.profile-field {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.profile-field input {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* ========================================
+   LEARNING PREFERENCES PAGE LAYOUT
+======================================== */
+
+.learning-preferences-page {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 100%;
+
+  padding: 25px 30px 35px;
+
+  box-sizing: border-box;
+}
+
+.learning-preferences-header {
+  width: 100%;
+  min-width: 0;
+}
+
+.learning-preferences-content {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.learning-preferences-card {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
+  box-sizing: border-box;
+}
+
+.learning-preferences-grid {
+  width: 100%;
+  min-width: 0;
+
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.learning-preference-option {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.learning-preferences-page img {
+  max-width: 100%;
+}
+
+/* ========================================
+   REWARDS PAGE LAYOUT SUPPORT
+======================================== */
+
+.rewards-page {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 100%;
+
+  padding: 35px 4%;
+  box-sizing: border-box;
+}
+
+.rewards-header {
+  width: 100%;
+  min-width: 0;
+  margin-bottom: 25px;
+}
+
+.rewards-content {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.rewards-child-selector,
+.rewards-topic-card,
+.rewards-lesson-card {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.rewards-topic-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.rewards-lesson-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ========================================
+   IMAGES RESPONSIVE SUPPORT
+======================================== */
+
+.parent-dashboard img {
+  max-width: 100%;
+}
+
+/* ========================================
+   SCROLLBAR
+======================================== */
+
+.parent-dashboard-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.parent-dashboard-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.parent-dashboard-scroll::-webkit-scrollbar-thumb {
+  background: rgba(155, 115, 190, 0.35);
+  border-radius: 20px;
+}
+
+.parent-dashboard-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(155, 115, 190, 0.6);
+}
+
+/* ========================================
+   DESKTOP SIDEBAR CLOSE BUTTON
+======================================== */
+
+.parent-sidebar .sidebar-close-btn {
+  display: none;
+}
+
+/* ========================================
+   TABLET RESPONSIVE
+======================================== */
+
+@media (max-width: 1100px) and (min-width: 769px) {
+  .parent-sidebar {
+    flex-basis: 220px;
+    width: 220px;
+    min-width: 220px;
+  }
+
+  .parent-topbar {
+    flex-basis: 76px;
+    height: 76px;
+    min-height: 76px;
+  }
+
+  .learning-preferences-page {
+    padding: 22px 20px 30px;
+  }
+
+  .learning-preferences-grid {
+    gap: 16px;
+  }
+
+  .rewards-page {
+    padding: 28px 3%;
+  }
+}
+
+/* ========================================
+   MOBILE RESPONSIVE
+======================================== */
+
+@media (max-width: 768px) {
+  .parent-dashboard {
+    flex-direction: column;
+    height: 100vh;
+
+    background-attachment: scroll;
+    background-position: center;
+  }
+
+  .parent-main-content {
+    flex: 1 1 auto;
+    width: 100%;
+    height: 100vh;
+    min-height: 0;
+  }
+
+  .parent-topbar {
+    flex: 0 0 70px;
+    height: 70px;
+    min-height: 70px;
+  }
+
+  .parent-dashboard-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  /* Mobile sidebar positioning */
+
+  .parent-sidebar {
+    display: flex;
+
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    width: 280px;
+    min-width: 280px;
+    max-width: 85vw;
+    height: 100vh;
+    height: 100dvh;
+
+    z-index: 51;
+
+    transform: translateX(-100%);
+    visibility: hidden;
+
+    transition:
+      transform 0.3s ease,
+      visibility 0.3s ease;
+
+    background: #fffaf7;
+
+    box-shadow: 8px 0 25px rgba(53, 36, 111, 0.12);
+  }
+
+  /* Open sidebar */
+
+  .parent-sidebar.sidebar-open {
+    transform: translateX(0);
+    visibility: visible;
+  }
+
+  /* Mobile overlay */
+
+  .sidebar-overlay {
+    display: block;
+
+    position: fixed;
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+    padding: 0;
+
+    border: none;
+
+    background: rgba(35, 25, 55, 0.38);
+
+    z-index: 50;
+
+    cursor: pointer;
+  }
+
+  /* Close button visible on mobile */
+
+  .parent-sidebar .sidebar-close-btn {
+    display: flex;
+  }
+
+  .parent-profile-page {
+    width: 100%;
+    min-height: 100%;
+  }
+
+  /* Learning Preferences Mobile Layout */
+
+  .learning-preferences-page {
+    width: 100%;
+    padding: 18px 15px 25px;
+  }
+
+  .learning-preferences-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .learning-preferences-card {
+    width: 100%;
+  }
+
+  /* Rewards Mobile Layout */
+
+  .rewards-page {
+    width: 100%;
+    padding: 22px 5%;
+  }
+
+  .rewards-content {
+    gap: 15px;
+  }
+}
+
+/* ========================================
+   SMALL MOBILE
+======================================== */
+
+@media (max-width: 480px) {
+  .parent-topbar {
+    height: 65px;
+    min-height: 65px;
+    flex-basis: 65px;
+  }
+
+  .learning-preferences-page {
+    padding: 15px 12px 22px;
+  }
+
+  .learning-preferences-grid {
+    gap: 12px;
+  }
+
+  .rewards-page {
+    padding: 20px 4%;
+  }
+}

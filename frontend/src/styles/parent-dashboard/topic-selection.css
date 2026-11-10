@@ -1,0 +1,233 @@
+/* =========================================
+   LIFE SKILL TOPIC SELECTION
+========================================= */
+
+.topic-selection {
+  width: 100%;
+  margin-top: 24px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid #eee1fa;
+  border-radius: 20px;
+  box-sizing: border-box;
+}
+
+/* HEADING */
+
+.topic-selection-heading {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 22px;
+}
+
+.topic-selection-icon {
+  display: grid;
+  width: 54px;
+  height: 54px;
+  flex: 0 0 54px;
+  place-items: center;
+  background: #fff0d9;
+  border-radius: 16px;
+  font-size: 27px;
+}
+
+.topic-selection-heading h3 {
+  margin: 0 0 6px;
+  color: #321078;
+  font-size: 21px;
+  font-weight: 900;
+  line-height: 1.4;
+}
+
+.topic-selection-heading p {
+  margin: 0;
+  color: #81728f;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* LOADING / EMPTY MESSAGE */
+
+.topic-selection-message {
+  width: 100%;
+  padding: 16px;
+  margin-bottom: 14px;
+  color: #81728f;
+  background: #f7f1fc;
+  border: 1px solid #eee1fa;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.6;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+/* ERROR MESSAGE */
+
+.topic-selection-error {
+  width: 100%;
+  padding: 14px 16px;
+  color: #b42318;
+  background: #fef3f2;
+  border: 1px solid #fecdca;
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.5;
+  box-sizing: border-box;
+}
+
+/* SELECTED TOPIC COUNT */
+
+.topic-selection-count {
+  margin: 0 0 14px;
+  color: #62527c;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* TOPIC CARDS GRID */
+
+.topic-selection-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  width: 100%;
+}
+
+/* INDIVIDUAL TOPIC CARD */
+
+.topic-selection-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  min-height: 90px;
+  padding: 16px;
+  background: #ffffff;
+  border: 1.5px solid #e2d8ef;
+  border-radius: 14px;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.topic-selection-card:hover {
+  border-color: #b99ae8;
+  background: #faf8ff;
+  transform: translateY(-2px);
+}
+
+/* SELECTED CARD */
+
+.topic-selection-card.selected {
+  border-color: #8d65cf;
+  background: #f5f0ff;
+  box-shadow: 0 4px 13px rgba(125, 85, 185, 0.09);
+}
+
+/* CHECKBOX */
+
+.topic-selection-card input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  margin: 2px 0 0;
+  flex-shrink: 0;
+  accent-color: #8d65cf;
+  cursor: pointer;
+}
+
+/* TOPIC CONTENT */
+
+.topic-selection-card-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.topic-selection-card-content strong {
+  display: block;
+  margin-bottom: 6px;
+  color: #302064;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.topic-selection-card-content p {
+  margin: 0;
+  color: #827494;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+/* KEYBOARD ACCESSIBILITY */
+
+.topic-selection-card:focus-within {
+  outline: 2px solid #8d65cf;
+  outline-offset: 3px;
+}
+
+/* =========================================
+   RESPONSIVE DESIGN
+========================================= */
+
+@media (max-width: 768px) {
+  .topic-selection {
+    padding: 18px;
+  }
+
+  .topic-selection-list {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .topic-selection {
+    margin-top: 18px;
+    padding: 15px;
+    border-radius: 15px;
+  }
+
+  .topic-selection-heading {
+    gap: 11px;
+    margin-bottom: 18px;
+  }
+
+  .topic-selection-icon {
+    width: 45px;
+    height: 45px;
+    flex-basis: 45px;
+    font-size: 23px;
+  }
+
+  .topic-selection-heading h3 {
+    font-size: 18px;
+  }
+
+  .topic-selection-heading p {
+    font-size: 12px;
+  }
+
+  .topic-selection-card {
+    min-height: 80px;
+    padding: 13px;
+    gap: 10px;
+  }
+
+  .topic-selection-card-content strong {
+    font-size: 14px;
+  }
+
+  .topic-selection-card-content p {
+    font-size: 12px;
+  }
+}

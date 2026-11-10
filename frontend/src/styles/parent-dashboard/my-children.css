@@ -1,0 +1,881 @@
+/* ========================================
+   MY CHILDREN PAGE
+======================================== */
+
+.my-children-page {
+  width: 100%;
+  padding: 30px 35px;
+  box-sizing: border-box;
+  font-family: "Nunito", sans-serif;
+}
+
+/* PAGE HEADING */
+
+.children-page-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.children-page-heading h1 {
+  font-size: 28px;
+  font-weight: 800;
+  color: #35246f;
+  margin: 0 0 8px;
+}
+
+.children-page-heading p {
+  color: #817b8c;
+  font-size: 15px;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* BUTTONS */
+
+.children-add-btn,
+.children-save-btn {
+  border: none;
+  border-radius: 10px;
+  background: #39834b;
+  color: white;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.children-add-btn:hover,
+.children-save-btn:hover {
+  background: #2d6d3d;
+}
+
+.children-add-btn:active,
+.children-save-btn:active {
+  transform: scale(0.98);
+}
+
+.children-cancel-btn {
+  border: 1px solid #ded8e8;
+  border-radius: 10px;
+  background: white;
+  color: #625b70;
+  padding: 12px 20px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.children-cancel-btn:hover {
+  background: #f7f4fa;
+}
+
+.children-save-btn:disabled,
+.children-cancel-btn:disabled,
+.delete-cancel-btn:disabled,
+.delete-confirm-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* MESSAGES */
+
+.children-success-message,
+.children-error-message {
+  padding: 13px 16px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.children-success-message {
+  background: #e9f5e9;
+  color: #28743c;
+}
+
+.children-error-message {
+  background: #fff0ed;
+  color: #c0392b;
+}
+
+/* ========================================
+   THREE-STEP WIZARD MODAL
+======================================== */
+
+.children-wizard-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(48, 27, 82, 0.38);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-sizing: border-box;
+}
+
+.children-wizard-modal {
+  position: relative;
+  width: min(900px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 32px 38px;
+  color: #301276;
+  background: linear-gradient(135deg, #ffffff 0%, #fff5fc 100%);
+  border: 2px solid rgba(255, 255, 255, 0.95);
+  border-radius: 30px;
+  box-shadow: 0 25px 75px rgba(66, 27, 105, 0.24);
+  box-sizing: border-box;
+  animation: childrenWizardOpen 0.25s ease;
+}
+
+@keyframes childrenWizardOpen {
+  from {
+    opacity: 0;
+    transform: translateY(15px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* WIZARD HEADING */
+
+.children-wizard-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 28px;
+}
+
+.children-wizard-heading > div {
+  flex: 1;
+}
+
+.children-wizard-heading h2 {
+  margin: 0;
+  color: #6514c9;
+  font-size: 29px;
+  font-weight: 900;
+}
+
+.children-wizard-heading p {
+  margin: 8px 0 0;
+  color: #76658f;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.children-wizard-kicker {
+  display: block;
+  margin-bottom: 7px;
+  color: #a77be0;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+}
+
+.children-close-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: #f6edff;
+  color: #7451a5;
+  font-size: 25px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.children-close-btn:hover {
+  background: #edddff;
+  color: #5015a2;
+}
+
+/* PROGRESS STEPS */
+
+.children-wizard-progress {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 0 auto 32px;
+  max-width: 720px;
+}
+
+.children-wizard-progress-step {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: #8d7da7;
+  text-align: center;
+}
+
+.children-wizard-progress-step::before {
+  position: absolute;
+  top: 19px;
+  right: 50%;
+  width: 100%;
+  height: 3px;
+  content: "";
+  background: #e8d5fa;
+}
+
+.children-wizard-progress-step:first-child::before {
+  display: none;
+}
+
+.children-wizard-progress-step span {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  color: #8b70aa;
+  background: #ffffff;
+  border: 2px solid #dfc2f7;
+  border-radius: 50%;
+  font-size: 16px;
+  font-weight: 900;
+  transition: all 0.2s ease;
+}
+
+.children-wizard-progress-step.active span {
+  color: #ffffff;
+  background: linear-gradient(135deg, #c000ff, #8114df);
+  border-color: #a50cf0;
+  box-shadow: 0 4px 12px rgba(165, 12, 240, 0.2);
+}
+
+.children-wizard-progress-step small {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.children-wizard-progress-step.active small {
+  color: #371078;
+  font-weight: 900;
+}
+
+/* STEP CONTENT */
+
+.children-wizard-step {
+  min-height: 250px;
+}
+
+.children-wizard-step-intro {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 22px;
+}
+
+.children-wizard-step-intro > span {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  flex: 0 0 58px;
+  place-items: center;
+  background: #f8e5ff;
+  border-radius: 18px;
+  font-size: 30px;
+}
+
+.children-wizard-step-intro h3 {
+  margin: 0 0 5px;
+  color: #321078;
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.children-wizard-step-intro p {
+  margin: 0;
+  color: #76658f;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* FORM GRID */
+
+.children-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.children-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  min-width: 0;
+}
+
+.children-form-group label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #493c69;
+}
+
+.children-form-group input,
+.children-form-group select {
+  width: 100%;
+  min-height: 46px;
+  padding: 11px 13px;
+  border: 1px solid #ded8e8;
+  border-radius: 9px;
+  outline: none;
+  background: white;
+  color: #493c69;
+  font-family: "Nunito", sans-serif;
+  font-size: 14px;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.children-form-group input:focus,
+.children-form-group select:focus {
+  border-color: #39834b;
+  box-shadow: 0 0 0 3px rgba(57, 131, 75, 0.12);
+}
+
+/* WIZARD FORM FIELDS */
+
+.children-wizard-modal .children-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.children-wizard-modal .children-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.children-wizard-modal .children-form-group label {
+  color: #321078;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.children-wizard-modal .children-form-group input,
+.children-wizard-modal .children-form-group select {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 14px;
+  color: #321078;
+  background: #ffffff;
+  border: 1.5px solid #e5d2f5;
+  border-radius: 14px;
+  outline: none;
+  font-family: "Nunito", sans-serif;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.children-wizard-modal .children-form-group input:focus,
+.children-wizard-modal .children-form-group select:focus {
+  border-color: #a900f5;
+  box-shadow: 0 0 0 3px rgba(169, 0, 245, 0.1);
+}
+
+.children-wizard-modal .children-form-group select:disabled {
+  background: #f7f3fb;
+  color: #817b8c;
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+/* ========================================
+   WIZARD FOOTER BUTTONS
+======================================== */
+
+.children-wizard-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid #f0e4f8;
+}
+
+.children-wizard-actions button {
+  min-width: 140px;
+  min-height: 48px;
+  padding: 11px 24px;
+  border-radius: 28px;
+  font-size: 14px;
+  font-weight: 900;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.children-wizard-actions .children-cancel-btn {
+  color: #5b4380;
+  background: #ffffff;
+  border: 1.5px solid #dfc9f1;
+}
+
+.children-wizard-actions .children-cancel-btn:hover {
+  background: #f7f1fc;
+}
+
+.children-wizard-actions .children-save-btn {
+  color: #ffffff;
+  background: linear-gradient(120deg, #c000ff, #8510e9);
+  border: none;
+  box-shadow: 0 5px 14px rgba(151, 0, 220, 0.2);
+}
+
+.children-wizard-actions .children-save-btn:hover {
+  background: linear-gradient(120deg, #a800e5, #7110c7);
+  transform: translateY(-1px);
+}
+
+.children-wizard-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* TOPIC LOADING MESSAGE */
+
+.topic-selection-message {
+  padding: 12px 15px;
+  margin-bottom: 15px;
+  border-radius: 10px;
+  background: #f7f1fc;
+  color: #6514c9;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* ========================================
+   CHILDREN LIST
+======================================== */
+
+.children-list-section {
+  margin-top: 30px;
+}
+
+.children-list-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.children-list-heading h2 {
+  color: #35246f;
+  font-size: 21px;
+  font-weight: 800;
+  margin: 0;
+}
+
+.children-list-heading span {
+  background: #e9f5e9;
+  color: #39834b;
+  padding: 7px 13px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* EMPTY STATE */
+
+.children-empty-state {
+  background: white;
+  border: 1px dashed #dcd4e7;
+  border-radius: 16px;
+  padding: 50px 20px;
+  text-align: center;
+}
+
+.children-empty-icon {
+  font-size: 48px;
+  margin-bottom: 15px;
+}
+
+.children-empty-state h3 {
+  color: #35246f;
+  font-size: 20px;
+  font-weight: 800;
+  margin: 0 0 10px;
+}
+
+.children-empty-state p {
+  color: #817b8c;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0 0 20px;
+}
+
+.children-empty-message {
+  text-align: center;
+  padding: 35px;
+  color: #817b8c;
+  line-height: 1.6;
+}
+
+/* ========================================
+   CHILDREN CARDS
+======================================== */
+
+.children-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.children-profile-card {
+  min-width: 0;
+  background: white;
+  border: 1px solid #eee8e2;
+  border-radius: 16px;
+  padding: 23px;
+  box-shadow: 0 4px 15px rgba(53, 36, 111, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.children-profile-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 7px 20px rgba(53, 36, 111, 0.08);
+}
+
+.children-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+/* CHILD PROFILE IMAGE */
+
+.children-card-avatar {
+  position: relative;
+  width: 58px;
+  height: 58px;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ffe5d9, #f5dfff);
+}
+
+.children-card-avatar-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.children-card-avatar-initial {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #35246f;
+  font-size: 25px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+/* CARD ACTIONS */
+
+.children-card-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.children-card-actions button {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  background: #f8f6fb;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.children-card-actions button:hover {
+  background: #eee8f5;
+}
+
+.children-profile-card h3 {
+  color: #35246f;
+  font-size: 19px;
+  font-weight: 800;
+  margin: 0 0 5px;
+  overflow-wrap: anywhere;
+}
+
+.children-card-age {
+  color: #39834b;
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0 0 18px;
+}
+
+.children-card-details {
+  border-top: 1px solid #f0eaf2;
+  padding-top: 15px;
+}
+
+.children-card-details p {
+  color: #817b8c;
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 0 0 10px;
+  overflow-wrap: anywhere;
+}
+
+.children-card-details strong {
+  color: #493c69;
+}
+
+/* START LEARNING BUTTON */
+
+.children-start-learning-btn {
+  width: 100%;
+  margin-top: 20px;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 10px;
+  background: #39834b;
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.children-start-learning-btn:hover {
+  background: #2d6d3d;
+}
+
+.children-start-learning-btn:active {
+  transform: scale(0.98);
+}
+
+/* ========================================
+   DELETE MODAL
+======================================== */
+
+.children-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(35, 25, 60, 0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  z-index: 9999;
+}
+
+.children-delete-modal {
+  width: 100%;
+  max-width: 420px;
+  background: #ffffff;
+  padding: 32px;
+  border-radius: 18px;
+  text-align: center;
+  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.15);
+  animation: modalAppear 0.2s ease;
+  box-sizing: border-box;
+}
+
+.delete-modal-icon {
+  width: 65px;
+  height: 65px;
+  margin: 0 auto 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff0ed;
+  border-radius: 50%;
+  font-size: 28px;
+}
+
+.children-delete-modal h2 {
+  color: #35246f;
+  font-size: 21px;
+  font-weight: 800;
+  margin: 0 0 12px;
+}
+
+.children-delete-modal p {
+  color: #817b8c;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.children-delete-modal strong {
+  color: #35246f;
+}
+
+.children-delete-modal .delete-modal-warning {
+  color: #d45c50;
+  font-size: 13px;
+}
+
+.delete-modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 25px;
+}
+
+.delete-cancel-btn,
+.delete-confirm-btn {
+  padding: 11px 20px;
+  border: none;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.delete-cancel-btn {
+  background: #f1eef6;
+  color: #493c69;
+}
+
+.delete-cancel-btn:hover {
+  background: #e8e2f0;
+}
+
+.delete-confirm-btn {
+  background: #dc5b50;
+  color: white;
+}
+
+.delete-confirm-btn:hover {
+  background: #c7483e;
+}
+
+@keyframes modalAppear {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+======================================== */
+
+@media (max-width: 768px) {
+  .my-children-page {
+    padding: 25px 20px;
+  }
+
+  .children-cards-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .children-wizard-overlay {
+    align-items: center;
+    padding: 10px;
+  }
+
+  .children-wizard-modal {
+    max-height: 94vh;
+    padding: 22px 17px;
+    border-radius: 24px;
+  }
+
+  .children-wizard-heading h2 {
+    font-size: 23px;
+  }
+
+  .children-wizard-progress-step small {
+    max-width: 95px;
+    font-size: 10px;
+  }
+
+  .children-wizard-modal .children-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .children-wizard-step {
+    min-height: auto;
+  }
+
+  .children-wizard-actions button {
+    min-width: 0;
+    flex: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .my-children-page {
+    padding: 20px 12px;
+  }
+
+  .children-page-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .children-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .children-profile-card {
+    padding: 18px;
+  }
+
+  .children-delete-modal {
+    padding: 24px 18px;
+  }
+
+  .children-wizard-progress-step small {
+    max-width: 80px;
+    font-size: 9px;
+  }
+
+  .children-wizard-actions {
+    gap: 8px;
+  }
+
+  .children-wizard-actions button {
+    padding: 11px 12px;
+    font-size: 12px;
+  }
+}

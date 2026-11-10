@@ -1,0 +1,267 @@
+
+/* ========================================
+   PARENT SIDEBAR
+======================================== */
+
+.parent-sidebar {
+  width: 260px;
+  min-width: 260px;
+  height: 100vh;
+
+  padding: 25px 18px;
+
+  display: flex;
+  flex-direction: column;
+
+  background: transparent;
+
+  border-right: 1px solid rgba(240, 232, 224, 0.6);
+
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  transition: transform 0.3s ease;
+}
+
+/* SCROLLBAR */
+
+.parent-sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.parent-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(155, 115, 190, 0.3);
+  border-radius: 10px;
+}
+
+/* LOGO */
+
+.dashboard-logo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  margin-bottom: 55px;
+  padding: 10px;
+
+  position: relative;
+}
+
+.dashboard-logo img {
+  width: 100%;
+  max-width: 190px;
+  height: auto;
+
+  object-fit: contain;
+}
+
+/* CLOSE BUTTON */
+
+.sidebar-close-btn {
+  display: none;
+
+  align-items: center;
+  justify-content: center;
+
+  width: 32px;
+  height: 32px;
+
+  position: absolute;
+  top: 5px;
+  right: 0;
+
+  border: none;
+  border-radius: 50%;
+
+  background: #fff0e9;
+  color: #35246f;
+
+  font-size: 23px;
+
+  cursor: pointer;
+}
+
+/* MENU */
+
+.dashboard-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* MENU BUTTON */
+
+.dashboard-menu-item {
+  width: 100%;
+  min-height: 55px;
+
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  padding: 13px 16px;
+
+  border: 1px solid transparent;
+  border-radius: 16px;
+
+  background: rgba(255, 255, 255, 0.65);
+
+  color: #514477;
+
+  font-family: "Nunito", sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+
+  text-align: left;
+  cursor: pointer;
+
+  position: relative;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+/* ICON */
+
+.menu-icon {
+  width: 28px;
+  height: 28px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  font-size: 21px;
+}
+
+/* HOVER */
+
+.dashboard-menu-item:hover {
+  background: rgba(255, 240, 248, 0.95);
+  color: #a52cc5;
+
+  transform: translateX(4px);
+}
+
+/* ACTIVE */
+
+.dashboard-menu-item.active {
+  background: linear-gradient(
+    110deg,
+    rgba(255, 221, 241, 0.95),
+    rgba(235, 224, 255, 0.95)
+  );
+
+  border-color: rgba(207, 143, 226, 0.3);
+
+  color: #6c26b7;
+
+  font-weight: 800;
+
+  box-shadow: 0 5px 15px rgba(157, 92, 190, 0.10);
+}
+
+/* ACTIVE INDICATOR */
+
+.menu-active-dot {
+  width: 8px;
+  height: 8px;
+
+  margin-left: auto;
+
+  border-radius: 50%;
+
+  background: #e84ca8;
+}
+
+
+/* OVERLAY */
+
+.sidebar-overlay {
+  display: none;
+}
+
+/* ACCESSIBILITY */
+
+.dashboard-menu-item:focus-visible,
+.sidebar-close-btn:focus-visible {
+  outline: 2px solid #a52cc5;
+  outline-offset: 3px;
+}
+
+/* TABLET */
+
+@media (max-width: 1100px) and (min-width: 769px) {
+  .parent-sidebar {
+    width: 220px;
+    min-width: 220px;
+  }
+
+  .dashboard-logo img {
+    max-width: 165px;
+  }
+
+  .dashboard-menu-item {
+    font-size: 14px;
+    padding: 12px;
+  }
+}
+
+/* MOBILE */
+
+@media (max-width: 768px) {
+  .parent-sidebar {
+    width: 280px;
+    min-width: 280px;
+    max-width: 85vw;
+
+    height: 100vh;
+
+    padding: 25px 18px;
+
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    z-index: 1001;
+
+    background: #fffafc;
+
+    border-right: 1px solid rgba(240, 232, 224, 0.6);
+
+    transform: translateX(-100%);
+  }
+
+  .parent-sidebar.sidebar-open {
+    transform: translateX(0);
+  }
+
+  .sidebar-close-btn {
+    display: flex;
+  }
+
+  .dashboard-logo {
+    margin-bottom: 40px;
+  }
+
+  .sidebar-overlay {
+    display: block;
+
+    position: fixed;
+    inset: 0;
+
+    z-index: 1000;
+
+    border: none;
+
+    background: rgba(44, 26, 65, 0.35);
+
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+}

@@ -1,0 +1,214 @@
+
+/* ========================================
+   LEARNING PREFERENCES
+======================================== */
+
+.learning-preferences {
+  width: 100%;
+  padding: 22px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid #eee1fa;
+  border-radius: 20px;
+  box-sizing: border-box;
+}
+
+/* ========================================
+   HEADING
+======================================== */
+
+.learning-preferences-heading {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 24px;
+}
+
+.learning-preferences-icon {
+  display: grid;
+  width: 54px;
+  height: 54px;
+  flex: 0 0 54px;
+  place-items: center;
+  background: #f5e8ff;
+  border-radius: 16px;
+  font-size: 27px;
+}
+
+.learning-preferences-heading h3 {
+  margin: 0 0 6px;
+  color: #321078;
+  font-size: 21px;
+  font-weight: 900;
+  line-height: 1.4;
+}
+
+.learning-preferences-heading p {
+  margin: 0;
+  color: #81728f;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* ========================================
+   PREFERENCES GRID
+======================================== */
+
+.learning-preferences-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+/* ========================================
+   INDIVIDUAL GROUP
+======================================== */
+
+.learning-preference-group {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  min-width: 0;
+}
+
+.learning-preference-group label {
+  color: #321078;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+/* ========================================
+   SELECT INPUT
+======================================== */
+
+.learning-preference-group select {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 14px;
+  border: 1.5px solid #e5d2f5;
+  border-radius: 13px;
+  background: #ffffff;
+  color: #493c69;
+  outline: none;
+  font-family: inherit;
+  font-size: 14px;
+  box-sizing: border-box;
+  cursor: pointer;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.learning-preference-group select:hover:not(:disabled) {
+  border-color: #c9a7ed;
+}
+
+.learning-preference-group select:focus {
+  border-color: #a900f5;
+  box-shadow: 0 0 0 3px rgba(169, 0, 245, 0.1);
+}
+
+.learning-preference-group select:disabled {
+  background: #f7f3fb;
+  color: #817b8c;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+/* DROPDOWN OPTIONS */
+
+.learning-preference-group select option {
+  padding: 10px;
+  background: #ffffff;
+  color: #493c69;
+  font-size: 14px;
+}
+
+.learning-preference-group select option:disabled {
+  color: #999999;
+}
+
+/* ========================================
+   DESCRIPTION
+======================================== */
+
+.learning-preference-group small {
+  color: #8b7da3;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+/* ========================================
+   ERROR MESSAGE
+======================================== */
+
+.learning-preferences .error-message {
+  margin: 16px 0 0;
+  padding: 11px 14px;
+  color: #b42318;
+  background: #fff1f0;
+  border: 1px solid #ffd6d2;
+  border-radius: 10px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+======================================== */
+
+@media (max-width: 768px) {
+  .learning-preferences {
+    padding: 18px;
+  }
+
+  .learning-preferences-grid {
+    grid-template-columns: 1fr;
+    gap: 17px;
+  }
+}
+
+/* ========================================
+   SMALL MOBILE
+======================================== */
+
+@media (max-width: 480px) {
+  .learning-preferences {
+    padding: 15px;
+    border-radius: 15px;
+  }
+
+  .learning-preferences-heading {
+    gap: 11px;
+    margin-bottom: 20px;
+  }
+
+  .learning-preferences-icon {
+    width: 45px;
+    height: 45px;
+    flex-basis: 45px;
+    font-size: 23px;
+  }
+
+  .learning-preferences-heading h3 {
+    font-size: 18px;
+  }
+
+  .learning-preferences-heading p {
+    font-size: 12px;
+  }
+
+  .learning-preference-group label {
+    font-size: 13px;
+  }
+
+  .learning-preference-group select {
+    min-height: 45px;
+    font-size: 13px;
+  }
+
+  .learning-preference-group select option {
+    font-size: 13px;
+  }
+}

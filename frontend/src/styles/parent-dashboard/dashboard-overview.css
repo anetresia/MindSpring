@@ -1,0 +1,466 @@
+
+/* ========================================
+   DASHBOARD CONTENT
+======================================== */
+
+.dashboard-content {
+  width: 100%;
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 35px 4%;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+/* ========================================
+   WELCOME SECTION
+======================================== */
+
+.dashboard-welcome {
+  margin-bottom: 30px;
+}
+
+.dashboard-welcome h1 {
+  margin: 0 0 10px;
+  color: #35246f;
+  font-size: clamp(25px, 3vw, 34px);
+  font-weight: 800;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.dashboard-welcome h1 span {
+  font-size: 27px;
+}
+
+.dashboard-welcome p {
+  margin: 0;
+  color: #817691;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+/* ========================================
+   SUMMARY CARDS
+======================================== */
+
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.stat-card {
+  min-width: 0;
+  min-height: 145px;
+  padding: 23px;
+  border-radius: 19px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(53, 36, 111, 0.08);
+}
+
+.stat-card p {
+  margin: 0;
+  color: #51476a;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.stat-card h2 {
+  margin: 12px 0 0;
+  color: #35246f;
+  font-size: 29px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.stat-green {
+  background: #e8f4df;
+}
+
+.stat-peach {
+  background: #ffeadf;
+}
+
+.stat-purple {
+  background: #eee8ff;
+}
+
+.stat-yellow {
+  background: #fff3cf;
+}
+
+/* ========================================
+   BOTTOM GRID
+======================================== */
+
+.dashboard-bottom-grid {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 22px;
+  margin-bottom: 30px;
+}
+
+.dashboard-panel {
+  min-width: 0;
+  padding: 25px;
+  background: #ffffff;
+  border: 1px solid #f0e9e2;
+  border-radius: 20px;
+  box-shadow: 0 5px 20px rgba(53, 36, 111, 0.04);
+  box-sizing: border-box;
+}
+
+.panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 25px;
+}
+
+.panel-heading h2 {
+  margin: 0;
+  color: #35246f;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+/* ========================================
+   PANEL BUTTONS
+======================================== */
+
+.add-child-btn,
+.view-all-btn {
+  padding: 9px 14px;
+  border: none;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.add-child-btn {
+  background: #e8f4df;
+  color: #47834c;
+}
+
+.add-child-btn:hover {
+  background: #d8ebce;
+}
+
+.view-all-btn {
+  background: #f0eaff;
+  color: #6845b5;
+}
+
+.view-all-btn:hover {
+  background: #e4d9ff;
+}
+
+.add-child-btn:focus-visible,
+.view-all-btn:focus-visible {
+  outline: 3px solid rgba(89, 43, 193, 0.3);
+  outline-offset: 3px;
+}
+
+/* ========================================
+   CHILDREN LIST
+======================================== */
+
+.dashboard-children-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* ========================================
+   CHILD CARD
+======================================== */
+
+.child-card {
+  width: 100%;
+  padding: 25px 15px;
+  background: #fffaf5;
+  border: 1px solid #f5eee5;
+  border-radius: 17px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+/* Same pink gradient as My Children page */
+
+.child-avatar {
+  width: 85px;
+  height: 85px;
+  margin: 0 auto 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: linear-gradient(135deg, #ffe5d9, #f5dfff);
+  border-radius: 50%;
+}
+
+.child-avatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.child-avatar-initial {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #35246f;
+  font-size: 34px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.child-card h3 {
+  margin: 0 0 5px;
+  color: #35246f;
+  font-size: 21px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.child-age {
+  margin: 0;
+  color: #817691;
+  font-size: 14px;
+}
+
+.child-info {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.child-info p {
+  margin: 0;
+  padding: 9px 12px;
+  background: #ffffff;
+  border-radius: 10px;
+  color: #756b91;
+  font-size: 13px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+/* ========================================
+   CHILD REWARD STARS
+======================================== */
+
+.child-info .child-reward-stars {
+  background: #fff3cf;
+  color: #956500;
+  border: 1px solid #f6e2a7;
+  font-weight: 800;
+}
+
+/* ========================================
+   EMPTY CHILDREN STATE
+======================================== */
+
+.children-empty-state {
+  padding: 25px 15px;
+  text-align: center;
+}
+
+.children-empty-state h3 {
+  margin: 0 0 8px;
+  color: #35246f;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.children-empty-state p {
+  margin: 0 0 18px;
+  color: #817691;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.children-empty-message {
+  margin: 15px 0;
+  color: #817691;
+  font-size: 14px;
+  text-align: center;
+  line-height: 1.7;
+}
+
+.children-error-message {
+  margin: 15px 0;
+  padding: 12px;
+  background: #fff0f0;
+  border-radius: 10px;
+  color: #c0392b;
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+/* ========================================
+   RECENT ACTIVITY
+======================================== */
+
+.activity-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.activity-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px 0;
+  border-bottom: 1px solid #f2eee9;
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+/* ========================================
+   FOOTER
+======================================== */
+
+.dashboard-footer {
+  margin-top: auto;
+  padding: 25px 10px 5px;
+  color: #a39aaa;
+  font-size: 13px;
+  text-align: center;
+}
+
+/* ========================================
+   TABLET RESPONSIVE
+======================================== */
+
+@media (max-width: 1100px) {
+  .dashboard-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ========================================
+   MOBILE RESPONSIVE
+======================================== */
+
+@media (max-width: 768px) {
+  .dashboard-content {
+    padding: 28px 5%;
+  }
+
+  .dashboard-welcome {
+    margin-bottom: 23px;
+  }
+
+  .dashboard-welcome h1 {
+    font-size: 26px;
+  }
+
+  .dashboard-stats {
+    gap: 14px;
+  }
+
+  .stat-card {
+    min-height: 125px;
+    padding: 20px;
+  }
+
+  .stat-card h2 {
+    font-size: 25px;
+  }
+
+  .dashboard-panel {
+    padding: 20px;
+  }
+}
+
+/* ========================================
+   SMALL MOBILE
+======================================== */
+
+@media (max-width: 480px) {
+  .dashboard-content {
+    padding: 24px 4%;
+  }
+
+  .dashboard-welcome h1 {
+    font-size: 23px;
+  }
+
+  .dashboard-welcome p {
+    font-size: 13px;
+  }
+
+  .dashboard-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .stat-card {
+    min-height: 115px;
+    padding: 16px;
+  }
+
+  .stat-card p {
+    font-size: 12px;
+  }
+
+  .stat-card h2 {
+    font-size: 22px;
+  }
+
+  .dashboard-panel {
+    padding: 17px;
+  }
+
+  .panel-heading h2 {
+    font-size: 17px;
+  }
+
+  .add-child-btn,
+  .view-all-btn {
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+
+  .child-info {
+    gap: 8px;
+  }
+
+  .child-info p {
+    font-size: 11px;
+  }
+
+  .dashboard-children-list {
+    gap: 12px;
+  }
+}

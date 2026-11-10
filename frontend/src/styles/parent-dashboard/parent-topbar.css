@@ -1,0 +1,218 @@
+/* ========================================
+   PARENT TOPBAR
+======================================== */
+
+.parent-topbar {
+  width: 100%;
+  height: 82px;
+  min-height: 82px;
+
+  padding: 0 4%;
+
+  background: transparent;
+
+  border-bottom: 1px solid rgba(240, 233, 226, 0.6);
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  position: relative;
+
+  flex-shrink: 0;
+  z-index: 35;
+}
+
+/* ========================================
+   MOBILE TOPBAR LEFT SECTION
+======================================== */
+
+.mobile-topbar-left {
+  display: none;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ========================================
+   MOBILE MENU BUTTON
+======================================== */
+
+.mobile-menu-btn {
+  display: none;
+
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  border-radius: 10px;
+
+  background: #fff0e9;
+  color: #35246f;
+
+  cursor: pointer;
+
+  transition: background 0.2s ease;
+}
+
+.mobile-menu-btn:hover {
+  background: #ffe2d7;
+}
+
+.mobile-menu-btn:focus-visible {
+  outline: 2px solid #39834b;
+  outline-offset: 3px;
+}
+
+/* ========================================
+   MOBILE DASHBOARD LOGO
+======================================== */
+
+.mobile-dashboard-logo {
+  display: none;
+  align-items: center;
+}
+
+.mobile-dashboard-logo img {
+  width: 135px;
+  height: auto;
+
+  object-fit: contain;
+}
+
+/* ========================================
+   TOPBAR ACTIONS
+======================================== */
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+
+.topbar-actions > * {
+  position: relative;
+  z-index: 36;
+}
+
+/* ========================================
+   PROFILE AVATAR IMAGE SUPPORT
+======================================== */
+
+.profile-avatar {
+  width: 35px;
+  height: 35px;
+  min-width: 35px;
+
+  flex-shrink: 0;
+  overflow: hidden;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+}
+
+.profile-avatar img {
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+/* ========================================
+   PROFILE BUTTON IMAGE ALIGNMENT
+======================================== */
+
+.profile-btn {
+  display: flex;
+  align-items: center;
+}
+
+/* ========================================
+   DROPDOWN LAYER SUPPORT
+======================================== */
+
+.profile-wrapper {
+  position: relative;
+  z-index: 37;
+}
+
+.profile-dropdown {
+  position: absolute;
+  z-index: 38;
+}
+
+/* ========================================
+   MOBILE RESPONSIVE
+======================================== */
+
+@media (max-width: 768px) {
+  .parent-topbar {
+    height: 70px;
+    min-height: 70px;
+
+    padding: 0 5%;
+
+    justify-content: space-between;
+  }
+
+  .mobile-topbar-left {
+    display: flex;
+  }
+
+  .mobile-menu-btn {
+    display: flex;
+    flex-shrink: 0;
+  }
+
+  .mobile-dashboard-logo {
+    display: flex;
+  }
+
+  .mobile-dashboard-logo img {
+    width: 135px;
+  }
+
+  .topbar-actions {
+    gap: 12px;
+  }
+}
+
+/* ========================================
+   SMALL MOBILE RESPONSIVE
+======================================== */
+
+@media (max-width: 480px) {
+  .parent-topbar {
+    height: 65px;
+    min-height: 65px;
+
+    padding: 0 4%;
+  }
+
+  .mobile-topbar-left {
+    gap: 6px;
+  }
+
+  .mobile-menu-btn {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+  }
+
+  .mobile-dashboard-logo img {
+    width: 105px;
+  }
+
+  .topbar-actions {
+    gap: 8px;
+  }
+}

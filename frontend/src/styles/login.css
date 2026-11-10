@@ -1,0 +1,405 @@
+@font-face {
+  font-family: "Nunito";
+  src: url("../assets/fonts/Nunito-Variable.ttf") format("truetype");
+  font-weight: 400 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ==============================
+   POPUP BACKGROUND OVERLAY
+============================== */
+
+.login-popup-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  padding: 96px 24px 24px;
+  background: rgba(35, 20, 75, 0.28);
+  backdrop-filter: blur(3px);
+  font-family: "Nunito", sans-serif;
+  overflow-y: auto;
+}
+
+/* ==============================
+   POPUP CARD
+============================== */
+
+.login-popup-card {
+  position: relative;
+  width: 100%;
+  max-width: 390px;
+  padding: 25px 23px 22px;
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow: 0 15px 45px rgba(42, 20, 90, 0.2);
+  animation: loginPopupShow 0.25s ease;
+}
+
+@keyframes loginPopupShow {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ==============================
+   CLOSE BUTTON
+============================== */
+
+.login-popup-close {
+  position: absolute;
+  top: 12px;
+  right: 15px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  color: #3010a7;
+  background: transparent;
+  font-family: inherit;
+  font-size: 29px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.login-popup-close:hover {
+  color: #ff2995;
+}
+
+/* ==============================
+   LOGO AND HEADING
+============================== */
+
+.login-popup-header {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.login-popup-logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 5px;
+}
+
+.login-popup-logo img {
+  width: 190px;
+  height: 65px;
+  object-fit: contain;
+}
+
+.login-popup-header h2 {
+  margin: 0;
+  color: #3010a7;
+  font-size: 27px;
+  font-weight: 900;
+}
+
+.login-popup-header p {
+  margin: 6px 0 0;
+  color: #625d9f;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* ==============================
+   LOGIN FORM
+============================== */
+
+.login-popup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ==============================
+   INPUT FIELDS
+============================== */
+
+.login-popup-input {
+  display: flex;
+  align-items: center;
+  min-height: 49px;
+  gap: 11px;
+  padding: 0 12px;
+  border: 1px solid #e6e6f5;
+  border-radius: 13px;
+  background: #fff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.login-popup-input:focus-within {
+  border-color: #a77bff;
+  box-shadow: 0 0 0 3px rgba(167, 123, 255, 0.12);
+}
+
+.login-popup-input > span {
+  flex-shrink: 0;
+  color: #3010a7;
+  font-size: 18px;
+}
+
+.login-popup-input input {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  height: 45px;
+  padding: 0;
+  border: none;
+  outline: none;
+  color: #3010a7;
+  background: transparent;
+  font-family: "Nunito", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  caret-color: #3010a7;
+}
+
+.login-popup-input input::placeholder {
+  color: #8585aa;
+  opacity: 1;
+}
+
+/* ==============================
+   PASSWORD VISIBILITY
+============================== */
+
+.login-popup-toggle {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 4px;
+  border: none;
+  border-radius: 7px;
+  color: #3010a7;
+  background: transparent;
+  font-size: 17px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.login-popup-toggle:hover {
+  background: #f3efff;
+}
+
+/* ==============================
+   REMEMBER ME AND FORGOT PASSWORD
+============================== */
+
+.login-popup-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 2px 0;
+}
+
+.login-popup-remember {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #625d9f;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.login-popup-remember input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: #ff2995;
+  cursor: pointer;
+}
+
+.login-popup-forgot {
+  padding: 0;
+  border: none;
+  color: #5316dc;
+  background: transparent;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.login-popup-forgot:hover {
+  color: #ff2995;
+}
+
+/* ==============================
+   ERROR MESSAGE
+============================== */
+
+.login-popup-error {
+  margin: 0;
+  padding: 9px 11px;
+  border-radius: 9px;
+  color: #a52045;
+  background: #fff0f3;
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+/* ==============================
+   LOGIN BUTTON
+============================== */
+
+.login-popup-submit {
+  width: 100%;
+  min-height: 49px;
+  margin-top: 3px;
+  border: none;
+  border-radius: 13px;
+  color: #fff;
+  background: linear-gradient(100deg, #ff2995, #ff57b5);
+  box-shadow: 0 5px 13px rgba(255, 41, 149, 0.16);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.login-popup-submit:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 7px 16px rgba(255, 41, 149, 0.24);
+}
+
+.login-popup-submit:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* ==============================
+   GOOGLE LOGIN DIVIDER
+============================== */
+
+.login-popup-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 15px 0;
+  color: #8990ad;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.login-popup-divider::before,
+.login-popup-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #e2e5f2;
+}
+
+/* ==============================
+   GOOGLE LOGIN BUTTON
+============================== */
+
+.login-popup-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 47px;
+  overflow: hidden;
+  border: 1px solid #e2e5f2;
+  border-radius: 13px;
+  background: #ffffff;
+  color: #3010a7;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  transition: 0.2s ease;
+}
+
+.login-popup-google > div {
+  max-width: 100%;
+}
+
+.login-popup-google iframe {
+  max-width: 100%;
+}
+
+/* ==============================
+   REGISTER LINK
+============================== */
+
+.login-popup-register {
+  margin: 16px 0 0;
+  color: #77779d;
+  font-size: 12px;
+  text-align: center;
+}
+
+.login-popup-register button {
+  padding: 0;
+  border: none;
+  color: #3510b8;
+  background: transparent;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 900;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.login-popup-register button:hover {
+  color: #ff2995;
+}
+
+/* ==============================
+   TABLET AND MOBILE
+============================== */
+
+@media (max-width: 900px) {
+  .login-popup-overlay {
+    justify-content: center;
+    align-items: center;
+    padding: 75px 18px 25px;
+  }
+
+  .login-popup-card {
+    max-width: 420px;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-popup-overlay {
+    padding: 65px 14px 20px;
+  }
+
+  .login-popup-card {
+    max-width: 100%;
+    padding: 22px 18px 20px;
+    border-radius: 20px;
+  }
+
+  .login-popup-logo img {
+    width: 165px;
+    height: 58px;
+  }
+
+  .login-popup-header h2 {
+    font-size: 24px;
+  }
+
+  .login-popup-options {
+    gap: 10px;
+  }
+}

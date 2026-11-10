@@ -1,0 +1,140 @@
+
+/* ========================================
+   REWARDS PAGE DESIGN
+======================================== */
+
+.rewards-page {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.rewards-header h1 {
+  margin: 0 0 10px;
+  color: #35246f;
+  font-size: clamp(25px, 3vw, 34px);
+  font-weight: 800;
+}
+
+.rewards-header p {
+  margin: 0;
+  color: #817691;
+  font-size: 15px;
+}
+
+.rewards-child-selector label {
+  display: block;
+  margin-bottom: 12px;
+  color: #35246f;
+  font-weight: 800;
+}
+
+.rewards-child-selector select {
+  width: 100%;
+  max-width: 400px;
+  padding: 12px 15px;
+  border: 1px solid #e8dff3;
+  border-radius: 10px;
+  background: #fffaf7;
+  color: #35246f;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.rewards-summary {
+  text-align: center;
+}
+
+.rewards-summary h2 {
+  margin: 0;
+  color: #35246f;
+}
+
+.rewards-total-stars {
+  margin-top: 20px;
+  padding: 22px;
+  background: #fff3cf;
+  border-radius: 15px;
+}
+
+.rewards-total-stars span {
+  font-size: 30px;
+}
+
+.rewards-total-stars strong {
+  display: block;
+  margin-top: 5px;
+  color: #956500;
+  font-size: 35px;
+  font-weight: 800;
+}
+
+.rewards-total-stars p {
+  margin: 5px 0 0;
+  color: #817691;
+  font-weight: 700;
+}
+
+.rewards-topic-card h2 {
+  margin: 0 0 18px;
+  color: #35246f;
+  font-size: 20px;
+}
+
+.rewards-lesson-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 16px;
+  background: #fffaf5;
+  border: 1px solid #f5eee5;
+  border-radius: 13px;
+}
+
+.rewards-lesson-details h3 {
+  margin: 0 0 6px;
+  color: #35246f;
+  font-size: 15px;
+}
+
+.rewards-lesson-details p {
+  margin: 0;
+  color: #817691;
+  font-size: 12px;
+}
+
+.rewards-lesson-stars {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  padding: 9px 12px;
+  background: #fff3cf;
+  border-radius: 10px;
+  color: #956500;
+}
+
+.rewards-lesson-stars strong {
+  font-size: 16px;
+}
+
+.rewards-lesson-stars small {
+  font-size: 12px;
+}
+
+@media (max-width: 480px) {
+  .rewards-lesson-card {
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .rewards-lesson-details h3 {
+    font-size: 13px;
+  }
+
+  .rewards-lesson-stars {
+    padding: 8px;
+  }
+}
