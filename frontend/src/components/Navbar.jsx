@@ -41,6 +41,7 @@ function Navbar({ onLoginClick, onRegisterClick }) {
             <a href="#home" onClick={closeMenu}>Home</a>
             <a href="#about" onClick={closeMenu}>About</a>
             <a href="#categories" onClick={closeMenu}>Features</a>
+            <a href="#faq" onClick={closeMenu}>FAQ</a>
             <a href="#contact" onClick={closeMenu}>Contact</a>
           </div>
 

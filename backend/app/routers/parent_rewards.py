@@ -1,8 +1,9 @@
-
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.database import get_db
+
 from app.models.child import Child
 from app.models.child_selected_topic import ChildSelectedTopic
 from app.models.life_skill_topic import LifeSkillTopic
@@ -22,8 +23,11 @@ router = APIRouter(
 # VERIFY CHILD OWNERSHIP
 # ==========================================
 
-def get_owned_child(db: Session, parent_id: int, child_id: int):
-
+def get_owned_child(
+    db: Session,
+    parent_id: int,
+    child_id: int,
+):
     child = db.query(Child).filter(
         Child.child_id == child_id,
         Child.parent_id == parent_id,
@@ -50,23 +54,21 @@ def get_children_reward_totals(
 
     children = db.query(Child).filter(
         Child.parent_id == current_parent.user_id
-    ).order_by(Child.child_id).all()
+    ).order_by(
+        Child.child_id
+    ).all()
 
     child_rewards = []
 
     for child in children:
 
         total_stars = db.query(
-            RewardTransaction
-        ).filter(
-            RewardTransaction.child_id == child.child_id
-        ).with_entities(
-            __import__("sqlalchemy").func.coalesce(
-                __import__("sqlalchemy").func.sum(
-                    RewardTransaction.stars_earned
-                ),
+            func.coalesce(
+                func.sum(RewardTransaction.stars_earned),
                 0,
             )
+        ).filter(
+            RewardTransaction.child_id == child.child_id
         ).scalar()
 
         child_rewards.append({
@@ -91,84 +93,145 @@ def get_child_rewards(
     current_parent=Depends(get_current_parent),
 ):
 
-    # 1. Verify child belongs to this parent
+    # 1. VERIFY CHILD OWNERSHIP
 
     child = get_owned_child(
-        db,
-        current_parent.user_id,
-        child_id,
+        db=db,
+        parent_id=current_parent.user_id,
+        child_id=child_id,
     )
 
-    # 2. Get topics selected by this child
+    # 2. GET SELECTED TOPICS
 
-    selected_topics = db.query(
-        ChildSelectedTopic
-    ).filter(
-        ChildSelectedTopic.child_id == child_id
-    ).all()
+    selected_topic_ids = {
+        item[0]
+        for item in db.query(
+            ChildSelectedTopic.topic_id
+        ).filter(
+            ChildSelectedTopic.child_id == child_id
+        ).all()
+    }
+
+    # 3. GET TOPICS WITH PREVIOUS REWARDS
+
+    rewarded_topic_ids = {
+        item[0]
+        for item in db.query(
+            Lesson.topic_id
+        ).join(
+            RewardTransaction,
+            RewardTransaction.lesson_id == Lesson.lesson_id,
+        ).filter(
+            RewardTransaction.child_id == child_id
+        ).distinct().all()
+    }
+
+    # Include both selected and previously rewarded topics
+
+    topic_ids = selected_topic_ids | rewarded_topic_ids
 
     topic_rewards = []
 
-    # 3. Get lessons and rewards topic by topic
+    if topic_ids:
 
-    for selected_topic in selected_topics:
+        # 4. GET TOPICS
 
-        topic = db.query(LifeSkillTopic).filter(
-            LifeSkillTopic.topic_id == selected_topic.topic_id
-        ).first()
-
-        if not topic:
-            continue
-
-        lessons = db.query(Lesson).filter(
-            Lesson.topic_id == topic.topic_id
+        topics = db.query(
+            LifeSkillTopic
+        ).filter(
+            LifeSkillTopic.topic_id.in_(topic_ids)
         ).order_by(
+            LifeSkillTopic.topic_id
+        ).all()
+
+        # 5. GET ALL LESSONS FOR THESE TOPICS
+
+        lessons = db.query(
+            Lesson
+        ).filter(
+            Lesson.topic_id.in_(topic_ids)
+        ).order_by(
+            Lesson.topic_id,
             Lesson.lesson_id
         ).all()
 
-        lesson_rewards = []
+        # Group lessons by topic
+
+        lessons_by_topic = {}
 
         for lesson in lessons:
 
-            reward = db.query(RewardTransaction).filter(
-                RewardTransaction.child_id == child_id,
-                RewardTransaction.lesson_id == lesson.lesson_id,
-            ).first()
+            lessons_by_topic.setdefault(
+                lesson.topic_id, []
+            ).append(lesson)
 
-            stars_earned = (
-                reward.stars_earned if reward else 0
+        # 6. GET ALL REWARDS FOR THIS CHILD
+
+        rewards = db.query(
+            RewardTransaction
+        ).filter(
+            RewardTransaction.child_id == child_id
+        ).all()
+
+        # Map rewards by lesson ID
+
+        reward_by_lesson = {
+            reward.lesson_id: reward
+            for reward in rewards
+        }
+
+        # 7. BUILD TOPIC AND LESSON RESPONSE
+
+        for topic in topics:
+
+            lesson_rewards = []
+
+            topic_lessons = lessons_by_topic.get(
+                topic.topic_id, []
             )
 
-            total_questions = (
-                reward.total_questions if reward else 0
-            )
+            for lesson in topic_lessons:
 
-            lesson_rewards.append({
-                "lesson_id": lesson.lesson_id,
-                "lesson_title": lesson.title,
-                "stars_earned": stars_earned,
-                "total_questions": total_questions,
-                "completed": reward is not None,
+                reward = reward_by_lesson.get(
+                    lesson.lesson_id
+                )
+
+                stars_earned = (
+                    int(reward.stars_earned)
+                    if reward else 0
+                )
+
+                total_questions = (
+                    int(reward.total_questions)
+                    if reward else 0
+                )
+
+                lesson_rewards.append({
+                    "lesson_id": lesson.lesson_id,
+                    "lesson_title": lesson.title,
+                    "stars_earned": stars_earned,
+                    "total_questions": total_questions,
+                    "completed": reward is not None,
+                })
+
+            topic_rewards.append({
+                "topic_id": topic.topic_id,
+                "topic_name": topic.topic_name,
+                "lessons": lesson_rewards,
             })
 
-        topic_rewards.append({
-            "topic_id": topic.topic_id,
-            "topic_name": topic.topic_name,
-            "lessons": lesson_rewards,
-        })
-
-    # 4. Return selected child's rewards
+    # 8. CALCULATE TOTAL STARS FOR THIS CHILD
 
     total_stars = db.query(
-        __import__("sqlalchemy").func.coalesce(
-            __import__("sqlalchemy").func.sum(
-                RewardTransaction.stars_earned
-            ),
+        func.coalesce(
+            func.sum(RewardTransaction.stars_earned),
             0,
         )
     ).filter(
         RewardTransaction.child_id == child_id
     ).scalar()
+
+    # 9. RETURN RESPONSE
 
     return {
         "child_id": child.child_id,

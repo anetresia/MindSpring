@@ -1,23 +1,21 @@
-
 import { useState } from "react";
 
 import heroBg from "../assets/hero-bg.png";
-import aboutIllustration from "../assets/about-illustration.png";
+import aboutBg from "../assets/about-bg.png";
 
 import personalHygieneImage from "../assets/personal-hygiene.png";
 import communicationImage from "../assets/communication-skills.png";
 import communityImage from "../assets/community-skills.png";
 
-// Contact background image
 import contactBg from "../assets/contact-girl-bg.png";
 
-// Hero feature card images
 import dailyLifeImage from "../assets/daily-life.png";
 import heroCommunicationImage from "../assets/communication.png";
 import socialSkillsImage from "../assets/social-skills.png";
 import independenceImage from "../assets/independence.png";
 
-// Learning categories
+import FAQ from "../components/FAQ";
+
 const categories = [
   {
     icon: "🪥",
@@ -67,7 +65,6 @@ const categories = [
 ];
 
 function Landing({ onRegisterClick }) {
-  // Contact form states
   const [contactData, setContactData] = useState({
     name: "",
     email: "",
@@ -79,7 +76,6 @@ function Landing({ onRegisterClick }) {
   const [contactError, setContactError] = useState("");
   const [contactSuccess, setContactSuccess] = useState("");
 
-  // Handle Contact form input changes
   function handleContactChange(event) {
     const { name, value } = event.target;
 
@@ -92,7 +88,6 @@ function Landing({ onRegisterClick }) {
     setContactSuccess("");
   }
 
-  // Submit Contact form to FastAPI
   async function handleContactSubmit(event) {
     event.preventDefault();
 
@@ -168,7 +163,6 @@ function Landing({ onRegisterClick }) {
         }}
       >
         <div className="hero-content">
-
           <h1 className="hero-title">
             <span className="hero-purple">Brighter Skills</span>
             <span className="hero-pink">Happier</span>
@@ -196,7 +190,6 @@ function Landing({ onRegisterClick }) {
             </a>
           </div>
 
-          {/* HERO FEATURE CARDS */}
           <div className="hero-feature-cards">
             <div className="hero-feature-card">
               <img
@@ -242,100 +235,136 @@ function Landing({ onRegisterClick }) {
       </section>
 
       {/* ABOUT SECTION */}
-      <section id="about" className="about-section section-padding">
-        <div className="about-illustration">
-          <img
-            src={aboutIllustration}
-            alt="MindSpring children learning illustration"
-            className="about-illustration-image"
-          />
-        </div>
-
+      <section
+        id="about"
+        className="about-section section-padding"
+        style={{
+          backgroundImage: `url(${aboutBg})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        }}
+      >
         <div className="about-content">
           <span className="eyebrow">ABOUT MINDSPRING</span>
 
           <h2>
-            Learning that feels
+            Learning that
             <br />
-            like <span className="pink-text">play.</span>
+            feels like <span className="pink-text">play.</span>
           </h2>
 
           <p>
-            Every child has their own way of discovering the world.
-            MindSpring helps children explore daily life skills through
-            friendly cartoon lessons and interactive activities.
+            MindSpring is a fun and friendly learning platform
+            that helps children build real life skills through
+            simple, engaging and interactive lessons.
           </p>
 
-          <p>
-            Parents can personalize learning based on their child's
-            language and preferences, making learning more comfortable
-            and enjoyable.
-          </p>
-
-          <a href="#categories" className="btn btn-outline-pink">
+          <a
+            href="#categories"
+            className="btn btn-outline-pink about-learn-more"
+          >
             Learn More →
           </a>
         </div>
+
+        <div className="about-highlights">
+          <article className="about-highlight-card goal-card">
+            <div className="about-highlight-icon" aria-hidden="true">
+              🎯
+            </div>
+
+            <div className="about-highlight-text">
+              <h3>Our Goal</h3>
+              <p>
+                To make everyday learning easy,
+                fun and meaningful for children.
+              </p>
+            </div>
+          </article>
+
+          <article className="about-highlight-card approach-card">
+            <div className="about-highlight-icon" aria-hidden="true">
+              💗
+            </div>
+
+            <div className="about-highlight-text">
+              <h3>Our Approach</h3>
+              <p>
+                Real life skills, short lessons and
+                child-friendly activities.
+              </p>
+            </div>
+          </article>
+
+          <article className="about-highlight-card impact-card">
+            <div className="about-highlight-icon" aria-hidden="true">
+              🌱
+            </div>
+
+            <div className="about-highlight-text">
+              <h3>Our Impact</h3>
+              <p>
+                Helping children grow into confident,
+                independent and caring individuals.
+              </p>
+            </div>
+          </article>
+        </div>
       </section>
 
-      {/* LEARNING CATEGORIES */}
-      <section
-        id="categories"
-        className="categories-section section-padding"
-      >
-        <div className="section-heading">
-          <span className="eyebrow">OUR LEARNING CATEGORIES</span>
+      {/* FEATURES SECTION */}
+      <section id="categories" className="categories-section">
+        <div className="features-heading">
+          <span className="features-badge">
+            <span aria-hidden="true">✨</span>
+            Features
+          </span>
 
           <h2>
-            Real life skills for a{" "}
-            <span className="pink-text">brighter tomorrow.</span>
+            Everything your child needs to <span>grow.</span>
           </h2>
 
           <p>
-            Explore fun and simple video lessons in everyday life skills.
+            Simple, fun and practical lessons for real life skills.
           </p>
         </div>
 
         <div className="category-grid">
-          {categories.map((category) => (
+          {categories.map((category, index) => (
             <article
               className={`category-card ${category.color}-card`}
               key={category.title}
             >
-              <div className="category-art">
-                <img
-                  src={category.image}
-                  alt={`${category.title} learning illustration`}
-                  className="category-art-image"
-                />
+              <div className="feature-number">
+                {String(index + 1).padStart(2, "0")}
               </div>
 
               <div className="category-info">
                 <h3>{category.title}</h3>
                 <p>{category.description}</p>
-
-                <details className="topic-details">
-                  <summary>Explore learning videos</summary>
-
-                  <ul>
-                    {category.topics.map((topic) => (
-                      <li key={topic}>{topic}</li>
-                    ))}
-                  </ul>
-                </details>
-
-                <a
-                  href="#categories"
-                  className="category-arrow"
-                  aria-label={`Explore ${category.title}`}
-                >
-                  →
-                </a>
               </div>
             </article>
           ))}
         </div>
+
+        <div className="features-action">
+          <a href="#categories" className="features-explore-button">
+            Explore All Learning Videos <span>→</span>
+          </a>
+        </div>
+
+        <span className="features-decoration features-decoration-left">
+          ✦
+        </span>
+
+        <span className="features-decoration features-decoration-right">
+          ✦
+        </span>
       </section>
+
+      {/* FAQ SECTION */}
+      <FAQ />
 
       {/* CONTACT SECTION */}
       <section id="contact" className="contact-section">
@@ -348,7 +377,6 @@ function Landing({ onRegisterClick }) {
             backgroundRepeat: "no-repeat",
           }}
         >
-          {/* Left side contact text */}
           <div className="contact-copy">
             <span className="contact-eyebrow">CONTACT US</span>
 
@@ -365,28 +393,17 @@ function Landing({ onRegisterClick }) {
             </p>
           </div>
 
-          {/* Right side contact form */}
           <div className="contact-form-card">
             <div className="contact-form-heading">
               <h3>Send us a message</h3>
-
-              <p>
-                Fill in the form and we'll get back to you soon.
-              </p>
+              <p>Fill in the form and we'll get back to you soon.</p>
             </div>
 
-            <form
-              className="contact-form"
-              onSubmit={handleContactSubmit}
-            >
-              {/* Name and Email */}
+            <form className="contact-form" onSubmit={handleContactSubmit}>
               <div className="contact-form-row">
                 <div className="contact-form-group">
                   <div className="contact-input-wrapper">
-                    <span
-                      className="contact-input-icon"
-                      aria-hidden="true"
-                    >
+                    <span className="contact-input-icon" aria-hidden="true">
                       ♙
                     </span>
 
@@ -405,10 +422,7 @@ function Landing({ onRegisterClick }) {
 
                 <div className="contact-form-group">
                   <div className="contact-input-wrapper">
-                    <span
-                      className="contact-input-icon"
-                      aria-hidden="true"
-                    >
+                    <span className="contact-input-icon" aria-hidden="true">
                       ✉
                     </span>
 
@@ -426,13 +440,9 @@ function Landing({ onRegisterClick }) {
                 </div>
               </div>
 
-              {/* Subject */}
               <div className="contact-form-group">
                 <div className="contact-input-wrapper">
-                  <span
-                    className="contact-input-icon"
-                    aria-hidden="true"
-                  >
+                  <span className="contact-input-icon" aria-hidden="true">
                     ▤
                   </span>
 
@@ -449,13 +459,9 @@ function Landing({ onRegisterClick }) {
                 </div>
               </div>
 
-              {/* Message */}
               <div className="contact-form-group">
                 <div className="contact-input-wrapper contact-textarea-wrapper">
-                  <span
-                    className="contact-input-icon"
-                    aria-hidden="true"
-                  >
+                  <span className="contact-input-icon" aria-hidden="true">
                     ▤
                   </span>
 
@@ -472,21 +478,18 @@ function Landing({ onRegisterClick }) {
                 </div>
               </div>
 
-              {/* Error Message */}
               {contactError && (
                 <p className="contact-error" role="alert">
                   {contactError}
                 </p>
               )}
 
-              {/* Success Message */}
               {contactSuccess && (
                 <p className="contact-success" role="status">
                   {contactSuccess}
                 </p>
               )}
 
-              {/* Submit Button */}
               <button
                 type="submit"
                 className="btn btn-primary contact-submit-btn"

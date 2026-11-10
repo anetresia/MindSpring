@@ -1,5 +1,8 @@
 
-/* NAVBAR */
+/* ========================================
+   NAVBAR
+======================================== */
+
 .site-header {
     position: sticky;
     top: 0;
@@ -38,11 +41,11 @@
 
 .nav-content {
     justify-content: flex-end;
-    gap: clamp(18px, 3vw, 42px);
+    gap: clamp(16px, 2.5vw, 35px);
 }
 
 .nav-links {
-    gap: clamp(12px, 2vw, 27px);
+    gap: clamp(12px, 1.7vw, 24px);
 }
 
 .nav-links a {
@@ -72,11 +75,13 @@
 
 .nav-actions {
     gap: 10px;
+    flex-shrink: 0;
 }
 
 .nav-actions .btn {
     min-height: 39px;
     padding: 9px 18px;
+    white-space: nowrap;
 }
 
 .menu-toggle {
@@ -88,6 +93,16 @@
     color: var(--purple);
     background: white;
     font-size: 23px;
+    cursor: pointer;
+}
+
+/* NAVBAR ACCESSIBILITY */
+
+.nav-links a:focus-visible,
+.menu-toggle:focus-visible {
+    outline: 2px solid var(--pink);
+    outline-offset: 4px;
+    border-radius: 5px;
 }
 
 /* ================================
@@ -234,26 +249,40 @@
     color: var(--pink);
 }
 
-/* TABLET */
-@media (max-width: 1050px) {
+/* ========================================
+   TABLET NAVBAR
+======================================== */
+
+@media (max-width: 1050px) and (min-width: 761px) {
+
+    .navbar {
+        gap: 12px;
+    }
+
     .brand img {
-        width: 125px;
+        width: 115px;
     }
 
     .nav-content {
-        gap: 18px;
+        gap: 12px;
     }
 
     .nav-links {
-        gap: 13px;
+        gap: 11px;
     }
 
     .nav-links a {
-        font-size: 11px;
+        font-size: 10px;
+    }
+
+    .nav-actions {
+        gap: 7px;
     }
 
     .nav-actions .btn {
-        padding: 9px 13px;
+        min-height: 36px;
+        padding: 8px 11px;
+        font-size: 11px;
     }
 
     .footer-main {
@@ -262,8 +291,12 @@
     }
 }
 
-/* MOBILE NAVBAR */
+/* ========================================
+   MOBILE NAVBAR
+======================================== */
+
 @media (max-width: 760px) {
+
     .site-header {
         padding: 5px 4%;
     }
@@ -287,13 +320,17 @@
         top: calc(100% + 4px);
         right: 4%;
         left: 4%;
+
         display: none;
         align-items: stretch;
         flex-direction: column;
         gap: 16px;
+
         padding: 18px;
+
         border: 1px solid #f3e2ff;
         border-radius: 20px;
+
         background: white;
         box-shadow: 0 14px 30px #42147d20;
     }
@@ -329,8 +366,12 @@
     }
 }
 
-/* MOBILE FOOTER */
+/* ========================================
+   MOBILE FOOTER
+======================================== */
+
 @media (max-width: 760px) {
+
     .footer {
         width: 100%;
         padding: 25px 5% 0;
@@ -383,13 +424,29 @@
     }
 }
 
-/* SMALL PHONES */
+/* ========================================
+   SMALL PHONES
+======================================== */
+
 @media (max-width: 390px) {
+
     .footer-main {
         gap: 18px 12px;
     }
 
     .footer-bottom>div {
         gap: 5px;
+    }
+}
+
+/* ========================================
+   REDUCED MOTION
+======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .nav-links a::after,
+    .social-links a {
+        transition: none;
     }
 }

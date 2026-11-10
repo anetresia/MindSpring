@@ -18,7 +18,6 @@ import {
 
 import "../styles/child-learning.css";
 
-
 function ChildLearning() {
   const { childId } = useParams();
 
@@ -52,7 +51,6 @@ function ChildLearning() {
 
   const [error, setError] = useState("");
   const [questionError, setQuestionError] = useState("");
-
 
   // ========================================
   // LOAD CHILD AND SELECTED TOPICS
@@ -112,7 +110,6 @@ function ChildLearning() {
 
   }, [childId]);
 
-
   // ========================================
   // RESET QUESTION DATA
   // ========================================
@@ -126,7 +123,6 @@ function ChildLearning() {
     setCheckingAnswers(false);
     setQuestionError("");
   }
-
 
   // ========================================
   // LOAD LESSONS WHEN A TOPIC IS SELECTED
@@ -169,7 +165,6 @@ function ChildLearning() {
     }
   }
 
-
   // ========================================
   // CHANGE CURRENT LESSON
   // ========================================
@@ -178,7 +173,6 @@ function ChildLearning() {
     setCurrentLesson(lesson);
     resetQuestionData();
   }
-
 
   // ========================================
   // VIDEO URL
@@ -194,7 +188,6 @@ function ChildLearning() {
     }
   }
 
-
   // ========================================
   // QUESTION IMAGE URL
   // ========================================
@@ -208,7 +201,6 @@ function ChildLearning() {
       return imageUrl;
     }
   }
-
 
   // ========================================
   // LOAD QUESTIONS AFTER VIDEO ENDS
@@ -267,7 +259,6 @@ function ChildLearning() {
     }
   }
 
-
   // ========================================
   // AUTOMATIC ANSWER CHECKING
   // ========================================
@@ -298,9 +289,7 @@ function ChildLearning() {
       );
 
       // Prevent old lesson results from updating new lesson
-      if (
-        currentLesson?.lesson_id !== lessonId
-      ) {
+      if (currentLesson?.lesson_id !== lessonId) {
         return;
       }
 
@@ -318,13 +307,11 @@ function ChildLearning() {
     }
   }
 
-
   // ========================================
   // SELECT ANSWER
   // ========================================
 
   function handleAnswerSelect(questionId, optionId) {
-    // Do not allow changes after all answers are checked
     if (answerResults || checkingAnswers) {
       return;
     }
@@ -351,7 +338,6 @@ function ChildLearning() {
     }
   }
 
-
   // ========================================
   // LOADING SCREEN
   // ========================================
@@ -363,7 +349,6 @@ function ChildLearning() {
       </div>
     );
   }
-
 
   // ========================================
   // MAIN PAGE
@@ -396,7 +381,6 @@ function ChildLearning() {
 
       </header>
 
-
       {/* GENERAL ERROR */}
 
       {error && (
@@ -404,7 +388,6 @@ function ChildLearning() {
           {error}
         </div>
       )}
-
 
       {/* TOPIC SELECTION */}
 
@@ -443,7 +426,6 @@ function ChildLearning() {
         )}
 
       </section>
-
 
       {/* LESSON LIST */}
 
@@ -497,7 +479,6 @@ function ChildLearning() {
 
       )}
 
-
       {/* VIDEO AND QUESTIONS SECTION */}
 
       {currentLesson && (
@@ -515,7 +496,6 @@ function ChildLearning() {
               <h3>{currentLesson.title}</h3>
 
             </div>
-
 
             {/* VIDEO PLAYER */}
 
@@ -536,7 +516,6 @@ function ChildLearning() {
 
             </video>
 
-
             {/* VIDEO DESCRIPTION */}
 
             {currentLesson.lesson_script && (
@@ -553,7 +532,6 @@ function ChildLearning() {
 
           </div>
 
-
           {/* RIGHT SIDE - QUESTIONS */}
 
           <aside className="child-learning-questions-section">
@@ -565,7 +543,6 @@ function ChildLearning() {
               <h3>Questions</h3>
 
             </div>
-
 
             {/* BEFORE VIDEO COMPLETION */}
 
@@ -583,7 +560,6 @@ function ChildLearning() {
 
             )}
 
-
             {/* QUESTIONS LOADING */}
 
             {videoCompleted && questionsLoading && (
@@ -598,7 +574,6 @@ function ChildLearning() {
 
             )}
 
-
             {/* QUESTION ERROR */}
 
             {videoCompleted && !questionsLoading && questionError && (
@@ -608,7 +583,6 @@ function ChildLearning() {
               </div>
 
             )}
-
 
             {/* NO QUESTIONS */}
 
@@ -628,7 +602,6 @@ function ChildLearning() {
                 </div>
 
               )}
-
 
             {/* DISPLAY QUESTIONS */}
 
@@ -665,13 +638,11 @@ function ChildLearning() {
                           Question {index + 1}
                         </h4>
 
-
                         {/* QUESTION TEXT */}
 
                         <p className="child-learning-question-text">
                           {question.question_text}
                         </p>
-
 
                         {/* IMAGE OPTIONS A / B / C */}
 
@@ -775,7 +746,6 @@ function ChildLearning() {
                     );
                   })}
 
-
                   {/* AUTOMATIC CHECKING MESSAGE */}
 
                   {checkingAnswers && (
@@ -787,30 +757,63 @@ function ChildLearning() {
 
                   )}
 
+                  {/* FINAL SCORE AND DYNAMIC STAR REWARDS */}
 
-                  {/* FINAL SCORE */}
+                  {answerResults && (() => {
+                    const earnedStars = Math.max(
+                      0,
+                      Math.min(
+                        Number(answerResults.score) || 0,
+                        Number(answerResults.total_questions) || 0
+                      )
+                    );
 
-                  {answerResults && (
+                    const totalQuestions =
+                      Number(answerResults.total_questions) || 0;
 
-                    <div className="child-learning-result">
+                    return (
+                      <div className="child-learning-result">
 
-                      <h3>🌟 Great Learning!</h3>
+                        <h3>🌟 Great Learning!</h3>
 
-                      <p>
-                        You got{" "}
-                        <strong>
-                          {answerResults.score}
-                        </strong>
-                        {" "}out of{" "}
-                        <strong>
-                          {answerResults.total_questions}
-                        </strong>
-                        {" "}correct answers.
-                      </p>
+                        {/* SHOW ONE STAR FOR EACH CORRECT ANSWER */}
 
-                    </div>
+                        <div
+                          className="child-learning-earned-stars"
+                          aria-label={`${earnedStars} stars earned`}
+                        >
+                          {Array.from(
+                            { length: earnedStars },
+                            (_, index) => (
+                              <span key={index}>⭐</span>
+                            )
+                          )}
+                        </div>
 
-                  )}
+                        {/* EARNED STARS / TOTAL QUESTIONS */}
+
+                        <h2>
+                          {earnedStars} / {totalQuestions} Stars
+                        </h2>
+
+                        <p>
+                          {earnedStars} correct answers ={" "}
+                          {earnedStars} earned stars
+                        </p>
+
+                        {/* QUIZ SCORE */}
+
+                        <p>
+                          You got{" "}
+                          <strong>{earnedStars}</strong>
+                          {" "}out of{" "}
+                          <strong>{totalQuestions}</strong>
+                          {" "}correct answers.
+                        </p>
+
+                      </div>
+                    );
+                  })()}
 
                 </div>
 

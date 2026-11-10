@@ -1,9 +1,9 @@
-
 from fastapi import APIRouter, Depends, HTTPException, status, Body
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.user import User
+from app.models.quiz import ActivityResponse
 from app.models.reward_transaction import RewardTransaction
 
 from app.routers.auth import get_current_admin
@@ -217,7 +217,7 @@ def update_question(
         exclude_unset=True
     )
 
-    # Validate Question Order when it is updated
+    # Validate Question Order when updated
 
     if "question_order" in update_dict:
         validate_question_order(
@@ -296,7 +296,7 @@ def get_child_lesson_questions(
         lesson_id,
     )
 
-    # Get all questions in order
+    # Get all active questions in order
 
     questions = get_sorted_questions(
         db,
@@ -334,6 +334,7 @@ def check_child_answers(
 ):
 
     try:
+
         # 1. Verify child and lesson access
 
         verify_child_lesson_access(
@@ -374,20 +375,53 @@ def check_child_answers(
                     detail="Invalid answer format",
                 )
 
-            question_id = answer.get("question_id")
+            raw_question_id = answer.get("question_id")
             selected_answer = answer.get("selected_answer")
 
-            if question_id is None or selected_answer is None:
+            if raw_question_id is None or selected_answer is None:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Question ID and selected answer are required",
                 )
 
-            if selected_answer not in ["A", "B", "C"]:
+            # Validate question ID
+
+            if isinstance(raw_question_id, bool):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid question ID",
+                )
+
+            try:
+                question_id = int(raw_question_id)
+
+            except (TypeError, ValueError):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid question ID",
+                )
+
+            if (
+                isinstance(raw_question_id, float)
+                and not raw_question_id.is_integer()
+            ):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid question ID",
+                )
+
+            # Validate selected answer
+
+            if (
+                not isinstance(selected_answer, str)
+                or selected_answer not in ("A", "B", "C")
+            ):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Invalid answer option",
                 )
+
+            # Prevent duplicate answers
 
             if question_id in submitted_answers:
                 raise HTTPException(
@@ -413,6 +447,7 @@ def check_child_answers(
         # 5. Check answers on the backend
 
         results = []
+        response_rows = []
         score = 0
 
         for question in questions:
@@ -430,12 +465,26 @@ def check_child_answers(
             if is_correct:
                 score += 1
 
+            # Prepare feedback result
+
             results.append({
                 "question_id": question.question_id,
                 "selected_answer": selected_answer,
                 "correct_answer": correct_answer,
                 "is_correct": is_correct,
             })
+
+            # Save each answer in ActivityResponse
+
+            response_rows.append(
+                ActivityResponse(
+                    child_id=child_id,
+                    question_id=question.question_id,
+                    selected_answer=selected_answer,
+                    score=1 if is_correct else 0,
+                    is_correct=is_correct,
+                )
+            )
 
         # 6. Find existing reward for this child and lesson
 
@@ -463,7 +512,9 @@ def check_child_answers(
 
             db.add(reward)
 
-        # 8. Save reward in database
+        # 8. Save answer history and reward together
+
+        db.add_all(response_rows)
 
         db.commit()
         db.refresh(reward)

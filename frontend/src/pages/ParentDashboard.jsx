@@ -15,6 +15,7 @@ import MyChildren from "../components/parent-dashboard/MyChildren";
 import ParentProfile from "../components/parent-dashboard/ParentProfile";
 import LearningPreferences from "../components/parent-dashboard/LearningPreferences";
 import TopicSelection from "../components/parent-dashboard/TopicSelection";
+import Rewards from "../components/parent-dashboard/Rewards";
 
 import parentDashboardBg from "../assets/parent-dashboard-bg.png";
 
@@ -367,6 +368,14 @@ function ParentDashboard() {
             />
           )}
 
+          {/* REWARDS PAGE */}
+
+          {activeMenu === "Rewards" && (
+            <Rewards
+              children={children}
+            />
+          )}
+
           {/* PARENT PROFILE */}
 
           {activeMenu === "Profile" && (
@@ -382,6 +391,7 @@ function ParentDashboard() {
             activeMenu !== "My Children" &&
             activeMenu !== "Learning Preferences" &&
             activeMenu !== "Life Skill Topics" &&
+            activeMenu !== "Rewards" &&
             activeMenu !== "Profile" && (
               <div className="dashboard-content">
                 <h2>{activeMenu}</h2>

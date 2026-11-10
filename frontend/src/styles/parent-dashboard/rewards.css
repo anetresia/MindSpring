@@ -1,4 +1,3 @@
-
 /* ========================================
    REWARDS PAGE DESIGN
 ======================================== */
@@ -9,6 +8,10 @@
   flex-direction: column;
   gap: 24px;
 }
+
+/* ========================================
+   HEADER
+======================================== */
 
 .rewards-header h1 {
   margin: 0 0 10px;
@@ -22,6 +25,10 @@
   color: #817691;
   font-size: 15px;
 }
+
+/* ========================================
+   CHILD SELECTOR
+======================================== */
 
 .rewards-child-selector label {
   display: block;
@@ -40,7 +47,17 @@
   color: #35246f;
   font-family: inherit;
   font-size: 14px;
+  cursor: pointer;
 }
+
+.rewards-child-selector select:focus-visible {
+  outline: 3px solid #c9b8ed;
+  outline-offset: 3px;
+}
+
+/* ========================================
+   TOTAL STARS
+======================================== */
 
 .rewards-summary {
   text-align: center;
@@ -76,10 +93,24 @@
   font-weight: 700;
 }
 
+/* ========================================
+   TOPIC CARD
+======================================== */
+
 .rewards-topic-card h2 {
   margin: 0 0 18px;
   color: #35246f;
   font-size: 20px;
+}
+
+/* ========================================
+   LESSON LIST
+======================================== */
+
+.rewards-lesson-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .rewards-lesson-card {
@@ -93,10 +124,15 @@
   border-radius: 13px;
 }
 
+.rewards-lesson-details {
+  min-width: 0;
+}
+
 .rewards-lesson-details h3 {
   margin: 0 0 6px;
   color: #35246f;
   font-size: 15px;
+  overflow-wrap: anywhere;
 }
 
 .rewards-lesson-details p {
@@ -104,6 +140,10 @@
   color: #817691;
   font-size: 12px;
 }
+
+/* ========================================
+   LESSON STARS
+======================================== */
 
 .rewards-lesson-stars {
   display: flex;
@@ -124,7 +164,25 @@
   font-size: 12px;
 }
 
+/* ========================================
+   LOADING AND ERROR
+======================================== */
+
+.rewards-page .children-empty-message,
+.rewards-page .children-error-message {
+  margin: 0;
+  padding: 12px 0;
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+======================================== */
+
 @media (max-width: 480px) {
+  .rewards-page {
+    gap: 18px;
+  }
+
   .rewards-lesson-card {
     padding: 12px;
     gap: 8px;
@@ -136,5 +194,9 @@
 
   .rewards-lesson-stars {
     padding: 8px;
+  }
+
+  .rewards-topic-card h2 {
+    font-size: 18px;
   }
 }

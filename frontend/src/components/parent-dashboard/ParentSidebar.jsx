@@ -1,4 +1,3 @@
-
 import logo from "../../assets/mindspring-logo.png";
 import "../../styles/parent-dashboard/parent-sidebar.css";
 
@@ -11,11 +10,6 @@ function ParentSidebar({
   const menuItems = [
     { name: "Dashboard", icon: "🏠" },
     { name: "My Children", icon: "🧒" },
-    {
-      name: "Learning Progress",
-      icon: "🌟",
-      action: "Reports",
-    },
     { name: "Rewards", icon: "⭐" },
     { name: "Subscription", icon: "👑" },
   ];
@@ -51,11 +45,9 @@ function ParentSidebar({
 
         <nav className="dashboard-menu">
           {menuItems.map((item) => {
-            const menuAction = item.action || item.name;
+            const menuAction = item.name;
 
-            const isActive =
-              activeMenu === item.name ||
-              activeMenu === menuAction;
+            const isActive = activeMenu === menuAction;
 
             return (
               <button
