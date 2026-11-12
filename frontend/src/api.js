@@ -641,6 +641,16 @@ export async function getChildrenRewardTotals() {
 }
 
 // ========================================
+// PARENT - GET RECENT LEARNING ACTIVITIES
+// ========================================
+
+export async function getRecentActivities() {
+  return apiRequest("/parent/activities/recent", {
+    method: "GET",
+  });
+}
+
+// ========================================
 // PARENT - GET SELECTED CHILD'S REWARDS
 // ========================================
 
@@ -653,6 +663,80 @@ export async function getChildRewards(childId) {
     `/parent/rewards/${encodeURIComponent(childId)}`,
     {
       method: "GET",
+    }
+  );
+}
+
+
+/* ========================================
+   ADMIN - PARENT MANAGEMENT
+======================================== */
+
+// GET ALL PARENTS + SEARCH
+
+export async function getAdminParents(search = "") {
+  const query = search.trim()
+    ? `?search=${encodeURIComponent(search.trim())}`
+    : "";
+
+  return apiRequest(`/admin/management/parents${query}`, {
+    method: "GET",
+  });
+}
+
+// GET PARENT DETAILS
+
+export async function getAdminParent(parentId) {
+  return apiRequest(
+    `/admin/management/parents/${encodeURIComponent(parentId)}`,
+    {
+      method: "GET",
+    }
+  );
+}
+
+// UPDATE PARENT DETAILS
+
+export async function updateAdminParent(parentId, parentData) {
+  return apiRequest(
+    `/admin/management/parents/${encodeURIComponent(parentId)}`,
+    {
+      method: "PUT",
+      body: JSON.stringify(parentData),
+    }
+  );
+}
+
+// ========================================
+// ADMIN - CHILD MANAGEMENT
+// ========================================
+
+// GET ALL CHILDREN + SEARCH
+export async function getAdminChildren(search = "") {
+  const query = search.trim()
+    ? `?search=${encodeURIComponent(search.trim())}`
+    : "";
+
+  return apiRequest(`/admin/management/children${query}`, {
+    method: "GET",
+  });
+}
+
+// GET CHILD DETAILS
+export async function getAdminChild(childId) {
+  return apiRequest(
+    `/admin/management/children/${encodeURIComponent(childId)}`,
+    { method: "GET" }
+  );
+}
+
+// UPDATE CHILD DETAILS
+export async function updateAdminChild(childId, childData) {
+  return apiRequest(
+    `/admin/management/children/${encodeURIComponent(childId)}`,
+    {
+      method: "PUT",
+      body: JSON.stringify(childData),
     }
   );
 }

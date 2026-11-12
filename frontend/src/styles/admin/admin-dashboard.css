@@ -88,6 +88,7 @@
 
 .admin-nav-link span {
   width: 22px;
+  flex-shrink: 0;
   font-size: 19px;
   text-align: center;
 }
@@ -452,13 +453,21 @@
   .admin-navigation {
     flex-direction: row;
     flex-wrap: wrap;
+    gap: 8px;
   }
 
   .admin-nav-link {
-    flex: 1;
-    justify-content: center;
+    flex: 1 1 calc(50% - 8px);
+    min-width: 0;
+    justify-content: flex-start;
     padding: 10px;
     font-size: 12px;
+    gap: 8px;
+  }
+
+  .admin-nav-link span {
+    width: 20px;
+    font-size: 17px;
   }
 
   .admin-header {

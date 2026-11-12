@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   useParams,
@@ -16,24 +16,24 @@ import {
   API_URL,
 } from "../api";
 
+import learningVideosBg from "../assets/learning-videos-bg.png";
+import mindspringLogo from "../assets/mindspring-logo.png";
+
 import "../styles/child-learning.css";
 
 function ChildLearning() {
   const { childId } = useParams();
-
   const location = useLocation();
   const navigate = useNavigate();
 
-  const [child, setChild] = useState(
-    location.state?.child || null
-  );
+  const videoSectionRef = useRef(null);
 
+  const [child, setChild] = useState(location.state?.child || null);
   const [topics, setTopics] = useState([]);
   const [lessons, setLessons] = useState([]);
 
   const [selectedTopic, setSelectedTopic] = useState(null);
   const [currentLesson, setCurrentLesson] = useState(null);
-
   const [questions, setQuestions] = useState([]);
 
   const [loading, setLoading] = useState(true);
@@ -42,20 +42,13 @@ function ChildLearning() {
   const [checkingAnswers, setCheckingAnswers] = useState(false);
 
   const [videoCompleted, setVideoCompleted] = useState(false);
-
-  // Selected answers
   const [selectedAnswers, setSelectedAnswers] = useState({});
-
-  // Backend checking results
   const [answerResults, setAnswerResults] = useState(null);
 
   const [error, setError] = useState("");
   const [questionError, setQuestionError] = useState("");
 
-  // ========================================
-  // LOAD CHILD AND SELECTED TOPICS
-  // ========================================
-
+  // Load child and topics
   useEffect(() => {
     let active = true;
 
@@ -64,11 +57,10 @@ function ChildLearning() {
         setLoading(true);
         setError("");
 
-        const [childResponse, topicsResponse] =
-          await Promise.all([
-            getChild(childId),
-            getChildSelectedTopics(childId),
-          ]);
+        const [childResponse, topicsResponse] = await Promise.all([
+          getChild(childId),
+          getChildSelectedTopics(childId),
+        ]);
 
         const childData =
           childResponse.child ||
@@ -85,14 +77,10 @@ function ChildLearning() {
           setChild(childData);
           setTopics(topicData);
         }
-
       } catch (err) {
         if (active) {
-          setError(
-            err.message || "Unable to load learning content."
-          );
+          setError(err.message || "Unable to load learning content.");
         }
-
       } finally {
         if (active) {
           setLoading(false);
@@ -100,20 +88,28 @@ function ChildLearning() {
       }
     }
 
-    if (childId) {
-      loadData();
-    }
+    if (childId) loadData();
 
     return () => {
       active = false;
     };
-
   }, [childId]);
 
-  // ========================================
-  // RESET QUESTION DATA
-  // ========================================
+  // Scroll video section into the visible screen
+  useEffect(() => {
+    if (!currentLesson) return;
 
+    const scrollTimer = window.setTimeout(() => {
+      videoSectionRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 150);
+
+    return () => window.clearTimeout(scrollTimer);
+  }, [currentLesson?.lesson_id]);
+
+  // Reset question data
   function resetQuestionData() {
     setQuestions([]);
     setSelectedAnswers({});
@@ -124,19 +120,14 @@ function ChildLearning() {
     setQuestionError("");
   }
 
-  // ========================================
-  // LOAD LESSONS WHEN A TOPIC IS SELECTED
-  // ========================================
-
+  // Load lessons when topic is selected
   async function handleTopicClick(topic) {
     try {
       setSelectedTopic(topic);
-
       setLessons([]);
       setCurrentLesson(null);
 
       resetQuestionData();
-
       setError("");
       setLessonsLoading(true);
 
@@ -154,30 +145,28 @@ function ChildLearning() {
       if (lessonData.length > 0) {
         setCurrentLesson(lessonData[0]);
       }
-
     } catch (err) {
-      setError(
-        err.message || "Unable to load videos."
-      );
-
+      setError(err.message || "Unable to load videos.");
     } finally {
       setLessonsLoading(false);
     }
   }
 
-  // ========================================
-  // CHANGE CURRENT LESSON
-  // ========================================
-
+  // Change current lesson
   function handleLessonClick(lesson) {
+    if (currentLesson?.lesson_id === lesson.lesson_id) {
+      videoSectionRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+      return;
+    }
+
     setCurrentLesson(lesson);
     resetQuestionData();
   }
 
-  // ========================================
-  // VIDEO URL
-  // ========================================
-
+  // Video URL
   function getVideoSource(videoUrl) {
     if (!videoUrl) return "";
 
@@ -188,10 +177,7 @@ function ChildLearning() {
     }
   }
 
-  // ========================================
-  // QUESTION IMAGE URL
-  // ========================================
-
+  // Question image URL
   function getQuestionImageSource(imageUrl) {
     if (!imageUrl) return "";
 
@@ -202,25 +188,18 @@ function ChildLearning() {
     }
   }
 
-  // ========================================
-  // LOAD QUESTIONS AFTER VIDEO ENDS
-  // ========================================
-
+  // Load questions after video ends
   async function handleVideoEnded() {
-    if (!currentLesson || videoCompleted) {
-      return;
-    }
+    if (!currentLesson || videoCompleted) return;
 
     const lessonId = currentLesson.lesson_id;
 
     try {
       setVideoCompleted(true);
-
       setQuestions([]);
       setSelectedAnswers({});
       setAnswerResults(null);
       setQuestionError("");
-
       setQuestionsLoading(true);
 
       const response = await getChildLessonQuestions(
@@ -230,9 +209,7 @@ function ChildLearning() {
 
       const questionData = Array.isArray(response)
         ? response
-        : response?.data ||
-          response?.questions ||
-          [];
+        : response?.data || response?.questions || [];
 
       const sortedQuestions = [...questionData].sort(
         (a, b) =>
@@ -241,35 +218,24 @@ function ChildLearning() {
       );
 
       setCurrentLesson((current) => {
-        if (current?.lesson_id !== lessonId) {
-          return current;
-        }
+        if (current?.lesson_id !== lessonId) return current;
 
         setQuestions(sortedQuestions);
         return current;
       });
-
     } catch (err) {
-      setQuestionError(
-        err.message || "Unable to load questions."
-      );
-
+      setQuestionError(err.message || "Unable to load questions.");
     } finally {
       setQuestionsLoading(false);
     }
   }
 
-  // ========================================
-  // AUTOMATIC ANSWER CHECKING
-  // ========================================
-
+  // Automatic answer checking
   async function submitAnswersAutomatically(
     updatedAnswers,
     currentQuestions
   ) {
-    if (!currentLesson || checkingAnswers) {
-      return;
-    }
+    if (!currentLesson || checkingAnswers) return;
 
     const lessonId = currentLesson.lesson_id;
 
@@ -288,33 +254,22 @@ function ChildLearning() {
         answers
       );
 
-      // Prevent old lesson results from updating new lesson
-      if (currentLesson?.lesson_id !== lessonId) {
-        return;
-      }
+      if (currentLesson?.lesson_id !== lessonId) return;
 
       const resultData = response?.data || response;
-
       setAnswerResults(resultData);
-
     } catch (err) {
       setQuestionError(
         err.message || "Unable to check answers. Please try again."
       );
-
     } finally {
       setCheckingAnswers(false);
     }
   }
 
-  // ========================================
-  // SELECT ANSWER
-  // ========================================
-
+  // Select answer
   function handleAnswerSelect(questionId, optionId) {
-    if (answerResults || checkingAnswers) {
-      return;
-    }
+    if (answerResults || checkingAnswers) return;
 
     const updatedAnswers = {
       ...selectedAnswers,
@@ -323,24 +278,15 @@ function ChildLearning() {
 
     setSelectedAnswers(updatedAnswers);
 
-    // Check automatically when every question is answered
     if (
       questions.length > 0 &&
       questions.every(
-        (question) =>
-          updatedAnswers[question.question_id]
+        (question) => updatedAnswers[question.question_id]
       )
     ) {
-      submitAnswersAutomatically(
-        updatedAnswers,
-        questions
-      );
+      submitAnswersAutomatically(updatedAnswers, questions);
     }
   }
-
-  // ========================================
-  // LOADING SCREEN
-  // ========================================
 
   if (loading) {
     return (
@@ -350,307 +296,283 @@ function ChildLearning() {
     );
   }
 
-  // ========================================
-  // MAIN PAGE
-  // ========================================
+  const childName =
+    child?.child_name || child?.name || "Friend";
+
+  const childStars =
+    child?.stars ?? child?.points ?? 0;
 
   return (
-    <main className="child-learning-page">
+    <main
+      className="child-learning-page"
+      style={{
+        "--learning-background": `url("${learningVideosBg}")`,
+      }}
+    >
+      <div className="child-learning-shell">
 
-      {/* HEADER */}
-
-      <header className="child-learning-header">
-
-        <button
-          type="button"
-          className="child-learning-back-btn"
-          onClick={() =>
-            navigate(`/child-dashboard/${childId}`)
-          }
-        >
-          ← Back to Dashboard
-        </button>
-
-        <h2>My Learning Videos 🌈</h2>
-
-        <p>
-          Welcome{" "}
-          {child?.child_name || child?.name || "Friend"}!
-          Let's learn something new today.
-        </p>
-
-      </header>
-
-      {/* GENERAL ERROR */}
-
-      {error && (
-        <div className="child-learning-warning">
-          {error}
-        </div>
-      )}
-
-      {/* TOPIC SELECTION */}
-
-      <section className="child-learning-topics">
-
-        <h3>Choose Your Topic</h3>
-
-        {topics.length === 0 ? (
-          <p className="child-learning-message">
-            No topics selected yet. Please ask your parent
-            to select your learning topics.
-          </p>
-        ) : (
-
-          <div className="child-learning-topic-list">
-
-            {topics.map((topic) => (
+        {/* HEADER */}
+        <header className="learning-hero">
+          <div className="learning-topbar">
+            <div className="learning-brand-area">
+              <div className="learning-logo">
+                <img
+                  src={mindspringLogo}
+                  alt="MindSpring"
+                  className="learning-logo-image"
+                />
+              </div>
 
               <button
-                key={topic.topic_id}
                 type="button"
-                className={`child-learning-topic-btn ${
-                  selectedTopic?.topic_id === topic.topic_id
-                    ? "active"
-                    : ""
-                }`}
-                onClick={() => handleTopicClick(topic)}
+                className="child-learning-back-btn"
+                onClick={() =>
+                  navigate(`/child-dashboard/${childId}`, {
+                    state: { child },
+                  })
+                }
               >
-                {topic.topic_name || `Topic ${topic.topic_id}`}
+                <span aria-hidden="true">←</span>
+                Back to Dashboard
               </button>
+            </div>
 
-            ))}
+            <div className="learning-profile-actions">
+              <div className="learning-child-pill">
+                <span className="learning-avatar">🧒</span>
+                <strong>{childName}</strong>
+              </div>
 
+              <div className="learning-stars-pill">
+                <span>⭐</span>
+                <strong>{childStars}</strong>
+              </div>
+
+              <div
+                className="learning-settings-pill"
+                aria-label="Settings"
+              >
+                ⚙
+              </div>
+            </div>
           </div>
 
+          <div className="learning-hero-content">
+            <div
+              className="learning-hero-decoration learning-hero-left"
+              aria-hidden="true"
+            >
+              📚
+            </div>
+
+            <div className="learning-hero-title-wrap">
+              <div className="learning-clapper" aria-hidden="true">
+                🎬
+              </div>
+
+              <h1>My Learning Videos</h1>
+
+              <p>
+                Welcome {childName}! Let's learn something new today!
+              </p>
+            </div>
+
+            <div
+              className="learning-hero-decoration learning-hero-right"
+              aria-hidden="true"
+            >
+              🤖
+            </div>
+          </div>
+        </header>
+
+        {error && (
+          <div className="child-learning-warning">
+            {error}
+          </div>
         )}
 
-      </section>
+        {/* TOPICS */}
+        <section className="child-learning-topics learning-wide-card">
+          <div className="learning-section-heading">
+            <span className="learning-heading-icon">📚</span>
+            <h3>Choose Your Topic</h3>
+          </div>
 
-      {/* LESSON LIST */}
-
-      {selectedTopic && (
-
-        <section className="child-learning-lessons">
-
-          <h3>
-            Videos -{" "}
-            {selectedTopic.topic_name || "Selected Topic"}
-          </h3>
-
-          {lessonsLoading ? (
-
+          {topics.length === 0 ? (
             <p className="child-learning-message">
-              Loading videos...
+              No topics selected yet. Please ask your parent to select your learning topics.
             </p>
-
-          ) : lessons.length === 0 ? (
-
-            <p className="child-learning-message">
-              No videos are available for this topic yet.
-            </p>
-
           ) : (
-
-            <div className="child-learning-lesson-list">
-
-              {lessons.map((lesson) => (
-
+            <div className="child-learning-topic-list">
+              {topics.map((topic) => (
                 <button
-                  key={lesson.lesson_id}
+                  key={topic.topic_id}
                   type="button"
-                  className={`child-learning-lesson-btn ${
-                    currentLesson?.lesson_id === lesson.lesson_id
+                  className={`child-learning-topic-btn ${
+                    selectedTopic?.topic_id === topic.topic_id
                       ? "active"
                       : ""
                   }`}
-                  onClick={() => handleLessonClick(lesson)}
+                  onClick={() => handleTopicClick(topic)}
                 >
-                  ▶ {lesson.title}
+                  {topic.topic_name || `Topic ${topic.topic_id}`}
                 </button>
-
               ))}
-
             </div>
-
           )}
-
         </section>
 
-      )}
-
-      {/* VIDEO AND QUESTIONS SECTION */}
-
-      {currentLesson && (
-
-        <section className="child-learning-split-layout">
-
-          {/* LEFT SIDE - VIDEO */}
-
-          <div className="child-learning-video-section">
-
-            <div className="child-learning-video-heading">
-
-              <span>🎬</span>
-
-              <h3>{currentLesson.title}</h3>
-
+        {/* LESSONS */}
+        {selectedTopic && (
+          <section className="child-learning-lessons learning-wide-card">
+            <div className="learning-section-heading">
+              <span className="learning-heading-icon">📺</span>
+              <h3>
+                Videos - {selectedTopic.topic_name || "Selected Topic"}
+              </h3>
             </div>
 
-            {/* VIDEO PLAYER */}
+            {lessonsLoading ? (
+              <p className="child-learning-message">
+                Loading videos...
+              </p>
+            ) : lessons.length === 0 ? (
+              <p className="child-learning-message">
+                No videos are available for this topic yet.
+              </p>
+            ) : (
+              <div className="child-learning-lesson-list">
+                {lessons.map((lesson) => (
+                  <button
+                    key={lesson.lesson_id}
+                    type="button"
+                    className={`child-learning-lesson-btn ${
+                      currentLesson?.lesson_id === lesson.lesson_id
+                        ? "active"
+                        : ""
+                    }`}
+                    onClick={() => handleLessonClick(lesson)}
+                  >
+                    ▶ {lesson.title}
+                  </button>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
 
-            <video
-              key={currentLesson.lesson_id}
-              className="child-learning-main-video"
-              controls
-              preload="metadata"
-              onEnded={handleVideoEnded}
-            >
-
-              <source
-                src={getVideoSource(currentLesson.video_url)}
-                type="video/mp4"
-              />
-
-              Your browser does not support video playback.
-
-            </video>
-
-            {/* VIDEO DESCRIPTION */}
-
-            {currentLesson.lesson_script && (
-
-              <div className="child-learning-video-description">
-
-                <h4>About this lesson</h4>
-
-                <p>{currentLesson.lesson_script}</p>
-
+        {/* VIDEO AND QUESTIONS */}
+        {currentLesson && (
+          <section
+            className="child-learning-split-layout"
+            ref={videoSectionRef}
+            id="learning-video-section"
+          >
+            <div className="child-learning-video-section learning-panel">
+              <div className="child-learning-video-heading">
+                <span>🎬</span>
+                <h3>{currentLesson.title}</h3>
               </div>
 
-            )}
+              <video
+                key={currentLesson.lesson_id}
+                className="child-learning-main-video"
+                controls
+                preload="metadata"
+                playsInline
+                onEnded={handleVideoEnded}
+              >
+                <source
+                  src={getVideoSource(currentLesson.video_url)}
+                  type="video/mp4"
+                />
+                Your browser does not support video playback.
+              </video>
 
-          </div>
-
-          {/* RIGHT SIDE - QUESTIONS */}
-
-          <aside className="child-learning-questions-section">
-
-            <div className="child-learning-questions-heading">
-
-              <span>✏️</span>
-
-              <h3>Questions</h3>
-
-            </div>
-
-            {/* BEFORE VIDEO COMPLETION */}
-
-            {!videoCompleted && (
-
-              <div className="child-learning-empty-questions">
-
-                <span>💡</span>
-
-                <p>
-                  Watch the complete video to see your questions!
-                </p>
-
-              </div>
-
-            )}
-
-            {/* QUESTIONS LOADING */}
-
-            {videoCompleted && questionsLoading && (
-
-              <div className="child-learning-empty-questions">
-
-                <span>⏳</span>
-
-                <p>Loading your questions...</p>
-
-              </div>
-
-            )}
-
-            {/* QUESTION ERROR */}
-
-            {videoCompleted && !questionsLoading && questionError && (
-
-              <div className="child-learning-warning">
-                {questionError}
-              </div>
-
-            )}
-
-            {/* NO QUESTIONS */}
-
-            {videoCompleted &&
-              !questionsLoading &&
-              !questionError &&
-              questions.length === 0 && (
-
-                <div className="child-learning-empty-questions">
-
-                  <span>💡</span>
-
-                  <p>
-                    No questions are available for this lesson yet.
-                  </p>
-
+              {currentLesson.lesson_script && (
+                <div className="child-learning-video-description">
+                  <h4>About this lesson</h4>
+                  <p>{currentLesson.lesson_script}</p>
                 </div>
+              )}
+            </div>
 
+            {/* QUESTIONS */}
+            <aside className="child-learning-questions-section learning-panel">
+              <div className="child-learning-questions-heading">
+                <span>✏️</span>
+                <h3>Questions</h3>
+              </div>
+
+              {!videoCompleted && (
+                <div className="child-learning-empty-questions">
+                  <span>📋</span>
+                  <p>
+                    Watch the complete video to see your questions!
+                  </p>
+                </div>
               )}
 
-            {/* DISPLAY QUESTIONS */}
+              {videoCompleted && questionsLoading && (
+                <div className="child-learning-empty-questions">
+                  <span>⏳</span>
+                  <p>Loading your questions...</p>
+                </div>
+              )}
 
-            {videoCompleted &&
-              !questionsLoading &&
-              questions.length > 0 && (
+              {videoCompleted &&
+                !questionsLoading &&
+                questionError && (
+                  <div className="child-learning-warning">
+                    {questionError}
+                  </div>
+                )}
 
-                <div className="child-learning-question-list">
+              {videoCompleted &&
+                !questionsLoading &&
+                !questionError &&
+                questions.length === 0 && (
+                  <div className="child-learning-empty-questions">
+                    <span>💡</span>
+                    <p>
+                      No questions are available for this lesson yet.
+                    </p>
+                  </div>
+                )}
 
-                  {questions.map((question, index) => {
+              {videoCompleted &&
+                !questionsLoading &&
+                questions.length > 0 && (
+                  <div className="child-learning-question-list">
+                    {questions.map((question, index) => {
+                      const selectedAnswer =
+                        selectedAnswers[question.question_id];
 
-                    const selectedAnswer =
-                      selectedAnswers[question.question_id];
+                      const questionResult =
+                        answerResults?.results?.find(
+                          (result) =>
+                            result.question_id === question.question_id
+                        );
 
-                    const questionResult =
-                      answerResults?.results?.find(
-                        (result) =>
-                          result.question_id === question.question_id
-                      );
+                      const correctAnswer =
+                        questionResult?.correct_answer;
 
-                    const correctAnswer =
-                      questionResult?.correct_answer;
+                      return (
+                        <div
+                          className="child-learning-question-card"
+                          key={question.question_id}
+                        >
+                          <h4 className="child-learning-question-number">
+                            Question {index + 1}
+                          </h4>
 
-                    return (
+                          <p className="child-learning-question-text">
+                            {question.question_text}
+                          </p>
 
-                      <div
-                        className="child-learning-question-card"
-                        key={question.question_id}
-                      >
-
-                        {/* QUESTION NUMBER */}
-
-                        <h4 className="child-learning-question-number">
-                          Question {index + 1}
-                        </h4>
-
-                        {/* QUESTION TEXT */}
-
-                        <p className="child-learning-question-text">
-                          {question.question_text}
-                        </p>
-
-                        {/* IMAGE OPTIONS A / B / C */}
-
-                        <div className="child-learning-answer-options">
-
-                          {(question.answer_options || []).map(
-                            (option) => {
-
+                          <div className="child-learning-answer-options">
+                            {(question.answer_options || []).map((option) => {
                               const isSelected =
                                 selectedAnswer === option.id;
 
@@ -675,7 +597,6 @@ function ChildLearning() {
                               }
 
                               return (
-
                                 <button
                                   type="button"
                                   className={optionClass}
@@ -692,13 +613,11 @@ function ChildLearning() {
                                   }
                                   aria-pressed={isSelected}
                                 >
-
                                   <span className="child-learning-option-label">
                                     {option.id}
                                   </span>
 
                                   {option.image_url ? (
-
                                     <img
                                       src={getQuestionImageSource(
                                         option.image_url
@@ -706,13 +625,10 @@ function ChildLearning() {
                                       alt={`Option ${option.id}`}
                                       className="child-learning-option-image"
                                     />
-
                                   ) : (
-
                                     <div className="child-learning-option-no-image">
                                       Image not available
                                     </div>
-
                                   )}
 
                                   {isCorrectOption && (
@@ -732,99 +648,70 @@ function ChildLearning() {
                                       ✓ Selected
                                     </span>
                                   )}
-
                                 </button>
-
                               );
-                            }
-                          )}
-
+                            })}
+                          </div>
                         </div>
+                      );
+                    })}
 
+                    {checkingAnswers && (
+                      <div className="child-learning-empty-questions">
+                        <span>⏳</span>
+                        <p>Checking your answers...</p>
                       </div>
+                    )}
 
-                    );
-                  })}
+                    {answerResults && (() => {
+                      const earnedStars = Math.max(
+                        0,
+                        Math.min(
+                          Number(answerResults.score) || 0,
+                          Number(answerResults.total_questions) || 0
+                        )
+                      );
 
-                  {/* AUTOMATIC CHECKING MESSAGE */}
+                      const totalQuestions =
+                        Number(answerResults.total_questions) || 0;
 
-                  {checkingAnswers && (
+                      return (
+                        <div className="child-learning-result">
+                          <h3>🌟 Great Learning!</h3>
 
-                    <div className="child-learning-empty-questions">
-                      <span>⏳</span>
-                      <p>Checking your answers...</p>
-                    </div>
+                          <div
+                            className="child-learning-earned-stars"
+                            aria-label={`${earnedStars} stars earned`}
+                          >
+                            {Array.from(
+                              { length: earnedStars },
+                              (_, index) => (
+                                <span key={index}>⭐</span>
+                              )
+                            )}
+                          </div>
 
-                  )}
+                          <h2>
+                            {earnedStars} / {totalQuestions} Stars
+                          </h2>
 
-                  {/* FINAL SCORE AND DYNAMIC STAR REWARDS */}
+                          <p>
+                            {earnedStars} correct answers = {earnedStars} earned stars
+                          </p>
 
-                  {answerResults && (() => {
-                    const earnedStars = Math.max(
-                      0,
-                      Math.min(
-                        Number(answerResults.score) || 0,
-                        Number(answerResults.total_questions) || 0
-                      )
-                    );
-
-                    const totalQuestions =
-                      Number(answerResults.total_questions) || 0;
-
-                    return (
-                      <div className="child-learning-result">
-
-                        <h3>🌟 Great Learning!</h3>
-
-                        {/* SHOW ONE STAR FOR EACH CORRECT ANSWER */}
-
-                        <div
-                          className="child-learning-earned-stars"
-                          aria-label={`${earnedStars} stars earned`}
-                        >
-                          {Array.from(
-                            { length: earnedStars },
-                            (_, index) => (
-                              <span key={index}>⭐</span>
-                            )
-                          )}
+                          <p>
+                            You got <strong>{earnedStars}</strong> out of{" "}
+                            <strong>{totalQuestions}</strong> correct answers.
+                          </p>
                         </div>
-
-                        {/* EARNED STARS / TOTAL QUESTIONS */}
-
-                        <h2>
-                          {earnedStars} / {totalQuestions} Stars
-                        </h2>
-
-                        <p>
-                          {earnedStars} correct answers ={" "}
-                          {earnedStars} earned stars
-                        </p>
-
-                        {/* QUIZ SCORE */}
-
-                        <p>
-                          You got{" "}
-                          <strong>{earnedStars}</strong>
-                          {" "}out of{" "}
-                          <strong>{totalQuestions}</strong>
-                          {" "}correct answers.
-                        </p>
-
-                      </div>
-                    );
-                  })()}
-
-                </div>
-
-              )}
-
-          </aside>
-
-        </section>
-
-      )}
-
+                      );
+                    })()}
+                  </div>
+                )}
+            </aside>
+          </section>
+        )}
+      </div>
     </main>
   );
 }

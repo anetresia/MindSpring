@@ -42,7 +42,7 @@
 }
 
 /* ========================================
-   SUMMARY CARDS
+   DASHBOARD STATISTICS
 ======================================== */
 
 .dashboard-stats {
@@ -102,7 +102,7 @@
 }
 
 /* ========================================
-   BOTTOM GRID
+   BOTTOM DASHBOARD GRID
 ======================================== */
 
 .dashboard-bottom-grid {
@@ -110,6 +110,7 @@
   grid-template-columns: 0.9fr 1.1fr;
   gap: 22px;
   margin-bottom: 30px;
+  align-items: stretch;
 }
 
 .dashboard-panel {
@@ -121,6 +122,10 @@
   box-shadow: 0 5px 20px rgba(53, 36, 111, 0.04);
   box-sizing: border-box;
 }
+
+/* ========================================
+   PANEL HEADING
+======================================== */
 
 .panel-heading {
   display: flex;
@@ -150,7 +155,8 @@
   font-size: 13px;
   font-weight: 800;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: background 0.2s ease, transform 0.2s ease;
+  white-space: nowrap;
 }
 
 .add-child-btn {
@@ -169,6 +175,11 @@
 
 .view-all-btn:hover {
   background: #e4d9ff;
+}
+
+.add-child-btn:active,
+.view-all-btn:active {
+  transform: scale(0.97);
 }
 
 .add-child-btn:focus-visible,
@@ -193,15 +204,24 @@
 
 .child-card {
   width: 100%;
+  min-width: 0;
   padding: 25px 15px;
   background: #fffaf5;
   border: 1px solid #f5eee5;
   border-radius: 17px;
   text-align: center;
   box-sizing: border-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* Same pink gradient as My Children page */
+.child-card:hover {
+  border-color: #e7dafa;
+  box-shadow: 0 5px 16px rgba(53, 36, 111, 0.05);
+}
+
+/* ========================================
+   CHILD AVATAR
+======================================== */
 
 .child-avatar {
   width: 85px;
@@ -249,6 +269,10 @@
   font-size: 14px;
 }
 
+/* ========================================
+   CHILD INFORMATION
+======================================== */
+
 .child-info {
   display: flex;
   justify-content: center;
@@ -267,10 +291,6 @@
   font-weight: 700;
   overflow-wrap: anywhere;
 }
-
-/* ========================================
-   CHILD REWARD STARS
-======================================== */
 
 .child-info .child-reward-stars {
   background: #fff3cf;
@@ -322,24 +342,136 @@
 }
 
 /* ========================================
-   RECENT ACTIVITY
+   RECENT ACTIVITY PANEL
 ======================================== */
 
+.activity-panel {
+  min-width: 0;
+}
+
 .activity-list {
+  width: 100%;
+  min-width: 0;
   display: flex;
   flex-direction: column;
 }
 
+/* ========================================
+   INDIVIDUAL LESSON ATTEMPT
+======================================== */
+
 .activity-item {
+  width: 100%;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 15px;
-  padding: 15px 0;
-  border-bottom: 1px solid #f2eee9;
+  padding: 16px 12px;
+  border-bottom: 1px solid #f0eaf5;
+  border-radius: 10px;
+  box-sizing: border-box;
+  transition: background 0.2s ease;
+}
+
+.activity-item:hover {
+  background: #fcfaff;
 }
 
 .activity-item:last-child {
   border-bottom: none;
+}
+
+/* ========================================
+   ACTIVITY ICON
+======================================== */
+
+.activity-icon {
+  width: 43px;
+  height: 43px;
+  flex: 0 0 43px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5efff;
+  border: 1px solid #eee4ff;
+  border-radius: 13px;
+  font-size: 20px;
+}
+
+/* ========================================
+   ACTIVITY DETAILS
+======================================== */
+
+.activity-details {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.activity-details h3 {
+  margin: 0;
+  color: #35246f;
+  font-size: 15px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.activity-details p {
+  margin: 0;
+  color: #756b91;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.activity-date {
+  color: #a39aaa;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+/* ========================================
+   ACTIVITY RESULT
+======================================== */
+
+.activity-result {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  text-align: right;
+}
+
+.activity-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.activity-success {
+  background: #e8f4df;
+  color: #47834c;
+}
+
+.activity-pending {
+  background: #fff0e8;
+  color: #c06a42;
+}
+
+.activity-score {
+  color: #817691;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 /* ========================================
@@ -401,6 +533,10 @@
   .dashboard-panel {
     padding: 20px;
   }
+
+  .dashboard-bottom-grid {
+    gap: 18px;
+  }
 }
 
 /* ========================================
@@ -442,6 +578,11 @@
     padding: 17px;
   }
 
+  .panel-heading {
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+
   .panel-heading h2 {
     font-size: 17px;
   }
@@ -462,5 +603,99 @@
 
   .dashboard-children-list {
     gap: 12px;
+  }
+
+  /* Recent Activity */
+
+  .activity-item {
+    gap: 10px;
+    padding: 13px 5px;
+  }
+
+  .activity-icon {
+    width: 37px;
+    height: 37px;
+    flex-basis: 37px;
+    font-size: 17px;
+  }
+
+  .activity-details h3 {
+    font-size: 13px;
+  }
+
+  .activity-details p {
+    font-size: 12px;
+  }
+
+  .activity-date {
+    font-size: 10px;
+  }
+
+  .activity-status {
+    padding: 5px 7px;
+    font-size: 10px;
+  }
+
+  .activity-score {
+    font-size: 10px;
+  }
+}
+
+/* ========================================
+   EXTRA SMALL MOBILE
+======================================== */
+
+@media (max-width: 360px) {
+  .dashboard-content {
+    padding: 20px 3%;
+  }
+
+  .dashboard-panel {
+    padding: 14px;
+  }
+
+  .activity-item {
+    gap: 8px;
+  }
+
+  .activity-icon {
+    width: 33px;
+    height: 33px;
+    flex-basis: 33px;
+  }
+
+  .activity-details h3 {
+    font-size: 12px;
+  }
+
+  .activity-details p {
+    font-size: 11px;
+  }
+
+  .activity-result {
+    gap: 4px;
+  }
+
+  .activity-status {
+    padding: 4px 6px;
+    font-size: 9px;
+  }
+
+  .activity-score {
+    font-size: 9px;
+  }
+}
+
+/* ========================================
+   REDUCED MOTION
+======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .stat-card,
+  .child-card,
+  .activity-item,
+  .add-child-btn,
+  .view-all-btn {
+    transition: none;
   }
 }

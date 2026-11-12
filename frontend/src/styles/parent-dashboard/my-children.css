@@ -1,15 +1,20 @@
+
 /* ========================================
    MY CHILDREN PAGE
 ======================================== */
 
 .my-children-page {
   width: 100%;
+  min-width: 0;
+  min-height: 100%;
   padding: 30px 35px;
   box-sizing: border-box;
   font-family: "Nunito", sans-serif;
 }
 
-/* PAGE HEADING */
+/* ========================================
+   PAGE HEADING
+======================================== */
 
 .children-page-heading {
   display: flex;
@@ -33,7 +38,9 @@
   line-height: 1.6;
 }
 
-/* BUTTONS */
+/* ========================================
+   BUTTONS
+======================================== */
 
 .children-add-btn,
 .children-save-btn {
@@ -83,7 +90,9 @@
   cursor: not-allowed;
 }
 
-/* MESSAGES */
+/* ========================================
+   SUCCESS AND ERROR MESSAGES
+======================================== */
 
 .children-success-message,
 .children-error-message {
@@ -106,35 +115,68 @@
 }
 
 /* ========================================
-   THREE-STEP WIZARD MODAL
+   THREE-STEP WIZARD OVERLAY
 ======================================== */
 
 .children-wizard-overlay {
   position: fixed;
   inset: 0;
-  z-index: 1500;
+
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   padding: 24px;
-  background: rgba(48, 27, 82, 0.38);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+
+  background: rgba(35, 25, 60, 0.52);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+
+  z-index: 1500;
+
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
   box-sizing: border-box;
 }
 
+/* ========================================
+   WIZARD MODAL
+======================================== */
+
 .children-wizard-modal {
   position: relative;
-  width: min(900px, 100%);
-  max-height: 90vh;
+
+  width: 100%;
+  max-width: 900px;
+
+  max-height: calc(100vh - 48px);
+  max-height: calc(100dvh - 48px);
+
+  overflow-x: hidden;
   overflow-y: auto;
+
   padding: 32px 38px;
+
   color: #301276;
-  background: linear-gradient(135deg, #ffffff 0%, #fff5fc 100%);
+
+  background: linear-gradient(
+    135deg,
+    #ffffff 0%,
+    #fff5fc 100%
+  );
+
   border: 2px solid rgba(255, 255, 255, 0.95);
-  border-radius: 30px;
+  border-radius: 28px;
+
   box-shadow: 0 25px 75px rgba(66, 27, 105, 0.24);
+
   box-sizing: border-box;
+
   animation: childrenWizardOpen 0.25s ease;
 }
 
@@ -150,7 +192,9 @@
   }
 }
 
-/* WIZARD HEADING */
+/* ========================================
+   WIZARD HEADING
+======================================== */
 
 .children-wizard-heading {
   display: flex;
@@ -162,6 +206,7 @@
 
 .children-wizard-heading > div {
   flex: 1;
+  min-width: 0;
 }
 
 .children-wizard-heading h2 {
@@ -190,16 +235,23 @@
 .children-close-btn {
   width: 36px;
   height: 36px;
+  min-width: 36px;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   border: none;
   border-radius: 50%;
+
   background: #f6edff;
   color: #7451a5;
+
   font-size: 25px;
   cursor: pointer;
+
   flex-shrink: 0;
+
   transition: all 0.2s ease;
 }
 
@@ -208,21 +260,30 @@
   color: #5015a2;
 }
 
-/* PROGRESS STEPS */
+/* ========================================
+   PROGRESS STEPS
+======================================== */
 
 .children-wizard-progress {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  margin: 0 auto 32px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+
+  width: 100%;
   max-width: 720px;
+
+  margin: 0 auto 32px;
 }
 
 .children-wizard-progress-step {
   position: relative;
+
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
+
+  min-width: 0;
+
   color: #8d7da7;
   text-align: center;
 }
@@ -231,9 +292,12 @@
   position: absolute;
   top: 19px;
   right: 50%;
+
   width: 100%;
   height: 3px;
+
   content: "";
+
   background: #e8d5fa;
 }
 
@@ -244,29 +308,43 @@
 .children-wizard-progress-step span {
   position: relative;
   z-index: 1;
+
   display: grid;
   width: 40px;
   height: 40px;
+
   place-items: center;
+
   color: #8b70aa;
   background: #ffffff;
+
   border: 2px solid #dfc2f7;
   border-radius: 50%;
+
   font-size: 16px;
   font-weight: 900;
+
   transition: all 0.2s ease;
 }
 
 .children-wizard-progress-step.active span {
   color: #ffffff;
-  background: linear-gradient(135deg, #c000ff, #8114df);
+
+  background: linear-gradient(
+    135deg,
+    #c000ff,
+    #8114df
+  );
+
   border-color: #a50cf0;
+
   box-shadow: 0 4px 12px rgba(165, 12, 240, 0.2);
 }
 
 .children-wizard-progress-step small {
   font-size: 12px;
   font-weight: 700;
+  line-height: 1.4;
 }
 
 .children-wizard-progress-step.active small {
@@ -274,9 +352,13 @@
   font-weight: 900;
 }
 
-/* STEP CONTENT */
+/* ========================================
+   WIZARD STEP CONTENT
+======================================== */
 
 .children-wizard-step {
+  width: 100%;
+  min-width: 0;
   min-height: 250px;
 }
 
@@ -289,12 +371,16 @@
 
 .children-wizard-step-intro > span {
   display: grid;
+
   width: 58px;
   height: 58px;
   flex: 0 0 58px;
+
   place-items: center;
+
   background: #f8e5ff;
   border-radius: 18px;
+
   font-size: 30px;
 }
 
@@ -312,18 +398,23 @@
   line-height: 1.5;
 }
 
-/* FORM GRID */
+/* ========================================
+   FORM GRID
+======================================== */
 
 .children-form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 22px;
+
+  width: 100%;
 }
 
 .children-form-group {
   display: flex;
   flex-direction: column;
   gap: 9px;
+
   min-width: 0;
 }
 
@@ -336,16 +427,24 @@
 .children-form-group input,
 .children-form-group select {
   width: 100%;
+  min-width: 0;
   min-height: 46px;
+
   padding: 11px 13px;
+
   border: 1px solid #ded8e8;
   border-radius: 9px;
+
   outline: none;
+
   background: white;
   color: #493c69;
+
   font-family: "Nunito", sans-serif;
   font-size: 14px;
+
   box-sizing: border-box;
+
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -355,7 +454,9 @@
   box-shadow: 0 0 0 3px rgba(57, 131, 75, 0.12);
 }
 
-/* WIZARD FORM FIELDS */
+/* ========================================
+   WIZARD FORM FIELDS
+======================================== */
 
 .children-wizard-modal .children-form-grid {
   display: grid;
@@ -379,15 +480,22 @@
 .children-wizard-modal .children-form-group input,
 .children-wizard-modal .children-form-group select {
   width: 100%;
+  min-width: 0;
   min-height: 48px;
+
   padding: 10px 14px;
+
   color: #321078;
   background: #ffffff;
+
   border: 1.5px solid #e5d2f5;
   border-radius: 14px;
+
   outline: none;
+
   font-family: "Nunito", sans-serif;
   font-size: 14px;
+
   box-sizing: border-box;
 }
 
@@ -413,20 +521,27 @@
   justify-content: space-between;
   align-items: center;
   gap: 14px;
+
   margin-top: 28px;
   padding-top: 20px;
+
   border-top: 1px solid #f0e4f8;
 }
 
 .children-wizard-actions button {
   min-width: 140px;
   min-height: 48px;
+
   padding: 11px 24px;
+
   border-radius: 28px;
+
   font-size: 14px;
   font-weight: 900;
   font-family: inherit;
+
   cursor: pointer;
+
   transition: all 0.2s ease;
 }
 
@@ -442,13 +557,25 @@
 
 .children-wizard-actions .children-save-btn {
   color: #ffffff;
-  background: linear-gradient(120deg, #c000ff, #8510e9);
+
+  background: linear-gradient(
+    120deg,
+    #c000ff,
+    #8510e9
+  );
+
   border: none;
+
   box-shadow: 0 5px 14px rgba(151, 0, 220, 0.2);
 }
 
 .children-wizard-actions .children-save-btn:hover {
-  background: linear-gradient(120deg, #a800e5, #7110c7);
+  background: linear-gradient(
+    120deg,
+    #a800e5,
+    #7110c7
+  );
+
   transform: translateY(-1px);
 }
 
@@ -458,14 +585,19 @@
   transform: none;
 }
 
-/* TOPIC LOADING MESSAGE */
+/* ========================================
+   TOPIC LOADING MESSAGE
+======================================== */
 
 .topic-selection-message {
   padding: 12px 15px;
   margin-bottom: 15px;
+
   border-radius: 10px;
+
   background: #f7f1fc;
   color: #6514c9;
+
   font-size: 14px;
   font-weight: 700;
 }
@@ -475,6 +607,8 @@
 ======================================== */
 
 .children-list-section {
+  width: 100%;
+  min-width: 0;
   margin-top: 30px;
 }
 
@@ -483,6 +617,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 12px;
+
   margin-bottom: 20px;
 }
 
@@ -496,20 +631,26 @@
 .children-list-heading span {
   background: #e9f5e9;
   color: #39834b;
+
   padding: 7px 13px;
   border-radius: 20px;
+
   font-size: 13px;
   font-weight: 700;
   white-space: nowrap;
 }
 
-/* EMPTY STATE */
+/* ========================================
+   EMPTY STATE
+======================================== */
 
 .children-empty-state {
   background: white;
   border: 1px dashed #dcd4e7;
   border-radius: 16px;
+
   padding: 50px 20px;
+
   text-align: center;
 }
 
@@ -547,15 +688,21 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 22px;
+
+  width: 100%;
 }
 
 .children-profile-card {
   min-width: 0;
+
   background: white;
   border: 1px solid #eee8e2;
   border-radius: 16px;
+
   padding: 23px;
+
   box-shadow: 0 4px 15px rgba(53, 36, 111, 0.04);
+
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -576,13 +723,18 @@
 
 .children-card-avatar {
   position: relative;
+
   width: 58px;
   height: 58px;
+
   flex-shrink: 0;
+
   display: flex;
   justify-content: center;
   align-items: center;
+
   overflow: hidden;
+
   border-radius: 50%;
   background: linear-gradient(135deg, #ffe5d9, #f5dfff);
 }
@@ -598,9 +750,11 @@
 .children-card-avatar-initial {
   width: 100%;
   height: 100%;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   color: #35246f;
   font-size: 25px;
   font-weight: 800;
@@ -617,10 +771,14 @@
 .children-card-actions button {
   width: 36px;
   height: 36px;
+
   border: none;
   border-radius: 8px;
+
   background: #f8f6fb;
+
   cursor: pointer;
+
   transition: background 0.2s ease;
 }
 
@@ -666,14 +824,19 @@
   width: 100%;
   margin-top: 20px;
   padding: 12px 16px;
+
   border: none;
   border-radius: 10px;
+
   background: #39834b;
   color: white;
+
   font-size: 14px;
   font-weight: 700;
   font-family: inherit;
+
   cursor: pointer;
+
   transition: background 0.2s ease, transform 0.2s ease;
 }
 
@@ -692,35 +855,56 @@
 .children-modal-overlay {
   position: fixed;
   inset: 0;
+
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+
   background: rgba(35, 25, 60, 0.45);
+
   display: flex;
   justify-content: center;
   align-items: center;
+
   padding: 20px;
-  z-index: 9999;
+
+  z-index: 1600;
+
+  box-sizing: border-box;
 }
 
 .children-delete-modal {
   width: 100%;
   max-width: 420px;
+
   background: #ffffff;
+
   padding: 32px;
+
   border-radius: 18px;
+
   text-align: center;
+
   box-shadow: 0 15px 45px rgba(0, 0, 0, 0.15);
+
   animation: modalAppear 0.2s ease;
+
   box-sizing: border-box;
 }
 
 .delete-modal-icon {
   width: 65px;
   height: 65px;
+
   margin: 0 auto 18px;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   background: #fff0ed;
   border-radius: 50%;
+
   font-size: 28px;
 }
 
@@ -756,11 +940,14 @@
 .delete-cancel-btn,
 .delete-confirm-btn {
   padding: 11px 20px;
+
   border: none;
   border-radius: 9px;
+
   font-size: 14px;
   font-weight: 700;
   font-family: inherit;
+
   cursor: pointer;
 }
 
@@ -795,62 +982,94 @@
 }
 
 /* ========================================
-   RESPONSIVE DESIGN
+   RESPONSIVE DESIGN - TABLET
+======================================== */
+
+@media (max-width: 900px) {
+  .my-children-page {
+    padding: 25px 22px;
+  }
+
+  .children-cards-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .children-wizard-modal {
+    max-width: 760px;
+    padding: 28px;
+  }
+}
+
+/* ========================================
+   RESPONSIVE DESIGN - MOBILE
 ======================================== */
 
 @media (max-width: 768px) {
   .my-children-page {
-    padding: 25px 20px;
+    padding: 22px 18px;
   }
 
   .children-cards-grid {
     grid-template-columns: 1fr;
   }
-}
 
-@media (max-width: 600px) {
   .children-wizard-overlay {
-    align-items: center;
-    padding: 10px;
+    padding: 16px;
   }
 
   .children-wizard-modal {
-    max-height: 94vh;
-    padding: 22px 17px;
-    border-radius: 24px;
+    max-height: calc(100vh - 32px);
+    max-height: calc(100dvh - 32px);
+
+    padding: 24px 20px;
+
+    border-radius: 22px;
   }
 
   .children-wizard-heading h2 {
-    font-size: 23px;
+    font-size: 25px;
+  }
+
+  .children-wizard-progress {
+    margin-bottom: 25px;
   }
 
   .children-wizard-progress-step small {
-    max-width: 95px;
-    font-size: 10px;
+    max-width: 100px;
+    font-size: 11px;
   }
 
   .children-wizard-modal .children-form-grid {
     grid-template-columns: 1fr;
+    gap: 15px;
   }
 
   .children-wizard-step {
     min-height: auto;
   }
-
-  .children-wizard-actions button {
-    min-width: 0;
-    flex: 1;
-  }
 }
+
+/* ========================================
+   SMALL MOBILE
+======================================== */
 
 @media (max-width: 480px) {
   .my-children-page {
-    padding: 20px 12px;
+    padding: 18px 12px;
   }
 
   .children-page-heading {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .children-page-heading h1 {
+    font-size: 24px;
+  }
+
+  .children-add-btn {
+    width: 100%;
   }
 
   .children-form-grid {
@@ -865,17 +1084,83 @@
     padding: 24px 18px;
   }
 
+  .children-wizard-overlay {
+    padding: 10px;
+  }
+
+  .children-wizard-modal {
+    max-height: calc(100vh - 20px);
+    max-height: calc(100dvh - 20px);
+
+    padding: 20px 15px;
+    border-radius: 18px;
+  }
+
+  .children-wizard-heading {
+    gap: 10px;
+    margin-bottom: 22px;
+  }
+
+  .children-wizard-heading h2 {
+    font-size: 22px;
+  }
+
+  .children-wizard-heading p {
+    font-size: 13px;
+  }
+
+  .children-wizard-progress {
+    margin-bottom: 22px;
+  }
+
+  .children-wizard-progress-step {
+    gap: 6px;
+  }
+
+  .children-wizard-progress-step span {
+    width: 34px;
+    height: 34px;
+    font-size: 14px;
+  }
+
+  .children-wizard-progress-step::before {
+    top: 16px;
+  }
+
   .children-wizard-progress-step small {
-    max-width: 80px;
+    max-width: 85px;
     font-size: 9px;
+  }
+
+  .children-wizard-step-intro > span {
+    width: 48px;
+    height: 48px;
+    flex-basis: 48px;
+    font-size: 25px;
+  }
+
+  .children-wizard-step-intro h3 {
+    font-size: 19px;
+  }
+
+  .children-wizard-step-intro p {
+    font-size: 12px;
   }
 
   .children-wizard-actions {
     gap: 8px;
+    margin-top: 22px;
+    padding-top: 16px;
   }
 
   .children-wizard-actions button {
-    padding: 11px 12px;
+    min-width: 0;
+    flex: 1;
+    padding: 11px 10px;
     font-size: 12px;
+  }
+
+  .delete-modal-actions {
+    flex-wrap: wrap;
   }
 }

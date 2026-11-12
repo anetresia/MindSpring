@@ -1,3 +1,4 @@
+
 from fastapi import APIRouter, Depends, HTTPException, status, Body
 from sqlalchemy.orm import Session
 
@@ -5,6 +6,7 @@ from app.database import get_db
 from app.models.user import User
 from app.models.quiz import ActivityResponse
 from app.models.reward_transaction import RewardTransaction
+from app.models.lesson_attempt import LessonAttempt
 
 from app.routers.auth import get_current_admin
 from app.routers.parent import get_current_parent
@@ -60,8 +62,6 @@ def verify_child_lesson_access(
     child_id: int,
     lesson_id: int,
 ):
-    # Verify child belongs to this parent
-
     child = parent_service.get_parent_child(
         db,
         current_parent,
@@ -74,8 +74,6 @@ def verify_child_lesson_access(
             detail="Child not found",
         )
 
-    # Verify lesson exists
-
     lesson = lesson_service.get_lesson_by_id(
         db,
         lesson_id,
@@ -87,8 +85,6 @@ def verify_child_lesson_access(
             detail="Lesson not found",
         )
 
-    # Get topics selected by this child
-
     selected_topics = (
         child_selected_topic_service.get_child_selected_topics(
             db,
@@ -96,12 +92,9 @@ def verify_child_lesson_access(
         )
     )
 
-    # Verify lesson belongs to a selected topic
-
     lesson_is_allowed = False
 
     for selected_topic in selected_topics:
-
         lessons = lesson_service.get_lessons_by_topic(
             db,
             selected_topic.topic_id,
@@ -146,9 +139,6 @@ def create_question(
     db: Session = Depends(get_db),
     current_admin: User = Depends(get_current_admin),
 ):
-
-    # Validate Question Order (1-5)
-
     validate_question_order(
         question_data.question_order
     )
@@ -181,7 +171,6 @@ def get_lesson_questions(
     db: Session = Depends(get_db),
     current_admin: User = Depends(get_current_admin),
 ):
-
     questions = get_sorted_questions(
         db,
         lesson_id,
@@ -212,12 +201,9 @@ def update_question(
     db: Session = Depends(get_db),
     current_admin: User = Depends(get_current_admin),
 ):
-
     update_dict = question_data.dict(
         exclude_unset=True
     )
-
-    # Validate Question Order when updated
 
     if "question_order" in update_dict:
         validate_question_order(
@@ -252,7 +238,6 @@ def archive_question(
     db: Session = Depends(get_db),
     current_admin: User = Depends(get_current_admin),
 ):
-
     quiz_service.archive_question(
         db,
         question_id,
@@ -286,9 +271,6 @@ def get_child_lesson_questions(
     db: Session = Depends(get_db),
     current_parent: User = Depends(get_current_parent),
 ):
-
-    # Verify child and lesson access
-
     verify_child_lesson_access(
         db,
         current_parent,
@@ -296,14 +278,10 @@ def get_child_lesson_questions(
         lesson_id,
     )
 
-    # Get all active questions in order
-
     questions = get_sorted_questions(
         db,
         lesson_id,
     )
-
-    # Return questions WITHOUT correct_answer
 
     return [
         {
@@ -332,7 +310,6 @@ def check_child_answers(
     db: Session = Depends(get_db),
     current_parent: User = Depends(get_current_parent),
 ):
-
     try:
 
         # 1. Verify child and lesson access
@@ -465,8 +442,6 @@ def check_child_answers(
             if is_correct:
                 score += 1
 
-            # Prepare feedback result
-
             results.append({
                 "question_id": question.question_id,
                 "selected_answer": selected_answer,
@@ -474,7 +449,7 @@ def check_child_answers(
                 "is_correct": is_correct,
             })
 
-            # Save each answer in ActivityResponse
+            # Save individual question response
 
             response_rows.append(
                 ActivityResponse(
@@ -512,21 +487,35 @@ def check_child_answers(
 
             db.add(reward)
 
-        # 8. Save answer history and reward together
+        # 8. Create one record for this lesson attempt
+
+        lesson_attempt = LessonAttempt(
+            child_id=child_id,
+            lesson_id=lesson_id,
+            total_questions=len(questions),
+            correct_answers=score,
+        )
+
+        # 9. Save all records together
 
         db.add_all(response_rows)
+        db.add(lesson_attempt)
 
         db.commit()
-        db.refresh(reward)
 
-        # 9. Return checking results and rewards
+        db.refresh(reward)
+        db.refresh(lesson_attempt)
+
+        # 10. Return checking results and rewards
 
         return {
             "message": "Answers checked successfully",
             "score": score,
+            "correct_answers": score,
             "total_questions": len(questions),
             "stars_earned": reward.stars_earned,
             "reward_id": reward.reward_id,
+            "attempt_id": lesson_attempt.attempt_id,
             "results": results,
         }
 

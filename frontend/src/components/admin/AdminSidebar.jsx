@@ -1,4 +1,3 @@
-
 import { NavLink } from "react-router-dom";
 import "../../styles/admin/admin-dashboard.css";
 
@@ -35,6 +34,26 @@ function AdminSidebar() {
         >
           <span>▶</span>
           Video Management
+        </NavLink>
+
+        <NavLink
+          to="/admin-parents"
+          className={({ isActive }) =>
+            `admin-nav-link ${isActive ? "active" : ""}`
+          }
+        >
+          <span>♙</span>
+          Parent Management
+        </NavLink>
+
+        <NavLink
+          to="/admin-children"
+          className={({ isActive }) =>
+            `admin-nav-link ${isActive ? "active" : ""}`
+          }
+        >
+          <span>♧</span>
+          Child Management
         </NavLink>
       </nav>
 

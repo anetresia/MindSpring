@@ -1,11 +1,11 @@
-
 /* ========================================
-   PROFILE DROPDOWN
+   PROFILE WRAPPER
 ======================================== */
 
 .profile-wrapper {
   position: relative;
   flex-shrink: 0;
+  z-index: 37;
 }
 
 /* ========================================
@@ -13,8 +13,12 @@
 ======================================== */
 
 .profile-btn {
-  display: flex;
+  position: relative;
+  z-index: 3;
+
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
 
   max-width: 260px;
@@ -29,13 +33,17 @@
   font-family: inherit;
   font-size: 14px;
   font-weight: 700;
+  line-height: 1;
 
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-/* Parent Name */
+.profile-btn:hover {
+  box-shadow: 0 4px 14px rgba(53, 36, 111, 0.1);
+}
 
-.profile-btn > span:nth-child(2) {
+.profile-parent-name {
   min-width: 0;
   overflow: hidden;
   white-space: nowrap;
@@ -55,6 +63,7 @@
   align-items: center;
   justify-content: center;
 
+  flex-shrink: 0;
   overflow: hidden;
 
   background: #fff0e5;
@@ -66,14 +75,11 @@
   font-weight: 700;
 }
 
-/* Uploaded Profile Image */
-
 .profile-avatar img {
   width: 100%;
   height: 100%;
 
   display: block;
-
   object-fit: cover;
   object-position: center;
 
@@ -81,58 +87,251 @@
 }
 
 /* ========================================
-   PROFILE DROPDOWN
+   PROFILE CHEVRON
+======================================== */
+
+.profile-chevron {
+  width: 14px;
+  height: 35px;
+  flex-shrink: 0;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 13px;
+  line-height: 1;
+
+  position: relative;
+  top: -4px;
+  margin-left: -7px;
+}
+
+/* ========================================
+   BACKGROUND BLUR
+======================================== */
+
+.profile-backdrop {
+  position: fixed;
+  inset: 0;
+
+  z-index: 1;
+
+  background: rgba(39, 25, 65, 0.12);
+
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+
+  animation: profileBackdropShow 0.25s ease;
+}
+
+/* ========================================
+   PROFILE POPUP CARD
 ======================================== */
 
 .profile-dropdown {
   position: absolute;
-  top: calc(100% + 10px);
+
+  top: calc(100% + 14px);
   right: 0;
 
-  width: 230px;
-  max-width: calc(100vw - 30px);
+  width: 310px;
+  max-width: calc(100vw - 24px);
 
-  padding: 15px;
+  padding: 0;
 
-  background: #ffffff;
-  border: 1px solid #eee7df;
-  border-radius: 14px;
+  overflow: hidden;
 
-  box-shadow: 0 8px 25px rgba(53, 36, 111, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 23px;
 
-  z-index: 30;
+  background-image:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.86),
+      rgba(255, 240, 250, 0.78)
+    ),
+    url("../../assets/profile-card-bg.png");
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  box-shadow:
+    0 18px 50px rgba(67, 39, 112, 0.2),
+    0 5px 15px rgba(67, 39, 112, 0.08);
+
+  z-index: 2;
+
+  animation: profileCardShow 0.25s ease;
 }
 
-.profile-dropdown p {
-  margin: 0;
-  color: #6f6685;
-  font-size: 13px;
+.profile-card-content {
+  position: relative;
+  z-index: 1;
+
+  padding: 23px 20px 20px;
+}
+
+/* ========================================
+   PROFILE CARD HEADER
+======================================== */
+
+.profile-card-header {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+
+  padding: 5px 2px 17px;
+}
+
+.profile-card-avatar {
+  width: 54px;
+  height: 54px;
+  min-width: 54px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  overflow: hidden;
+
+  border-radius: 50%;
+
+  background: linear-gradient(
+    135deg,
+    #ffe4ee,
+    #e9dcff
+  );
+
+  color: #482b8c;
+
+  font-size: 17px;
+  font-weight: 700;
+
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 12px rgba(74, 44, 130, 0.12);
+}
+
+.profile-card-avatar img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.profile-card-user-info {
+  min-width: 0;
+}
+
+.profile-card-user-info h3 {
+  margin: 0 0 5px;
+
+  color: #35246f;
+
+  font-size: 16px;
+  font-weight: 800;
+
   overflow-wrap: anywhere;
 }
 
-/* Dropdown Buttons */
+.profile-card-user-info p {
+  margin: 0;
 
-.profile-dropdown button {
-  width: 100%;
+  color: #777084;
 
-  margin-top: 15px;
-  padding: 10px;
+  font-size: 12px;
+  line-height: 1.5;
 
-  border: none;
-  border-radius: 9px;
-
-  background: #fff0e9;
-  color: #d85c52;
-
-  font-family: inherit;
-  font-weight: 700;
-
-  cursor: pointer;
-  transition: background 0.2s ease;
+  overflow-wrap: anywhere;
 }
 
-.profile-dropdown button:hover {
-  background: #ffe2d7;
+/* ========================================
+   DIVIDER
+======================================== */
+
+.profile-card-divider {
+  height: 1px;
+  width: 100%;
+
+  margin: 2px 0 14px;
+
+  background: rgba(102, 76, 145, 0.13);
+}
+
+/* ========================================
+   PROFILE MENU BUTTONS
+======================================== */
+
+.profile-menu-btn {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  margin-top: 9px;
+  padding: 13px 14px;
+
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 13px;
+
+  background: rgba(255, 255, 255, 0.78);
+  color: #403071;
+
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.profile-menu-btn:hover {
+  background: #ffffff;
+  transform: translateX(3px);
+
+  box-shadow: 0 5px 14px rgba(67, 39, 112, 0.09);
+}
+
+.profile-menu-icon {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 9px;
+
+  background: #f2eaff;
+
+  font-size: 16px;
+}
+
+.profile-menu-arrow {
+  margin-left: auto;
+
+  color: #8c79b5;
+
+  font-size: 22px;
+  line-height: 1;
+}
+
+.profile-logout-btn .profile-menu-icon {
+  background: #fff0e9;
+}
+
+.profile-logout-btn {
+  color: #d85c52;
 }
 
 /* ========================================
@@ -140,9 +339,35 @@
 ======================================== */
 
 .profile-btn:focus-visible,
-.profile-dropdown button:focus-visible {
+.profile-menu-btn:focus-visible {
   outline: 3px solid rgba(89, 43, 193, 0.3);
   outline-offset: 3px;
+}
+
+/* ========================================
+   PROFILE ANIMATIONS
+======================================== */
+
+@keyframes profileCardShow {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes profileBackdropShow {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 /* ========================================
@@ -153,6 +378,7 @@
   .profile-btn {
     gap: 6px;
     padding: 6px 9px;
+
     font-size: 12px;
     max-width: 190px;
   }
@@ -161,11 +387,18 @@
     width: 30px;
     min-width: 30px;
     height: 30px;
+
     font-size: 12px;
   }
 
+  .profile-chevron {
+    height: 30px;
+    font-size: 12px;
+    top: -1px;
+  }
+
   .profile-dropdown {
-    width: 210px;
+    width: 290px;
   }
 }
 
@@ -184,11 +417,23 @@
     width: 27px;
     min-width: 27px;
     height: 27px;
+
     font-size: 11px;
   }
 
+  .profile-chevron {
+    height: 27px;
+    font-size: 11px;
+    top: -1px;
+  }
+
   .profile-dropdown {
-    width: 200px;
+    width: 270px;
+    right: 0;
+  }
+
+  .profile-card-content {
+    padding: 19px 16px 16px;
   }
 }
 
@@ -207,7 +452,9 @@
   padding: 20px;
 
   background: rgba(24, 18, 42, 0.55);
+
   backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
 
   z-index: 9999;
 }
@@ -228,8 +475,6 @@
   animation: logoutModalShow 0.2s ease;
 }
 
-/* Logout Icon */
-
 .logout-modal-icon {
   width: 55px;
   height: 55px;
@@ -249,8 +494,6 @@
   font-weight: 700;
 }
 
-/* Modal Heading */
-
 .logout-modal h2 {
   margin: 0 0 12px;
 
@@ -260,8 +503,6 @@
   font-weight: 700;
 }
 
-/* Modal Description */
-
 .logout-modal p {
   margin: 0;
 
@@ -270,8 +511,6 @@
   font-size: 14px;
   line-height: 1.6;
 }
-
-/* Modal Action Buttons */
 
 .logout-modal-actions {
   display: flex;
@@ -297,8 +536,6 @@
   transition: background 0.2s ease;
 }
 
-/* Cancel Button */
-
 .logout-cancel-btn {
   background: #f1eef7;
   color: #51436f;
@@ -307,8 +544,6 @@
 .logout-cancel-btn:hover {
   background: #e5e0ef;
 }
-
-/* Confirm Logout Button */
 
 .logout-confirm-btn {
   background: #d85c52;
@@ -319,16 +554,10 @@
   background: #bd493f;
 }
 
-/* Modal Button Accessibility */
-
 .logout-modal-actions button:focus-visible {
   outline: 3px solid rgba(89, 43, 193, 0.3);
   outline-offset: 3px;
 }
-
-/* ========================================
-   LOGOUT MODAL ANIMATION
-======================================== */
 
 @keyframes logoutModalShow {
   from {
@@ -343,7 +572,7 @@
 }
 
 /* ========================================
-   LOGOUT MODAL MOBILE RESPONSIVE
+   LOGOUT MODAL MOBILE
 ======================================== */
 
 @media (max-width: 480px) {
@@ -358,4 +587,37 @@
   .logout-modal-actions {
     gap: 9px;
   }
+}
+
+
+/* PROFILE POPUP CLOSE BUTTON */
+
+.profile-close-btn {
+  position: absolute;
+  top: 12px;
+  right: 13px;
+
+  width: 30px;
+  height: 30px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 0.8);
+  color: #514078;
+
+  font-size: 23px;
+  line-height: 1;
+
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.profile-close-btn:hover {
+  background: #ffffff;
+  transform: rotate(90deg);
 }

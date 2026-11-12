@@ -7,6 +7,7 @@ import {
   Route,
   Navigate,
   Outlet,
+  useLocation,
 } from "react-router-dom";
 
 // Components
@@ -22,6 +23,8 @@ import ChildDashboard from "./pages/ChildDashboard";
 import ChildLearning from "./pages/ChildLearning";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminContent from "./pages/AdminContent";
+import AdminParents from "./pages/AdminParents";
+import AdminChildren from "./pages/AdminChildren";
 
 // ========================================
 // GET SAVED ACCESS TOKEN
@@ -57,16 +60,28 @@ function getStoredUser() {
 // ========================================
 
 function ProtectedRoute({ allowedRoles }) {
+  const location = useLocation();
+
   const token = getAccessToken();
-  const user = getStoredUser();
+  const storedUser = getStoredUser();
 
-  if (!token || !user) {
-    return <Navigate to="/" replace />;
-  }
+  // Parent details passed from Child Dashboard navigation
+  const navigationUser = location.state?.parent || null;
 
-  const userRole = user.role?.trim().toLowerCase();
+  // Check stored user first, then navigation user
+  const usersToCheck = [storedUser, navigationUser];
 
-  if (!userRole || !allowedRoles.includes(userRole)) {
+  const normalizedAllowedRoles = allowedRoles.map((role) =>
+    role.trim().toLowerCase()
+  );
+
+  const validUser = usersToCheck.find((user) => {
+    const userRole = user?.role?.trim().toLowerCase();
+
+    return userRole && normalizedAllowedRoles.includes(userRole);
+  });
+
+  if (!token || !validUser) {
     return <Navigate to="/" replace />;
   }
 
@@ -150,6 +165,7 @@ function App() {
           />
 
           {/* CHILD LEARNING PAGE */}
+
           <Route
             path="/child-learning/:childId"
             element={<ChildLearning />}
@@ -171,6 +187,20 @@ function App() {
           <Route
             path="/admin-content"
             element={<AdminContent />}
+          />
+
+          {/* PARENT MANAGEMENT */}
+
+          <Route
+            path="/admin-parents"
+            element={<AdminParents />}
+          />
+
+          {/* CHILD MANAGEMENT */}
+
+          <Route
+            path="/admin-children"
+            element={<AdminChildren />}
           />
         </Route>
 

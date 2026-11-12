@@ -1,7 +1,7 @@
 
+from fastapi import FastAPI, HTTPException
 from pathlib import Path
 
-from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
@@ -28,6 +28,7 @@ from app.models.life_skill_topic import LifeSkillTopic
 from app.models.child_selected_topic import ChildSelectedTopic
 from app.models.quiz import Question, ActivityResponse
 from app.models.reward_transaction import RewardTransaction
+from app.models.lesson_attempt import LessonAttempt
 
 
 # ==========================================
@@ -39,10 +40,7 @@ from app.routers.contact import router as contact_router
 from app.routers.parent import router as parent_router
 from app.routers.lesson import router as lesson_router
 
-# Admin Quiz Router
 from app.routers.quiz import router as quiz_router
-
-# Child Quiz Router
 from app.routers.quiz import child_router as child_quiz_router
 
 from app.routers.question_image_upload import (
@@ -62,10 +60,38 @@ from app.routers.parent_life_skill_topic import (
 )
 
 from app.routers.parent_rewards import router as parent_rewards_router
+from app.routers import admin_management
+
+# ==========================================
+# UPLOAD DIRECTORIES
+# ==========================================
+
+# main.py is inside backend/app/
+# Actual uploads folder: backend/app/uploads/
+
+APP_DIR = Path(__file__).resolve().parent
+
+UPLOAD_DIR = APP_DIR / "uploads"
+
+VIDEO_UPLOAD_DIR = UPLOAD_DIR / "videos"
+
+QUESTION_UPLOAD_DIR = UPLOAD_DIR / "questions"
+
+PROFILE_IMAGE_DIR = UPLOAD_DIR / "profile_images"
+
+
+# Create folders if they do not exist
+for folder in [
+    UPLOAD_DIR,
+    VIDEO_UPLOAD_DIR,
+    QUESTION_UPLOAD_DIR,
+    PROFILE_IMAGE_DIR,
+]:
+    folder.mkdir(parents=True, exist_ok=True)
 
 
 # ==========================================
-# CREATE DATABASE TABLES
+# DATABASE TABLE CREATION
 # ==========================================
 
 Base.metadata.create_all(bind=engine)
@@ -90,6 +116,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
+        "http://127.0.0.1:5173",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -98,31 +125,18 @@ app.add_middleware(
 
 
 # ==========================================
-# UPLOAD DIRECTORIES
+# SERVE ALL UPLOADED FILES
 # ==========================================
 
-UPLOAD_DIR = Path(__file__).resolve().parent / "uploads"
-
-VIDEO_UPLOAD_DIR = UPLOAD_DIR / "videos"
-
-UPLOAD_DIR.mkdir(
-    parents=True,
-    exist_ok=True,
-)
-
-VIDEO_UPLOAD_DIR.mkdir(
-    parents=True,
-    exist_ok=True,
-)
-
-
-# ==========================================
-# SERVE UPLOADED FILES
-# ==========================================
+# /uploads/videos/ -> backend/app/uploads/videos/
+# /uploads/questions/ -> backend/app/uploads/questions/
 
 app.mount(
     "/uploads",
-    StaticFiles(directory=str(UPLOAD_DIR)),
+    StaticFiles(
+        directory=str(UPLOAD_DIR),
+        check_dir=True
+    ),
     name="uploads",
 )
 
@@ -131,43 +145,25 @@ app.mount(
 # REGISTER ROUTERS
 # ==========================================
 
-# Authentication
 app.include_router(auth_router)
-
-# Contact
 app.include_router(contact_router)
-
-# Parent
 app.include_router(parent_router)
 
-# Admin Life Skill Categories
 app.include_router(life_skill_category.router)
-
-# Admin Life Skill Topics
 app.include_router(life_skill_topic.router)
 
-# Admin Lessons
 app.include_router(lesson_router)
 
-# Admin Quiz Management
 app.include_router(quiz_router)
-
-# Child Quiz Questions
 app.include_router(child_quiz_router)
 
-# Admin Question Image Upload
 app.include_router(question_image_upload_router)
-
-# Admin Video Upload
 app.include_router(admin_video_upload.router)
 
-# Parent Selected Topics
 app.include_router(child_selected_topic_router)
-
-# Parent Life Skill Topics
 app.include_router(parent_life_skill_topic_router)
-
 app.include_router(parent_rewards_router)
+app.include_router(admin_management.router)
 
 
 # ==========================================
@@ -177,5 +173,41 @@ app.include_router(parent_rewards_router)
 @app.get("/")
 def home():
     return {
-        "message": "MindSpring API is running"
+        "message": "MindSpring API is running",
+        "upload_directory": str(UPLOAD_DIR),
+        "video_directory": str(VIDEO_UPLOAD_DIR),
+        "question_directory": str(QUESTION_UPLOAD_DIR),
+    }
+
+
+# ==========================================
+# VIDEO FILE CHECK
+# ==========================================
+
+@app.get("/check-video/{filename}")
+def check_video(filename: str):
+
+    if Path(filename).name != filename:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid filename",
+        )
+
+    video_path = VIDEO_UPLOAD_DIR / filename
+
+    if not video_path.is_file():
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "message": "Video file not found",
+                "expected_path": str(video_path),
+                "filename": filename,
+            },
+        )
+
+    return {
+        "success": True,
+        "message": "Video file found",
+        "video_url": f"/uploads/videos/{filename}",
+        "file_size": video_path.stat().st_size,
     }

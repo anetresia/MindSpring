@@ -18,11 +18,7 @@ function ChildDashboard() {
   const [loading, setLoading] = useState(!location.state?.child);
   const [error, setError] = useState("");
 
-  const [selectedCategory, setSelectedCategory] = useState(null);
-
-  // ========================================
   // LOAD CHILD PROFILE
-  // ========================================
 
   useEffect(() => {
     let isMounted = true;
@@ -30,11 +26,7 @@ function ChildDashboard() {
     async function loadChild() {
       if (!childId) {
         setLoading(false);
-
-        if (!location.state?.child) {
-          setError("Child profile could not be found.");
-        }
-
+        setError("Child profile could not be found.");
         return;
       }
 
@@ -45,17 +37,11 @@ function ChildDashboard() {
         const response = await getChild(childId);
 
         if (isMounted) {
-          setChild(
-            response.child ||
-            response.data ||
-            response
-          );
+          setChild(response.child || response.data || response);
         }
       } catch (err) {
         if (isMounted) {
-          setError(
-            err.message || "Unable to load child profile."
-          );
+          setError(err.message || "Unable to load child profile.");
         }
       } finally {
         if (isMounted) {
@@ -71,19 +57,7 @@ function ChildDashboard() {
     };
   }, [childId]);
 
-  // ========================================
-  // NAVIGATE TO SEPARATE LEARNING PAGE
-  // ========================================
-
-  function handleVideosClick() {
-    navigate(`/child-learning/${childId}`, {
-      state: { child },
-    });
-  }
-
-  // ========================================
   // CHILD DETAILS
-  // ========================================
 
   const childName =
     child?.child_name || child?.name || "Friend";
@@ -91,33 +65,67 @@ function ChildDashboard() {
   const stars =
     child?.stars ?? child?.points ?? null;
 
-  // ========================================
-  // LOADING SCREEN
-  // ========================================
+  // PARENT DASHBOARD NAVIGATION
+
+  function handleParentDashboard() {
+    let parent = location.state?.parent || null;
+
+    const storedParent =
+      sessionStorage.getItem("user") ||
+      localStorage.getItem("user");
+
+    try {
+      if (storedParent) {
+        parent = JSON.parse(storedParent);
+      }
+    } catch (err) {
+      console.error("Unable to read parent details:", err);
+    }
+
+    navigate("/parent-home", {
+      state: {
+        parent,
+      },
+    });
+  }
+
+  // LEARNING VIDEOS
+
+  function handleVideosClick() {
+    navigate(`/child-learning/${childId}`, {
+      state: { child },
+    });
+  }
+
+  // REWARDS
+
+  function handleRewardsClick() {
+    navigate(`/child-rewards/${childId}`, {
+      state: { child },
+    });
+  }
+
+  // LOADING
 
   if (loading) {
     return (
       <div className="child-dashboard-loading">
-        <div className="child-loading-icon">🌈</div>
         <h2>Getting your learning world ready...</h2>
       </div>
     );
   }
 
-  // ========================================
-  // ERROR SCREEN
-  // ========================================
+  // ERROR
 
   if (error && !child) {
     return (
       <div className="child-dashboard-error">
-        <span>🌻</span>
         <h2>Oops! We couldn't open the dashboard.</h2>
         <p>{error}</p>
 
         <button
           type="button"
-          onClick={() => navigate(-1)}
+          onClick={handleParentDashboard}
         >
           Go Back
         </button>
@@ -125,9 +133,7 @@ function ChildDashboard() {
     );
   }
 
-  // ========================================
-  // MAIN DASHBOARD UI
-  // ========================================
+  // MAIN DASHBOARD
 
   return (
     <main
@@ -136,40 +142,37 @@ function ChildDashboard() {
         "--dashboard-background": `url("${dashboardBg}")`,
       }}
     >
-      <div className="dashboard-decoration decoration-left" />
-      <div className="dashboard-decoration decoration-right" />
-
       <div className="child-dashboard-content">
 
         {/* HEADER */}
 
         <header className="child-dashboard-header">
 
-          <div className="child-dashboard-logo">
+          <div className="child-dashboard-brand">
+
             <img
               src={mindSpringLogo}
               alt="MindSpring Logo"
               className="mindspring-logo-image"
             />
+
+            <button
+              type="button"
+              className="parent-dashboard-back-button"
+              onClick={handleParentDashboard}
+            >
+              <span>←</span>
+              Parent Dashboard
+            </button>
+
           </div>
 
           <div className="child-dashboard-header-actions">
 
-            <button
-              type="button"
-              className="child-profile-button"
-              onClick={() => setSelectedCategory("My Profile")}
-            >
-              <span className="child-profile-avatar">
-                🧒
-              </span>
-
+            <div className="child-profile-display">
+              <span className="child-profile-avatar">🧒</span>
               <strong>{childName}</strong>
-
-              <span className="profile-dropdown">
-                ⌄
-              </span>
-            </button>
+            </div>
 
             <div className="child-stars-display">
               <span>⭐</span>
@@ -180,7 +183,11 @@ function ChildDashboard() {
               type="button"
               className="child-settings-button"
               aria-label="Settings"
-              onClick={() => setSelectedCategory("Settings")}
+              onClick={() =>
+                navigate(`/child-settings/${childId}`, {
+                  state: { child },
+                })
+              }
             >
               ⚙️
             </button>
@@ -188,104 +195,54 @@ function ChildDashboard() {
           </div>
         </header>
 
-        {/* WELCOME HERO */}
+        {/* WELCOME SECTION */}
 
         <section className="child-welcome-section">
 
-          <div className="child-hero-illustration">
-
-            <div className="hero-cloud hero-cloud-one" />
-            <div className="hero-cloud hero-cloud-two" />
-
-            <span className="hero-sparkle sparkle-one">
-              ✦
-            </span>
-
-            <span className="hero-sparkle sparkle-two">
-              ✧
-            </span>
-
-            <span className="hero-sparkle sparkle-three">
-              ⭐
-            </span>
-
-          </div>
-
           <div className="child-welcome-text">
-
             <h1>
               Hi {childName}!
               <span className="welcome-wave">👋</span>
-              <span className="welcome-star">⭐</span>
             </h1>
 
-            <p>Let's watch and learn today!</p>
-
-            <div className="welcome-decoration">
-              ✦ ✨
-            </div>
-
+            <p>Let's learn something new today!</p>
           </div>
 
         </section>
 
-        {/* MY LEARNING VIDEOS BUTTON */}
+        {/* DASHBOARD CARDS */}
 
-        <section className="child-learning-section">
+        <section className="child-dashboard-cards">
 
           <button
             type="button"
-            className="my-learning-videos-button"
+            className="child-dashboard-card watch-videos-card"
             onClick={handleVideosClick}
           >
-            <span className="my-learning-icon">
+            <span className="dashboard-card-icon">
               ▶
             </span>
 
-            <span>My Learning Videos</span>
+            <span className="dashboard-card-title">
+              Watch Videos
+            </span>
+          </button>
 
-            <span className="my-learning-arrow">
-              ›
+          <button
+            type="button"
+            className="child-dashboard-card rewards-card"
+            onClick={handleRewardsClick}
+          >
+            <span className="dashboard-card-icon">
+              🏆
             </span>
 
+            <span className="dashboard-card-title">
+              My Rewards
+            </span>
           </button>
 
         </section>
-
-        {/* PROFILE / SETTINGS MESSAGE */}
-
-        {selectedCategory && (
-          <div
-            className="child-selection-panel"
-            role="status"
-          >
-            <div>
-              <strong>{selectedCategory}</strong>
-
-              <p>
-                {selectedCategory === "My Profile"
-                  ? `Welcome, ${childName}!`
-                  : "Dashboard settings"}
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setSelectedCategory(null)}
-              aria-label="Close"
-            >
-              ×
-            </button>
-          </div>
-        )}
-
-        {/* FOOTER */}
-
-        <footer className="child-dashboard-footer">
-          <span>🌈</span>
-          Every little step is a big achievement!
-          <span>💜</span>
-        </footer>
 
       </div>
     </main>

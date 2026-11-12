@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -31,6 +32,9 @@ function MyChildren({
   childrenError,
   refreshChildren,
   onOpenChildDashboard,
+  dashboardMode = false,
+  openAddChildOnDashboard = false,
+  onDashboardAddChildClose,
 }) {
   const navigate = useNavigate();
 
@@ -99,6 +103,15 @@ function MyChildren({
     setShowForm(true);
   }
 
+  // OPEN DASHBOARD ADD CHILD POPUP
+  useEffect(() => {
+    if (dashboardMode && openAddChildOnDashboard) {
+      resetWizard();
+      setSuccess("");
+      setShowForm(true);
+    }
+  }, [dashboardMode, openAddChildOnDashboard]);
+
   // EDIT CHILD AND LOAD BACKEND DATA
   async function handleEditChild(child) {
     setFormData({
@@ -161,6 +174,10 @@ function MyChildren({
   function handleCancel() {
     setShowForm(false);
     resetWizard();
+
+    if (dashboardMode) {
+      onDashboardAddChildClose?.();
+    }
   }
 
   // WIZARD NAVIGATION
@@ -196,8 +213,6 @@ function MyChildren({
       }
     }
 
-    // IMPORTANT:
-    // Moving to the next step does NOT create a child.
     setWizardStep((step) => Math.min(step + 1, 3));
   }
 
@@ -223,9 +238,7 @@ function MyChildren({
   }
 
   // SAVE CHILD, PREFERENCES AND TOPICS
-  // This function runs ONLY when Finish is clicked.
   async function handleSubmit() {
-    // Prevent accidental or automatic submission.
     if (
       wizardStep !== 3 ||
       saving ||
@@ -330,7 +343,7 @@ function MyChildren({
 
         setSuccess("Child profile updated successfully.");
       } else {
-        // CREATE NEW CHILD ONLY AFTER FINISH CLICK
+        // CREATE NEW CHILD ONLY AFTER FINISH
         const createdChild = await createChild(childData);
 
         const newChildId =
@@ -360,6 +373,10 @@ function MyChildren({
 
       setShowForm(false);
       resetWizard();
+
+      if (dashboardMode) {
+        onDashboardAddChildClose?.();
+      }
 
       if (refreshChildren) {
         await refreshChildren();
@@ -430,44 +447,48 @@ function MyChildren({
   return (
     <div className="dashboard-content my-children-page">
 
-      {/* PAGE HEADING */}
+      {/* MY CHILDREN PAGE CONTENT - HIDDEN IN DASHBOARD MODE */}
 
-      <section className="children-page-heading">
-        <div>
-          <h1>My Children</h1>
-          <p>
-            Manage your children's profiles and learning preferences.
-          </p>
-        </div>
+      {!dashboardMode && (
+        <>
+          <section className="children-page-heading">
+            <div>
+              <h1>My Children</h1>
+              <p>
+                Manage your children's profiles and learning preferences.
+              </p>
+            </div>
 
-        <button
-          type="button"
-          className="children-add-btn"
-          onClick={handleAddChild}
-        >
-          + Add Child
-        </button>
-      </section>
+            <button
+              type="button"
+              className="children-add-btn"
+              onClick={handleAddChild}
+            >
+              + Add Child
+            </button>
+          </section>
 
-      {success && (
-        <div className="children-success-message" role="status">
-          {success}
-        </div>
+          {success && (
+            <div className="children-success-message" role="status">
+              {success}
+            </div>
+          )}
+
+          {error && !showForm && (
+            <div className="children-error-message" role="alert">
+              {error}
+            </div>
+          )}
+
+          {!loading && childrenError && (
+            <div className="children-error-message" role="alert">
+              {childrenError}
+            </div>
+          )}
+        </>
       )}
 
-      {error && !showForm && (
-        <div className="children-error-message" role="alert">
-          {error}
-        </div>
-      )}
-
-      {!loading && childrenError && (
-        <div className="children-error-message" role="alert">
-          {childrenError}
-        </div>
-      )}
-
-      {/* THREE STEP WIZARD */}
+      {/* THREE STEP ADD / EDIT WIZARD */}
 
       {showForm && (
         <div className="children-wizard-overlay">
@@ -537,16 +558,11 @@ function MyChildren({
               </div>
             )}
 
-            {/* IMPORTANT:
-                Prevent native form submission.
-                Finish button calls handleSubmit explicitly.
-            */}
             <form
               onSubmit={(event) => {
                 event.preventDefault();
               }}
             >
-
               {/* STEP 1 */}
 
               {wizardStep === 1 && (
@@ -619,7 +635,6 @@ function MyChildren({
 
               {wizardStep === 3 && (
                 <div className="children-wizard-step">
-
                   {loadingSelectedTopics && (
                     <p className="topic-selection-message">
                       Loading previously selected topics...
@@ -687,190 +702,194 @@ function MyChildren({
         </div>
       )}
 
-      {/* CHILDREN LIST */}
+      {/* CHILDREN LIST - ONLY ON MY CHILDREN PAGE */}
 
-      <section className="children-list-section">
-        <div className="children-list-heading">
-          <h2>Children Profiles</h2>
+      {!dashboardMode && (
+        <>
+          <section className="children-list-section">
+            <div className="children-list-heading">
+              <h2>Children Profiles</h2>
 
-          <span>
-            {children.length}{" "}
-            {children.length === 1 ? "Child" : "Children"}
-          </span>
-        </div>
+              <span>
+                {children.length}{" "}
+                {children.length === 1 ? "Child" : "Children"}
+              </span>
+            </div>
 
-        {loading ? (
-          <p className="children-empty-message">
-            Loading children...
-          </p>
-        ) : childrenError ? (
-          <p className="children-empty-message">
-            Unable to display children. Please try again.
-          </p>
-        ) : children.length === 0 ? (
-          <div className="children-empty-state">
-            <div className="children-empty-icon">🧒</div>
+            {loading ? (
+              <p className="children-empty-message">
+                Loading children...
+              </p>
+            ) : childrenError ? (
+              <p className="children-empty-message">
+                Unable to display children. Please try again.
+              </p>
+            ) : children.length === 0 ? (
+              <div className="children-empty-state">
+                <div className="children-empty-icon">🧒</div>
 
-            <h3>No Children Added Yet</h3>
+                <h3>No Children Added Yet</h3>
 
-            <p>
-              Add your child's profile to begin their learning journey.
-            </p>
+                <p>
+                  Add your child's profile to begin their learning journey.
+                </p>
 
-            <button
-              type="button"
-              className="children-add-btn"
-              onClick={handleAddChild}
-            >
-              + Add Your First Child
-            </button>
-          </div>
-        ) : (
-          <div className="children-cards-grid">
-            {children.map((child) => {
-              const childImage = getChildImage(child);
-
-              return (
-                <article
-                  className="children-profile-card"
-                  key={child.child_id}
+                <button
+                  type="button"
+                  className="children-add-btn"
+                  onClick={handleAddChild}
                 >
-                  <div className="children-card-top">
-                    <div className="children-card-avatar">
-                      {childImage ? (
-                        <img
-                          src={childImage}
-                          alt={`${child.child_name} profile`}
-                          className="children-card-avatar-image"
-                          onError={(event) => {
-                            event.currentTarget.style.display = "none";
+                  + Add Your First Child
+                </button>
+              </div>
+            ) : (
+              <div className="children-cards-grid">
+                {children.map((child) => {
+                  const childImage = getChildImage(child);
 
-                            const fallback =
-                              event.currentTarget.nextElementSibling;
+                  return (
+                    <article
+                      className="children-profile-card"
+                      key={child.child_id}
+                    >
+                      <div className="children-card-top">
+                        <div className="children-card-avatar">
+                          {childImage ? (
+                            <img
+                              src={childImage}
+                              alt={`${child.child_name} profile`}
+                              className="children-card-avatar-image"
+                              onError={(event) => {
+                                event.currentTarget.style.display = "none";
 
-                            if (fallback) {
-                              fallback.style.display = "flex";
-                            }
-                          }}
-                        />
-                      ) : null}
+                                const fallback =
+                                  event.currentTarget.nextElementSibling;
 
-                      <span
-                        className="children-card-avatar-initial"
-                        style={{
-                          display: childImage ? "none" : "flex",
-                        }}
-                      >
-                        {getChildInitial(child)}
-                      </span>
-                    </div>
+                                if (fallback) {
+                                  fallback.style.display = "flex";
+                                }
+                              }}
+                            />
+                          ) : null}
 
-                    <div className="children-card-actions">
+                          <span
+                            className="children-card-avatar-initial"
+                            style={{
+                              display: childImage ? "none" : "flex",
+                            }}
+                          >
+                            {getChildInitial(child)}
+                          </span>
+                        </div>
+
+                        <div className="children-card-actions">
+                          <button
+                            type="button"
+                            onClick={() => handleEditChild(child)}
+                            aria-label={`Edit ${child.child_name}`}
+                            title="Edit"
+                          >
+                            ✏️
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteChild(child)}
+                            aria-label={`Delete ${child.child_name}`}
+                            title="Delete"
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      </div>
+
+                      <h3>{child.child_name}</h3>
+
+                      <p className="children-card-age">
+                        {calculateAge(child.date_of_birth)} years old
+                      </p>
+
+                      <div className="children-card-details">
+                        <p>
+                          <strong>Date of Birth:</strong>{" "}
+                          {child.date_of_birth?.split("T")[0] ||
+                            "Not available"}
+                        </p>
+
+                        <p>
+                          <strong>Communication:</strong>{" "}
+                          {child.communication_method || "Not available"}
+                        </p>
+
+                        <p>
+                          <strong>Learning Method:</strong>{" "}
+                          {child.learning_method || "Not available"}
+                        </p>
+                      </div>
+
                       <button
                         type="button"
-                        onClick={() => handleEditChild(child)}
-                        aria-label={`Edit ${child.child_name}`}
-                        title="Edit"
+                        className="children-start-learning-btn"
+                        onClick={() => handleStartLearning(child)}
                       >
-                        ✏️
+                        Go to Child Dashboard →
                       </button>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+          </section>
 
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteChild(child)}
-                        aria-label={`Delete ${child.child_name}`}
-                        title="Delete"
-                      >
-                        🗑️
-                      </button>
-                    </div>
-                  </div>
+          {/* DELETE CONFIRMATION */}
 
-                  <h3>{child.child_name}</h3>
+          {childToDelete && (
+            <div className="children-modal-overlay">
+              <div
+                className="children-delete-modal"
+                role="alertdialog"
+                aria-modal="true"
+                aria-labelledby="delete-modal-title"
+                aria-describedby="delete-modal-description"
+              >
+                <div className="delete-modal-icon">🗑️</div>
 
-                  <p className="children-card-age">
-                    {calculateAge(child.date_of_birth)} years old
-                  </p>
+                <h2 id="delete-modal-title">
+                  Delete Child Profile?
+                </h2>
 
-                  <div className="children-card-details">
-                    <p>
-                      <strong>Date of Birth:</strong>{" "}
-                      {child.date_of_birth?.split("T")[0] ||
-                        "Not available"}
-                    </p>
+                <p id="delete-modal-description">
+                  Are you sure you want to delete{" "}
+                  <strong>{childToDelete.child_name}</strong>'s profile?
+                </p>
 
-                    <p>
-                      <strong>Communication:</strong>{" "}
-                      {child.communication_method || "Not available"}
-                    </p>
+                <p className="delete-modal-warning">
+                  This action cannot be undone.
+                </p>
 
-                    <p>
-                      <strong>Learning Method:</strong>{" "}
-                      {child.learning_method || "Not available"}
-                    </p>
-                  </div>
+                <div className="delete-modal-actions">
+                  <button
+                    type="button"
+                    className="delete-cancel-btn"
+                    onClick={() => setChildToDelete(null)}
+                    disabled={deleting}
+                  >
+                    Cancel
+                  </button>
 
                   <button
                     type="button"
-                    className="children-start-learning-btn"
-                    onClick={() => handleStartLearning(child)}
+                    className="delete-confirm-btn"
+                    onClick={confirmDeleteChild}
+                    disabled={deleting}
                   >
-                    Go to Child Dashboard →
+                    {deleting ? "Deleting..." : "Yes, Delete"}
                   </button>
-                </article>
-              );
-            })}
-          </div>
-        )}
-      </section>
-
-      {/* DELETE CONFIRMATION */}
-
-      {childToDelete && (
-        <div className="children-modal-overlay">
-          <div
-            className="children-delete-modal"
-            role="alertdialog"
-            aria-modal="true"
-            aria-labelledby="delete-modal-title"
-            aria-describedby="delete-modal-description"
-          >
-            <div className="delete-modal-icon">🗑️</div>
-
-            <h2 id="delete-modal-title">
-              Delete Child Profile?
-            </h2>
-
-            <p id="delete-modal-description">
-              Are you sure you want to delete{" "}
-              <strong>{childToDelete.child_name}</strong>'s profile?
-            </p>
-
-            <p className="delete-modal-warning">
-              This action cannot be undone.
-            </p>
-
-            <div className="delete-modal-actions">
-              <button
-                type="button"
-                className="delete-cancel-btn"
-                onClick={() => setChildToDelete(null)}
-                disabled={deleting}
-              >
-                Cancel
-              </button>
-
-              <button
-                type="button"
-                className="delete-confirm-btn"
-                onClick={confirmDeleteChild}
-                disabled={deleting}
-              >
-                {deleting ? "Deleting..." : "Yes, Delete"}
-              </button>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          )}
+        </>
       )}
     </div>
   );

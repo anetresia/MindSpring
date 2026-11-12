@@ -1,0 +1,926 @@
+
+/* ========================================
+   MANAGEMENT WELCOME
+======================================== */
+
+.management-welcome {
+  min-height: 145px;
+  padding: 28px 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border-radius: 20px;
+  background: linear-gradient(120deg, #eee8ff, #f9edff);
+}
+
+.management-welcome h2 {
+  margin: 0 0 10px;
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.management-welcome p {
+  margin: 0;
+  color: #776b8d;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.management-welcome-icon {
+  width: 70px;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20px;
+  background: white;
+  color: #8059c9;
+  font-size: 35px;
+}
+
+/* ========================================
+   MANAGEMENT STATS
+======================================== */
+
+.management-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  margin: 25px 0;
+}
+
+/* ========================================
+   LIST PANEL
+======================================== */
+
+.management-list-panel {
+  padding: 25px;
+  border-radius: 17px;
+  background: white;
+  border: 1px solid #eee8f4;
+}
+
+.management-list-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 22px;
+}
+
+.management-list-heading h2 {
+  margin: 0 0 7px;
+  font-size: 19px;
+  font-weight: 900;
+}
+
+.management-list-heading p {
+  margin: 0;
+  color: #958ba4;
+  font-size: 13px;
+}
+
+/* ========================================
+   SEARCH
+======================================== */
+
+.management-search {
+  height: 45px;
+  max-width: 480px;
+  margin-bottom: 22px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #eee8f4;
+  border-radius: 10px;
+  background: #fcfbfd;
+}
+
+.management-search span {
+  color: #8a7ca1;
+  font-size: 23px;
+}
+
+.management-search input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #35246f;
+  font-family: inherit;
+  font-size: 13px;
+}
+
+/* ========================================
+   TABLE
+======================================== */
+
+.management-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.management-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.management-table th {
+  padding: 14px 13px;
+  background: #f8f5fc;
+  color: #80748f;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.management-table td {
+  padding: 15px 13px;
+  border-bottom: 1px solid #f1edf4;
+  color: #716681;
+  font-size: 12px;
+}
+
+.management-table tbody tr:hover {
+  background: #fcfaff;
+}
+
+.management-parent-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #35246f;
+}
+
+.management-avatar {
+  width: 35px;
+  height: 35px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #eee8ff;
+  color: #6845b5;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.management-count {
+  min-width: 27px;
+  height: 27px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: #eee8ff;
+  color: #6845b5;
+  font-weight: 900;
+}
+
+.management-view-btn {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  background: #eee8ff;
+  color: #6845b5;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.management-view-btn:hover {
+  background: #dfd3ff;
+}
+
+.management-message {
+  padding: 35px !important;
+  text-align: center;
+  color: #958ba4 !important;
+}
+
+.management-list-footer {
+  padding-top: 17px;
+  color: #958ba4;
+  font-size: 12px;
+}
+
+.management-error {
+  margin: 12px 0;
+  padding: 12px 14px;
+  border-radius: 9px;
+  background: #fff0f0;
+  color: #bd4545;
+  font-size: 13px;
+}
+
+/* ========================================
+   MODAL
+======================================== */
+
+.management-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+  background: rgba(35, 24, 57, 0.48);
+}
+
+.management-modal {
+  width: 100%;
+  max-width: 680px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 28px;
+  border-radius: 18px;
+  background: white;
+  box-shadow: 0 15px 50px rgba(40, 20, 70, 0.15);
+}
+
+.management-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.management-modal-header h2 {
+  margin: 0 0 6px;
+  color: #35246f;
+  font-size: 21px;
+  font-weight: 900;
+}
+
+.management-modal-header p {
+  margin: 0;
+  color: #958ba4;
+  font-size: 12px;
+}
+
+.management-close-btn {
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 9px;
+  background: #f5f0ff;
+  color: #6845b5;
+  font-size: 23px;
+  cursor: pointer;
+}
+
+/* ========================================
+   FORM
+======================================== */
+
+.management-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.management-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.management-form-group label {
+  color: #625674;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.management-form-group input {
+  width: 100%;
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid #eee8f4;
+  border-radius: 9px;
+  outline: none;
+  color: #35246f;
+  background: white;
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.management-form-group input:focus {
+  border-color: #9675d2;
+}
+
+.management-form-group input:disabled {
+  background: #faf8fc;
+  color: #786e87;
+}
+
+/* ========================================
+   ASSOCIATED CHILDREN
+======================================== */
+
+.management-children-section {
+  margin-top: 28px;
+  padding-top: 22px;
+  border-top: 1px solid #eee8f4;
+}
+
+.management-children-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.management-children-heading h3 {
+  margin: 0;
+  color: #35246f;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.management-children-heading span {
+  min-width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  background: #eee8ff;
+  color: #6845b5;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.management-children-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.management-child-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px;
+  border: 1px solid #f0ebf4;
+  border-radius: 10px;
+  background: #fcfbfd;
+}
+
+.management-child-avatar {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+  background: #eaf5e6;
+  color: #54834b;
+  font-size: 19px;
+}
+
+.management-child-item strong {
+  color: #35246f;
+  font-size: 13px;
+}
+
+.management-child-item p {
+  margin: 4px 0 0;
+  color: #958ba4;
+  font-size: 11px;
+}
+
+.management-no-children {
+  padding: 18px;
+  border-radius: 9px;
+  background: #faf8fc;
+  color: #958ba4;
+  font-size: 12px;
+  text-align: center;
+}
+
+/* ========================================
+   MODAL ACTIONS
+======================================== */
+
+.management-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 25px;
+}
+
+.management-save-btn,
+.management-cancel-btn {
+  padding: 11px 18px;
+  border: none;
+  border-radius: 9px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.management-save-btn {
+  background: #6845b5;
+  color: white;
+}
+
+.management-save-btn:hover {
+  background: #55369b;
+}
+
+.management-save-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.management-cancel-btn {
+  background: #f2eef7;
+  color: #746b85;
+}
+
+/* ========================================
+   RESPONSIVE
+======================================== */
+
+@media (max-width: 900px) {
+  .management-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .management-list-panel {
+    padding: 18px;
+  }
+}
+
+@media (max-width: 600px) {
+  .management-welcome {
+    min-height: 120px;
+    padding: 20px;
+  }
+
+  .management-welcome h2 {
+    font-size: 20px;
+  }
+
+  .management-welcome-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 26px;
+  }
+
+  .management-stat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .management-list-panel {
+    padding: 15px;
+  }
+
+  .management-list-heading h2 {
+    font-size: 17px;
+  }
+
+  .management-search {
+    max-width: 100%;
+  }
+
+  .management-modal {
+    padding: 20px;
+  }
+
+  .management-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .management-modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .management-modal-actions button {
+    width: 100%;
+  }
+}
+
+
+
+/* CHILD / PARENT MANAGEMENT COMMON STYLES */
+
+.management-welcome {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.management-welcome h1 {
+  color: #25213d;
+  font-size: 27px;
+  margin-bottom: 7px;
+}
+
+.management-welcome p,
+.management-section-header p {
+  color: #858197;
+  font-size: 14px;
+}
+
+.management-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 250px));
+  gap: 18px;
+  margin-bottom: 25px;
+}
+
+.management-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 20px;
+  background: #fff;
+  border: 1px solid #eeeaf6;
+  border-radius: 14px;
+}
+
+.management-stat-icon {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: #f0ebff;
+  color: #7355d9;
+  font-size: 25px;
+}
+
+.management-stat-card p {
+  color: #858197;
+  font-size: 13px;
+  margin-bottom: 5px;
+}
+
+.management-stat-card h2 {
+  color: #29243f;
+  font-size: 25px;
+}
+
+.management-section {
+  background: #fff;
+  border: 1px solid #eeeaf6;
+  border-radius: 15px;
+  padding: 22px;
+}
+
+.management-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 22px;
+}
+
+.management-section-header h2 {
+  color: #29243f;
+  font-size: 19px;
+  margin-bottom: 6px;
+}
+
+.management-search {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 280px;
+  padding: 0 13px;
+  border: 1px solid #e8e4f0;
+  border-radius: 9px;
+  background: #fff;
+}
+
+.management-search span {
+  color: #8175a3;
+  font-size: 22px;
+}
+
+.management-search input {
+  width: 100%;
+  height: 42px;
+  border: none;
+  outline: none;
+  color: #39344e;
+  background: transparent;
+}
+
+.management-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.management-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 850px;
+}
+
+.management-table th {
+  padding: 14px 12px;
+  text-align: left;
+  color: #89849a;
+  font-size: 12px;
+  font-weight: 600;
+  background: #faf9fd;
+  border-bottom: 1px solid #eeeaf5;
+}
+
+.management-table td {
+  padding: 15px 12px;
+  color: #575268;
+  font-size: 13px;
+  border-bottom: 1px solid #f0edf5;
+}
+
+.management-user-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.management-user-cell strong {
+  color: #302b45;
+  font-weight: 600;
+}
+
+.management-avatar,
+.management-large-avatar {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: #7052d5;
+  background: #f0ebff;
+  border-radius: 50%;
+  font-weight: 700;
+}
+
+.management-avatar {
+  width: 35px;
+  height: 35px;
+}
+
+.management-actions {
+  display: flex;
+  gap: 7px;
+}
+
+.management-view-btn,
+.management-edit-btn,
+.management-cancel-btn,
+.management-primary-btn {
+  border: none;
+  border-radius: 7px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.management-view-btn {
+  color: #7052d5;
+  background: #f0ebff;
+}
+
+.management-edit-btn,
+.management-primary-btn {
+  color: #fff;
+  background: #7556dc;
+}
+
+.management-view-btn:hover,
+.management-edit-btn:hover,
+.management-primary-btn:hover {
+  opacity: 0.88;
+}
+
+.management-empty {
+  text-align: center;
+  padding: 35px !important;
+  color: #89849a !important;
+}
+
+.management-table-footer {
+  padding-top: 15px;
+  color: #89849a;
+  font-size: 12px;
+}
+
+.management-error,
+.management-success {
+  padding: 11px 13px;
+  margin-bottom: 15px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.management-error {
+  color: #bd3b48;
+  background: #fff0f1;
+}
+
+.management-success {
+  color: #21864f;
+  background: #eaf8f0;
+}
+
+/* MODAL */
+
+.management-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  background: rgba(25, 20, 43, 0.55);
+  overflow-y: auto;
+}
+
+.management-modal {
+  width: 100%;
+  max-width: 650px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
+}
+
+.management-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 22px 25px;
+  border-bottom: 1px solid #eeeaf5;
+}
+
+.management-modal-header h2 {
+  color: #29243f;
+  font-size: 20px;
+  margin-bottom: 6px;
+}
+
+.management-modal-header p {
+  color: #89849a;
+  font-size: 13px;
+}
+
+.management-close-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: #f4f1fa;
+  color: #625b77;
+  font-size: 23px;
+  cursor: pointer;
+}
+
+.management-details,
+.management-form {
+  padding: 23px 25px;
+}
+
+.management-detail-profile {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 25px;
+}
+
+.management-large-avatar {
+  width: 55px;
+  height: 55px;
+  font-size: 22px;
+}
+
+.management-detail-profile h3 {
+  color: #302b45;
+  font-size: 18px;
+  margin-bottom: 5px;
+}
+
+.management-detail-profile p {
+  color: #89849a;
+  font-size: 12px;
+}
+
+.management-subheading {
+  color: #302b45;
+  font-size: 14px;
+  margin: 20px 0 14px;
+}
+
+.management-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 17px;
+}
+
+.management-detail-grid label {
+  display: block;
+  color: #89849a;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.management-detail-grid p {
+  color: #39344e;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.management-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 17px;
+}
+
+.management-form-group label {
+  color: #4a455e;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.management-form-group input {
+  width: 100%;
+  height: 43px;
+  padding: 0 12px;
+  border: 1px solid #e5e1ed;
+  border-radius: 8px;
+  outline: none;
+  color: #39344e;
+  background: #fff;
+  font-size: 13px;
+}
+
+.management-form-group input:focus {
+  border-color: #8064df;
+  box-shadow: 0 0 0 3px rgba(128, 100, 223, 0.1);
+}
+
+.management-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 25px;
+}
+
+.management-cancel-btn {
+  color: #625b77;
+  background: #f1eff6;
+}
+
+.management-primary-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 700px) {
+  .management-section {
+    padding: 15px;
+  }
+
+  .management-section-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .management-search {
+    width: 100%;
+  }
+
+  .management-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .management-modal-overlay {
+    padding: 10px;
+  }
+
+  .management-modal-header,
+  .management-details,
+  .management-form {
+    padding: 17px;
+  }
+}

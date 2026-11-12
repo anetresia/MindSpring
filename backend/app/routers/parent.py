@@ -10,6 +10,8 @@ from sqlalchemy.exc import SQLAlchemyError
 from app.database import get_db
 from app.models.user import User
 from app.models.child import Child
+from app.models.lesson import Lesson
+from app.models.lesson_attempt import LessonAttempt
 from app.schemas.child import (
     ChildCreate,
     ChildUpdate,
@@ -76,6 +78,73 @@ def get_children(
     )
 
 
+# =========================================================
+# PARENT RECENT LEARNING ACTIVITIES API
+# =========================================================
+
+@router.get("/activities/recent")
+def get_recent_activities(
+    db: Session = Depends(get_db),
+    current_parent: User = Depends(get_current_parent),
+):
+    try:
+        activities = (
+            db.query(
+                LessonAttempt,
+                Child,
+                Lesson,
+            )
+            .join(
+                Child,
+                LessonAttempt.child_id == Child.child_id,
+            )
+            .join(
+                Lesson,
+                LessonAttempt.lesson_id == Lesson.lesson_id,
+            )
+            .filter(
+                Child.parent_id == current_parent.user_id,
+            )
+            .order_by(
+                LessonAttempt.completed_at.desc(),
+            )
+            .limit(20)
+            .all()
+        )
+
+        return [
+            {
+                "attempt_id": attempt.attempt_id,
+                "child_id": child.child_id,
+                "child_name": child.child_name,
+                "lesson_id": lesson.lesson_id,
+                "lesson_title": lesson.title,
+                "total_questions": attempt.total_questions,
+                "correct_answers": attempt.correct_answers,
+                "score": attempt.correct_answers,
+                "status": "Completed",
+                "completed_at": attempt.completed_at,
+                "response_time": attempt.completed_at,
+            }
+            for attempt, child, lesson in activities
+        ]
+
+    except SQLAlchemyError:
+        logger.exception(
+            "Database error while loading recent activities for parent_id=%s",
+            current_parent.user_id,
+        )
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unable to load recent learning activities.",
+        )
+
+
+# =========================================================
+# CREATE CHILD
+# =========================================================
+
 @router.post(
     "/children",
     response_model=ChildResponse,
@@ -92,6 +161,10 @@ def create_child(
         child_data=child_data,
     )
 
+
+# =========================================================
+# GET SINGLE CHILD
+# =========================================================
 
 @router.get(
     "/children/{child_id}",
@@ -116,6 +189,10 @@ def get_child(
 
     return child
 
+
+# =========================================================
+# UPDATE CHILD
+# =========================================================
 
 @router.put(
     "/children/{child_id}",
@@ -142,6 +219,10 @@ def update_child(
 
     return child
 
+
+# =========================================================
+# DELETE CHILD
+# =========================================================
 
 @router.delete("/children/{child_id}")
 def delete_child(

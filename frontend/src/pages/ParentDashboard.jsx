@@ -6,6 +6,7 @@ import {
   getChildren,
   getParentProfile,
   getChildrenRewardTotals,
+  getRecentActivities,
 } from "../api";
 
 import ParentSidebar from "../components/parent-dashboard/ParentSidebar";
@@ -25,10 +26,7 @@ function ParentDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // ========================================
   // GET STORED PARENT DETAILS
-  // ========================================
-
   const storedUser =
     sessionStorage.getItem("user") ||
     localStorage.getItem("user");
@@ -44,29 +42,28 @@ function ParentDashboard() {
     }
   }
 
-  // ========================================
   // STATES
-  // ========================================
-
   const [parentData, setParentData] = useState(parent || {});
   const [activeMenu, setActiveMenu] = useState("Dashboard");
-
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const [children, setChildren] = useState([]);
   const [childrenLoading, setChildrenLoading] = useState(true);
   const [childrenError, setChildrenError] = useState("");
 
-  // Each child's rewards are stored separately
   const [rewardTotals, setRewardTotals] = useState([]);
-
   const [rewardsLoading, setRewardsLoading] = useState(true);
   const [rewardsError, setRewardsError] = useState("");
 
-  // ========================================
-  // LOAD CHILDREN
-  // ========================================
+  // RECENT ACTIVITIES STATES
+  const [recentActivities, setRecentActivities] = useState([]);
+  const [activitiesLoading, setActivitiesLoading] = useState(true);
+  const [activitiesError, setActivitiesError] = useState("");
 
+  // DASHBOARD ADD CHILD POPUP
+  const [showAddChildModal, setShowAddChildModal] = useState(false);
+
+  // LOAD CHILDREN
   const loadChildren = useCallback(async () => {
     try {
       setChildrenLoading(true);
@@ -85,7 +82,6 @@ function ParentDashboard() {
       setChildren(childrenList);
     } catch (error) {
       console.error("Error loading children:", error);
-
       setChildrenError(
         error.message || "Unable to load child details."
       );
@@ -94,10 +90,7 @@ function ParentDashboard() {
     }
   }, []);
 
-  // ========================================
-  // LOAD EACH CHILD'S REWARD TOTALS
-  // ========================================
-
+  // LOAD CHILD REWARD TOTALS
   const loadRewardTotals = useCallback(async () => {
     try {
       setRewardsLoading(true);
@@ -116,21 +109,46 @@ function ParentDashboard() {
       setRewardTotals(rewardsList);
     } catch (error) {
       console.error("Error loading child rewards:", error);
-
       setRewardsError(
         error.message || "Unable to load rewards."
       );
-
       setRewardTotals([]);
     } finally {
       setRewardsLoading(false);
     }
   }, []);
 
-  // ========================================
-  // LOAD PARENT PROFILE
-  // ========================================
+  // LOAD RECENT LEARNING ACTIVITIES
+  const loadRecentActivities = useCallback(async () => {
+    try {
+      setActivitiesLoading(true);
+      setActivitiesError("");
 
+      const data = await getRecentActivities();
+
+      const activitiesList = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.activities)
+        ? data.activities
+        : Array.isArray(data?.data)
+        ? data.data
+        : [];
+
+      setRecentActivities(activitiesList);
+    } catch (error) {
+      console.error("Error loading recent activities:", error);
+
+      setActivitiesError(
+        error.message || "Unable to load recent activities."
+      );
+
+      setRecentActivities([]);
+    } finally {
+      setActivitiesLoading(false);
+    }
+  }, []);
+
+  // LOAD PARENT PROFILE
   const loadParentProfile = useCallback(async () => {
     try {
       const data = await getParentProfile();
@@ -144,24 +162,20 @@ function ParentDashboard() {
     }
   }, []);
 
-  // ========================================
   // INITIAL DATA LOADING
-  // ========================================
-
   useEffect(() => {
     loadChildren();
     loadRewardTotals();
+    loadRecentActivities();
     loadParentProfile();
   }, [
     loadChildren,
     loadRewardTotals,
+    loadRecentActivities,
     loadParentProfile,
   ]);
 
-  // ========================================
-  // CLOSE SIDEBAR WITH ESCAPE KEY
-  // ========================================
-
+  // CLOSE SIDEBAR WITH ESCAPE
   useEffect(() => {
     function handleEscapeKey(event) {
       if (event.key === "Escape") {
@@ -176,10 +190,7 @@ function ParentDashboard() {
     };
   }, []);
 
-  // ========================================
   // OPEN CHILD DASHBOARD
-  // ========================================
-
   function handleOpenChildDashboard(child) {
     const childId = child?.child_id || child?.id;
 
@@ -188,15 +199,29 @@ function ParentDashboard() {
       return;
     }
 
+    const storedParent =
+      sessionStorage.getItem("user") ||
+      localStorage.getItem("user");
+
+    let parentDetails = parentData;
+
+    try {
+      if (storedParent) {
+        parentDetails = JSON.parse(storedParent);
+      }
+    } catch (error) {
+      console.error("Unable to read parent details:", error);
+    }
+
     navigate(`/child-dashboard/${childId}`, {
-      state: { child },
+      state: {
+        child,
+        parent: parentDetails,
+      },
     });
   }
 
-  // ========================================
   // LOGOUT
-  // ========================================
-
   function handleLogout() {
     localStorage.removeItem("access_token");
     localStorage.removeItem("user");
@@ -207,13 +232,11 @@ function ParentDashboard() {
     navigate("/", { replace: true });
   }
 
-  // ========================================
   // SIDEBAR MENU
-  // ========================================
-
   function handleMenuClick(menuName) {
     setActiveMenu(menuName);
     setIsSidebarOpen(false);
+    setShowAddChildModal(false);
 
     const scrollArea = document.querySelector(
       ".parent-dashboard-scroll"
@@ -224,10 +247,7 @@ function ParentDashboard() {
     }
   }
 
-  // ========================================
-  // TOGGLE MOBILE SIDEBAR
-  // ========================================
-
+  // SIDEBAR TOGGLE
   function handleSidebarToggle() {
     setIsSidebarOpen((previous) => !previous);
   }
@@ -236,10 +256,7 @@ function ParentDashboard() {
     setIsSidebarOpen(false);
   }
 
-  // ========================================
   // UPDATE PARENT PROFILE
-  // ========================================
-
   function handleProfileUpdate(updatedProfile) {
     setParentData((previous) => {
       const updatedData = {
@@ -274,10 +291,16 @@ function ParentDashboard() {
     });
   }
 
-  // ========================================
-  // DASHBOARD UI
-  // ========================================
+  // REFRESH CHILDREN, REWARDS AND ACTIVITIES
+  async function refreshDashboardChildren() {
+    await Promise.all([
+      loadChildren(),
+      loadRewardTotals(),
+      loadRecentActivities(),
+    ]);
+  }
 
+  // DASHBOARD UI
   return (
     <main
       className="parent-dashboard parent-dashboard-page"
@@ -285,8 +308,6 @@ function ParentDashboard() {
         backgroundImage: `url(${parentDashboardBg})`,
       }}
     >
-      {/* SIDEBAR */}
-
       <ParentSidebar
         activeMenu={activeMenu}
         onMenuClick={handleMenuClick}
@@ -295,9 +316,6 @@ function ParentDashboard() {
       />
 
       <section className="parent-main-content">
-
-        {/* TOPBAR */}
-
         <ParentTopbar
           parentName={parentData?.name || "Parent"}
           parentEmail={parentData?.email || ""}
@@ -308,10 +326,7 @@ function ParentDashboard() {
           isSidebarOpen={isSidebarOpen}
         />
 
-        {/* DASHBOARD CONTENT */}
-
         <div className="parent-dashboard-scroll">
-
           {/* DASHBOARD OVERVIEW */}
 
           {activeMenu === "Dashboard" && (
@@ -321,30 +336,32 @@ function ParentDashboard() {
               rewardTotals={rewardTotals}
               rewardsLoading={rewardsLoading}
               rewardsError={rewardsError}
+              recentActivities={recentActivities}
+              activitiesLoading={activitiesLoading}
+              activitiesError={activitiesError}
               loading={childrenLoading}
               error={childrenError}
-              onAddChild={() =>
-                handleMenuClick("My Children")
-              }
-              onViewReports={() =>
-                handleMenuClick("Reports")
-              }
+              onAddChild={() => setShowAddChildModal(true)}
+              onViewReports={() => handleMenuClick("Rewards")}
             />
           )}
 
-          {/* MY CHILDREN */}
+          {/* MY CHILDREN AND DASHBOARD ADD CHILD POPUP */}
 
-          {activeMenu === "My Children" && (
+          {(activeMenu === "Dashboard" ||
+            activeMenu === "My Children") && (
             <MyChildren
               children={children}
               setChildren={setChildren}
               loading={childrenLoading}
               childrenError={childrenError}
-              refreshChildren={async () => {
-                await loadChildren();
-                await loadRewardTotals();
-              }}
+              refreshChildren={refreshDashboardChildren}
               onOpenChildDashboard={handleOpenChildDashboard}
+              dashboardMode={activeMenu === "Dashboard"}
+              openAddChildOnDashboard={showAddChildModal}
+              onDashboardAddChildClose={() =>
+                setShowAddChildModal(false)
+              }
             />
           )}
 
@@ -368,12 +385,10 @@ function ParentDashboard() {
             />
           )}
 
-          {/* REWARDS PAGE */}
+          {/* REWARDS */}
 
           {activeMenu === "Rewards" && (
-            <Rewards
-              children={children}
-            />
+            <Rewards children={children} />
           )}
 
           {/* PARENT PROFILE */}
@@ -398,7 +413,6 @@ function ParentDashboard() {
                 <p>This section will be available soon.</p>
               </div>
             )}
-
         </div>
       </section>
     </main>
