@@ -36,6 +36,7 @@ from app.schemas.user import (
 )
 
 from app.services.email_service import send_otp_email
+from app.services.subscription_service import assign_free_subscription
 
 
 load_dotenv()
@@ -382,10 +383,20 @@ def verify_registration_otp(
         role="Parent",
     )
 
-    db.add(new_user)
-    db.delete(otp_record)
-    db.commit()
-    db.refresh(new_user)
+    # Create the parent account and its Free subscription in one transaction.
+    try:
+        db.add(new_user)
+        db.flush()
+
+        assign_free_subscription(db, new_user.user_id)
+
+        db.delete(otp_record)
+        db.commit()
+        db.refresh(new_user)
+
+    except Exception:
+        db.rollback()
+        raise
 
     return new_user
 
@@ -814,9 +825,19 @@ def google_auth(
             role="Parent",
         )
 
-        db.add(user)
-        db.commit()
-        db.refresh(user)
+        # Assign the Free subscription only when a new Google account is created.
+        try:
+            db.add(user)
+            db.flush()
+
+            assign_free_subscription(db, user.user_id)
+
+            db.commit()
+            db.refresh(user)
+
+        except Exception:
+            db.rollback()
+            raise
 
     access_token = create_access_token(user)
 

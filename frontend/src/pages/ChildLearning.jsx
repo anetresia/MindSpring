@@ -12,6 +12,7 @@ import {
   getChildSelectedTopics,
   getChildTopicLessons,
   getChildLessonQuestions,
+  completeChildVideo,
   checkChildAnswers,
   API_URL,
 } from "../api";
@@ -27,6 +28,19 @@ function ChildLearning() {
   const navigate = useNavigate();
 
   const videoSectionRef = useRef(null);
+  const attemptKeyRef = useRef(null);
+  const videoEndedRef = useRef(false);
+
+  // Create one idempotency key for each lesson attempt.
+  function createAttemptKey() {
+    if (typeof crypto !== "undefined" && crypto.randomUUID) {
+      return crypto.randomUUID();
+    }
+
+    return `${childId}-${Date.now()}-${Math.random()
+      .toString(36)
+      .slice(2)}`;
+  }
 
   const [child, setChild] = useState(location.state?.child || null);
   const [topics, setTopics] = useState([]);
@@ -144,6 +158,10 @@ function ChildLearning() {
 
       if (lessonData.length > 0) {
         setCurrentLesson(lessonData[0]);
+
+        // New attempt key for the selected lesson
+        attemptKeyRef.current = createAttemptKey();
+        videoEndedRef.current = false;
       }
     } catch (err) {
       setError(err.message || "Unable to load videos.");
@@ -163,6 +181,11 @@ function ChildLearning() {
     }
 
     setCurrentLesson(lesson);
+
+    // New attempt key for a new lesson attempt
+    attemptKeyRef.current = createAttemptKey();
+    videoEndedRef.current = false;
+
     resetQuestionData();
   }
 
@@ -188,19 +211,41 @@ function ChildLearning() {
     }
   }
 
-  // Load questions after video ends
+  // Record video completion and load questions after video ends
   async function handleVideoEnded() {
-    if (!currentLesson || videoCompleted) return;
+    if (
+      !currentLesson ||
+      videoCompleted ||
+      videoEndedRef.current
+    ) {
+      return;
+    }
 
     const lessonId = currentLesson.lesson_id;
 
+    if (!attemptKeyRef.current) {
+      attemptKeyRef.current = createAttemptKey();
+    }
+
+    const idempotencyKey = attemptKeyRef.current;
+
+    videoEndedRef.current = true;
+
     try {
-      setVideoCompleted(true);
       setQuestions([]);
       setSelectedAnswers({});
       setAnswerResults(null);
       setQuestionError("");
       setQuestionsLoading(true);
+
+      // Record video completion using this attempt's shared key.
+      await completeChildVideo(
+        childId,
+        lessonId,
+        idempotencyKey
+      );
+
+      setVideoCompleted(true);
 
       const response = await getChildLessonQuestions(
         childId,
@@ -224,7 +269,12 @@ function ChildLearning() {
         return current;
       });
     } catch (err) {
-      setQuestionError(err.message || "Unable to load questions.");
+      // Allow retry with the SAME key if the request failed.
+      videoEndedRef.current = false;
+
+      setQuestionError(
+        err.message || "Unable to record video completion or load questions."
+      );
     } finally {
       setQuestionsLoading(false);
     }
@@ -248,10 +298,16 @@ function ChildLearning() {
         selected_answer: updatedAnswers[question.question_id],
       }));
 
+      if (!attemptKeyRef.current) {
+        attemptKeyRef.current = createAttemptKey();
+      }
+
+      // Use the SAME key used for video completion.
       const response = await checkChildAnswers(
         childId,
         lessonId,
-        answers
+        answers,
+        attemptKeyRef.current
       );
 
       if (currentLesson?.lesson_id !== lessonId) return;
@@ -558,6 +614,15 @@ function ChildLearning() {
                       const correctAnswer =
                         questionResult?.correct_answer;
 
+                      const isCorrectOption = (option) =>
+                        answerResults &&
+                        correctAnswer === option.id;
+
+                      const isWrongSelected = (option) =>
+                        answerResults &&
+                        selectedAnswer === option.id &&
+                        !questionResult?.is_correct;
+
                       return (
                         <div
                           className="child-learning-question-card"
@@ -576,21 +641,18 @@ function ChildLearning() {
                               const isSelected =
                                 selectedAnswer === option.id;
 
-                              const isCorrectOption =
-                                answerResults &&
-                                correctAnswer === option.id;
+                              const optionIsCorrect =
+                                isCorrectOption(option);
 
-                              const isWrongSelected =
-                                answerResults &&
-                                isSelected &&
-                                !questionResult?.is_correct;
+                              const optionIsWrong =
+                                isWrongSelected(option);
 
                               let optionClass =
                                 "child-learning-answer-option";
 
-                              if (isCorrectOption) {
+                              if (optionIsCorrect) {
                                 optionClass += " correct";
-                              } else if (isWrongSelected) {
+                              } else if (optionIsWrong) {
                                 optionClass += " incorrect";
                               } else if (isSelected) {
                                 optionClass += " selected";
@@ -631,13 +693,13 @@ function ChildLearning() {
                                     </div>
                                   )}
 
-                                  {isCorrectOption && (
+                                  {optionIsCorrect && (
                                     <span className="child-learning-answer-feedback">
                                       ✓ Correct
                                     </span>
                                   )}
 
-                                  {isWrongSelected && (
+                                  {optionIsWrong && (
                                     <span className="child-learning-answer-feedback">
                                       ✗ Try Again
                                     </span>

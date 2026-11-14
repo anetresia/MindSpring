@@ -301,15 +301,11 @@ export async function getLifeSkillTopics(categoryId = null) {
 // ADMIN - CATEGORY MANAGEMENT
 // ========================================
 
-// GET ALL CATEGORIES
-
 export async function getAdminCategories() {
   return apiRequest("/admin/life-skill-categories/", {
     method: "GET",
   });
 }
-
-// GET CATEGORY BY ID
 
 export async function getAdminCategory(categoryId) {
   return apiRequest(
@@ -317,8 +313,6 @@ export async function getAdminCategory(categoryId) {
     { method: "GET" }
   );
 }
-
-// CREATE CATEGORY
 
 export async function createAdminCategory(categoryData) {
   if (!categoryData.category_name?.trim()) {
@@ -334,8 +328,6 @@ export async function createAdminCategory(categoryData) {
     }),
   });
 }
-
-// UPDATE CATEGORY
 
 export async function updateAdminCategory(
   categoryId,
@@ -354,8 +346,6 @@ export async function updateAdminCategory(
 // ADMIN - SUBTOPIC MANAGEMENT
 // ========================================
 
-// GET ALL SUBTOPICS
-
 export async function getAdminLifeSkillTopics(categoryId = null) {
   const query =
     categoryId !== null
@@ -368,16 +358,12 @@ export async function getAdminLifeSkillTopics(categoryId = null) {
   );
 }
 
-// GET SUBTOPIC BY ID
-
 export async function getAdminLifeSkillTopic(topicId) {
   return apiRequest(
     `/admin/life-skill-topics/${encodeURIComponent(topicId)}`,
     { method: "GET" }
   );
 }
-
-// CREATE SUBTOPIC
 
 export async function createAdminLifeSkillTopic(topicData) {
   if (!topicData.category_id || !topicData.topic_name?.trim()) {
@@ -394,8 +380,6 @@ export async function createAdminLifeSkillTopic(topicData) {
     }),
   });
 }
-
-// UPDATE SUBTOPIC
 
 export async function updateAdminLifeSkillTopic(
   topicId,
@@ -414,15 +398,11 @@ export async function updateAdminLifeSkillTopic(
 // ADMIN - LESSON / VIDEO MANAGEMENT
 // ========================================
 
-// GET ALL LESSONS
-
 export async function getAdminLessons() {
   return apiRequest("/admin/lessons/", {
     method: "GET",
   });
 }
-
-// GET LESSON BY ID
 
 export async function getAdminLesson(lessonId) {
   return apiRequest(
@@ -430,8 +410,6 @@ export async function getAdminLesson(lessonId) {
     { method: "GET" }
   );
 }
-
-// CREATE LESSON
 
 export async function createAdminLesson(lessonData) {
   if (
@@ -454,8 +432,6 @@ export async function createAdminLesson(lessonData) {
   });
 }
 
-// UPDATE LESSON
-
 export async function updateAdminLesson(
   lessonId,
   lessonData
@@ -474,8 +450,6 @@ export async function updateAdminLesson(
   );
 }
 
-// DELETE LESSON
-
 export async function deleteAdminLesson(lessonId) {
   return apiRequest(
     `/admin/lessons/${encodeURIComponent(lessonId)}`,
@@ -487,8 +461,6 @@ export async function deleteAdminLesson(lessonId) {
 // CHILD - SELECTED TOPICS
 // ========================================
 
-// GET CHILD'S SELECTED TOPICS
-
 export async function getChildSelectedTopics(childId) {
   if (!childId) {
     throw new Error("Please select a child.");
@@ -499,8 +471,6 @@ export async function getChildSelectedTopics(childId) {
     { method: "GET" }
   );
 }
-
-// ADD TOPIC FOR CHILD
 
 export async function addChildSelectedTopic(childId, topicId) {
   if (!childId || !topicId) {
@@ -518,8 +488,6 @@ export async function addChildSelectedTopic(childId, topicId) {
   );
 }
 
-// REMOVE SELECTED TOPIC
-
 export async function removeChildSelectedTopic(childId, topicId) {
   if (!childId || !topicId) {
     throw new Error("Child ID and Topic ID are required.");
@@ -535,15 +503,11 @@ export async function removeChildSelectedTopic(childId, topicId) {
 // PARENT PROFILE
 // ========================================
 
-// GET PARENT PROFILE
-
 export async function getParentProfile() {
   return apiRequest("/auth/me", {
     method: "GET",
   });
 }
-
-// UPDATE PARENT PROFILE
 
 export async function updateParentProfile(profileData) {
   return apiRequest("/auth/profile", {
@@ -554,8 +518,6 @@ export async function updateParentProfile(profileData) {
     }),
   });
 }
-
-// UPLOAD PARENT PROFILE IMAGE
 
 export async function uploadParentProfileImage(imageFile) {
   const formData = new FormData();
@@ -605,13 +567,42 @@ export async function getChildLessonQuestions(childId, lessonId) {
 }
 
 // ========================================
+// CHILD - VIDEO COMPLETION
+// ========================================
+
+export async function completeChildVideo(
+  childId,
+  lessonId,
+  idempotencyKey
+) {
+  if (!childId || !lessonId) {
+    throw new Error("Child ID and Lesson ID are required.");
+  }
+
+  if (!idempotencyKey?.trim()) {
+    throw new Error("Idempotency key is required.");
+  }
+
+  return apiRequest(
+    `/admin/lessons/child/${encodeURIComponent(childId)}/lessons/${encodeURIComponent(lessonId)}/video-complete`,
+    {
+      method: "POST",
+      headers: {
+        "Idempotency-Key": idempotencyKey,
+      },
+    }
+  );
+}
+
+// ========================================
 // CHILD - AUTOMATICALLY CHECK QUIZ ANSWERS
 // ========================================
 
 export async function checkChildAnswers(
   childId,
   lessonId,
-  answers
+  answers,
+  idempotencyKey
 ) {
   if (!childId || !lessonId) {
     throw new Error("Child ID and Lesson ID are required.");
@@ -621,10 +612,17 @@ export async function checkChildAnswers(
     throw new Error("Please select your answers.");
   }
 
+  if (!idempotencyKey?.trim()) {
+    throw new Error("Idempotency key is required.");
+  }
+
   return apiRequest(
     `/child/lessons/${encodeURIComponent(childId)}/${encodeURIComponent(lessonId)}/check-answers`,
     {
       method: "POST",
+      headers: {
+        "Idempotency-Key": idempotencyKey,
+      },
       body: JSON.stringify(answers),
     }
   );
@@ -667,12 +665,9 @@ export async function getChildRewards(childId) {
   );
 }
 
-
-/* ========================================
-   ADMIN - PARENT MANAGEMENT
-======================================== */
-
-// GET ALL PARENTS + SEARCH
+// ========================================
+// ADMIN - PARENT MANAGEMENT
+// ========================================
 
 export async function getAdminParents(search = "") {
   const query = search.trim()
@@ -684,8 +679,6 @@ export async function getAdminParents(search = "") {
   });
 }
 
-// GET PARENT DETAILS
-
 export async function getAdminParent(parentId) {
   return apiRequest(
     `/admin/management/parents/${encodeURIComponent(parentId)}`,
@@ -694,8 +687,6 @@ export async function getAdminParent(parentId) {
     }
   );
 }
-
-// UPDATE PARENT DETAILS
 
 export async function updateAdminParent(parentId, parentData) {
   return apiRequest(
@@ -711,7 +702,6 @@ export async function updateAdminParent(parentId, parentData) {
 // ADMIN - CHILD MANAGEMENT
 // ========================================
 
-// GET ALL CHILDREN + SEARCH
 export async function getAdminChildren(search = "") {
   const query = search.trim()
     ? `?search=${encodeURIComponent(search.trim())}`
@@ -722,7 +712,6 @@ export async function getAdminChildren(search = "") {
   });
 }
 
-// GET CHILD DETAILS
 export async function getAdminChild(childId) {
   return apiRequest(
     `/admin/management/children/${encodeURIComponent(childId)}`,
@@ -730,7 +719,6 @@ export async function getAdminChild(childId) {
   );
 }
 
-// UPDATE CHILD DETAILS
 export async function updateAdminChild(childId, childData) {
   return apiRequest(
     `/admin/management/children/${encodeURIComponent(childId)}`,
@@ -739,4 +727,48 @@ export async function updateAdminChild(childId, childData) {
       body: JSON.stringify(childData),
     }
   );
+}
+
+// ========================================
+// SUBSCRIPTION - GET AVAILABLE PLANS
+// ========================================
+
+export async function getSubscriptionPlans() {
+  return apiRequest("/subscriptions/plans/", {
+    method: "GET",
+  });
+}
+
+// ========================================
+// SUBSCRIPTION - GET CURRENT PARENT PLAN
+// ========================================
+
+export async function getMySubscription() {
+  return apiRequest("/subscriptions/my-subscription/", {
+    method: "GET",
+  });
+}
+
+// ========================================
+// SUBSCRIPTION - CREATE STRIPE CHECKOUT
+// ========================================
+
+export async function createStripeCheckout(planId, idempotencyKey) {
+  if (!planId) {
+    throw new Error("Please select a subscription plan.");
+  }
+
+  if (!idempotencyKey?.trim()) {
+    throw new Error("Idempotency key is required.");
+  }
+
+  return apiRequest("/subscriptions/stripe-checkout/", {
+    method: "POST",
+    headers: {
+      "Idempotency-Key": idempotencyKey,
+    },
+    body: JSON.stringify({
+      plan_id: Number(planId),
+    }),
+  });
 }

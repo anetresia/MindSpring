@@ -636,8 +636,14 @@
   border: 1px solid #f5b8e8;
   border-radius: 22px;
   background:
-    linear-gradient(rgba(255, 250, 255, .90), rgba(255, 240, 252, .92)),
-    var(--result-background);
+    linear-gradient(
+      rgba(255, 250, 255, .90),
+      rgba(255, 240, 252, .92)
+    ),
+    var(
+      --result-background,
+      linear-gradient(135deg, #fff0fb, #f3e5ff)
+    );
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;
@@ -667,10 +673,21 @@
   animation: learning-star-appear .3s ease both;
 }
 
-.child-learning-earned-stars span:nth-child(2) { animation-delay: .08s; }
-.child-learning-earned-stars span:nth-child(3) { animation-delay: .16s; }
-.child-learning-earned-stars span:nth-child(4) { animation-delay: .24s; }
-.child-learning-earned-stars span:nth-child(5) { animation-delay: .32s; }
+.child-learning-earned-stars span:nth-child(2) {
+  animation-delay: .08s;
+}
+
+.child-learning-earned-stars span:nth-child(3) {
+  animation-delay: .16s;
+}
+
+.child-learning-earned-stars span:nth-child(4) {
+  animation-delay: .24s;
+}
+
+.child-learning-earned-stars span:nth-child(5) {
+  animation-delay: .32s;
+}
 
 .child-learning-result h2 {
   margin: 0;

@@ -32,7 +32,19 @@ from app.models.lesson_attempt import LessonAttempt
 
 
 # ==========================================
-# ROUTERS
+# SUBSCRIPTION MODELS
+# ==========================================
+
+from app.models.subscription.subscription_plan import SubscriptionPlan
+from app.models.subscription.parent_subscription import ParentSubscription
+from app.models.subscription.subscription_credit import SubscriptionCredit
+from app.models.subscription.subscription_payment import SubscriptionPayment
+from app.models.subscription.video_history import VideoHistory
+from app.models.subscription.notification import Notification
+
+
+# ==========================================
+# EXISTING ROUTERS
 # ==========================================
 
 from app.routers.auth import router as auth_router
@@ -62,12 +74,21 @@ from app.routers.parent_life_skill_topic import (
 from app.routers.parent_rewards import router as parent_rewards_router
 from app.routers import admin_management
 
+
+# ==========================================
+# SUBSCRIPTION ROUTERS
+# ==========================================
+
+from app.routers.subscription import (
+    subscription_plan,
+    parent_subscription,
+    subscription_payment,
+)
+
+
 # ==========================================
 # UPLOAD DIRECTORIES
 # ==========================================
-
-# main.py is inside backend/app/
-# Actual uploads folder: backend/app/uploads/
 
 APP_DIR = Path(__file__).resolve().parent
 
@@ -81,6 +102,7 @@ PROFILE_IMAGE_DIR = UPLOAD_DIR / "profile_images"
 
 
 # Create folders if they do not exist
+
 for folder in [
     UPLOAD_DIR,
     VIDEO_UPLOAD_DIR,
@@ -128,9 +150,6 @@ app.add_middleware(
 # SERVE ALL UPLOADED FILES
 # ==========================================
 
-# /uploads/videos/ -> backend/app/uploads/videos/
-# /uploads/questions/ -> backend/app/uploads/questions/
-
 app.mount(
     "/uploads",
     StaticFiles(
@@ -142,7 +161,7 @@ app.mount(
 
 
 # ==========================================
-# REGISTER ROUTERS
+# REGISTER EXISTING ROUTERS
 # ==========================================
 
 app.include_router(auth_router)
@@ -164,6 +183,15 @@ app.include_router(child_selected_topic_router)
 app.include_router(parent_life_skill_topic_router)
 app.include_router(parent_rewards_router)
 app.include_router(admin_management.router)
+
+
+# ==========================================
+# REGISTER SUBSCRIPTION ROUTERS
+# ==========================================
+
+app.include_router(subscription_plan.router)
+app.include_router(parent_subscription.router)
+app.include_router(subscription_payment.router)
 
 
 # ==========================================

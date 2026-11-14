@@ -97,20 +97,42 @@ function MyChildren({
     setError("");
   }
 
+  // ADD CHILD WITH MAXIMUM 2 CHILD VALIDATION
   function handleAddChild() {
-    resetWizard();
     setSuccess("");
+
+    if (children.length >= 2) {
+      resetWizard();
+      setShowForm(false);
+      setError("You cannot add more than 2 child profiles.");
+      return;
+    }
+
+    resetWizard();
     setShowForm(true);
   }
 
   // OPEN DASHBOARD ADD CHILD POPUP
   useEffect(() => {
     if (dashboardMode && openAddChildOnDashboard) {
+      if (children.length >= 2) {
+        resetWizard();
+        setShowForm(false);
+        setError("You cannot add more than 2 child profiles.");
+        onDashboardAddChildClose?.();
+        return;
+      }
+
       resetWizard();
       setSuccess("");
       setShowForm(true);
     }
-  }, [dashboardMode, openAddChildOnDashboard]);
+  }, [
+    dashboardMode,
+    openAddChildOnDashboard,
+    children.length,
+    onDashboardAddChildClose,
+  ]);
 
   // EDIT CHILD AND LOAD BACKEND DATA
   async function handleEditChild(child) {
@@ -486,6 +508,13 @@ function MyChildren({
             </div>
           )}
         </>
+      )}
+
+      {/* SHOW VALIDATION MESSAGE IN DASHBOARD MODE */}
+      {dashboardMode && error && !showForm && (
+        <div className="children-error-message" role="alert">
+          {error}
+        </div>
       )}
 
       {/* THREE STEP ADD / EDIT WIZARD */}

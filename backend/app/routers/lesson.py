@@ -1,5 +1,5 @@
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Header
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -16,6 +16,7 @@ from app.schemas.lesson import (
 from app.services import lesson_service
 from app.services import parent_service
 from app.services import child_selected_topic_service
+from app.services.subscription_service import record_video_completion
 
 
 router = APIRouter(
@@ -178,3 +179,77 @@ def get_child_topic_lessons(
     )
 
     return lessons
+
+
+# ========================================
+# CHILD - VIDEO COMPLETION
+# ========================================
+
+@router.post(
+    "/child/{child_id}/lessons/{lesson_id}/video-complete",
+    tags=["Child Lessons"],
+)
+def complete_child_video(
+    child_id: int,
+    lesson_id: int,
+    idempotency_key: str = Header(..., alias="Idempotency-Key"),
+    db: Session = Depends(get_db),
+    current_parent: User = Depends(get_current_parent),
+):
+    # Verify child belongs to logged-in parent
+    child = parent_service.get_parent_child(
+        db,
+        current_parent,
+        child_id,
+    )
+
+    if not child:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Child not found",
+        )
+
+    # Verify lesson exists
+    lesson = lesson_service.get_lesson_by_id(
+        db,
+        lesson_id,
+    )
+
+    if not lesson:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Lesson not found",
+        )
+
+    try:
+        result = record_video_completion(
+            db=db,
+            parent_id=current_parent.user_id,
+            child_id=child_id,
+            lesson_id=lesson_id,
+            idempotency_key=idempotency_key,
+        )
+
+        db.commit()
+
+        return {
+            "success": True,
+            "message": "Video completion recorded successfully",
+            "video_completion": result,
+        }
+
+    except ValueError as error:
+        db.rollback()
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(error),
+        )
+
+    except Exception:
+        db.rollback()
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unable to record video completion",
+        )

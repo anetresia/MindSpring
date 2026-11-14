@@ -699,3 +699,166 @@
     transition: none;
   }
 }
+
+
+/* ==========================================
+   CHILD LIMIT POPUP
+========================================== */
+
+.child-limit-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+
+  background: rgba(42, 20, 65, 0.48);
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+
+  animation: childLimitOverlayIn 0.2s ease;
+}
+
+.child-limit-modal {
+  width: 100%;
+  max-width: 420px;
+  box-sizing: border-box;
+
+  padding: 34px 30px 30px;
+
+  text-align: center;
+
+  background: linear-gradient(
+    145deg,
+    #ffffff 0%,
+    #fff8ff 55%,
+    #f8efff 100%
+  );
+
+  border: 1px solid rgba(190, 130, 230, 0.35);
+  border-radius: 25px;
+
+  box-shadow: 0 22px 65px rgba(55, 20, 80, 0.24);
+
+  animation: childLimitModalIn 0.28s ease;
+}
+
+.child-limit-icon {
+  width: 76px;
+  height: 76px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin: 0 auto 18px;
+
+  border-radius: 50%;
+
+  background: linear-gradient(
+    135deg,
+    #ffe1f4,
+    #ead9ff
+  );
+
+  box-shadow: 0 7px 20px rgba(165, 75, 210, 0.13);
+}
+
+.child-limit-icon span {
+  font-size: 37px;
+}
+
+.child-limit-modal h2 {
+  margin: 0 0 12px;
+
+  color: #6822b4;
+
+  font-size: 23px;
+  font-weight: 900;
+}
+
+.child-limit-modal p {
+  margin: 0 auto 25px;
+
+  max-width: 310px;
+
+  color: #78658c;
+
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.child-limit-ok-btn {
+  min-width: 135px;
+
+  padding: 12px 30px;
+
+  border: none;
+  border-radius: 30px;
+
+  background: linear-gradient(
+    100deg,
+    #a900f5,
+    #7925dc
+  );
+
+  color: #ffffff;
+
+  font-size: 15px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  box-shadow: 0 6px 17px rgba(140, 35, 220, 0.22);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.child-limit-ok-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 9px 22px rgba(140, 35, 220, 0.3);
+}
+
+@keyframes childLimitOverlayIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes childLimitModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 480px) {
+  .child-limit-modal {
+    max-width: 340px;
+    padding: 28px 20px 24px;
+    border-radius: 21px;
+  }
+
+  .child-limit-modal h2 {
+    font-size: 20px;
+  }
+
+  .child-limit-modal p {
+    font-size: 14px;
+  }
+}

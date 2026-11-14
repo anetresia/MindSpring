@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import "../../styles/parent-dashboard/dashboard-overview.css";
 
 function DashboardOverview({
@@ -13,6 +14,21 @@ function DashboardOverview({
   onAddChild,
   onViewReports,
 }) {
+  const [showChildLimitPopup, setShowChildLimitPopup] = useState(false);
+
+  // ==========================================
+  // ADD CHILD VALIDATION
+  // ==========================================
+
+  function handleAddChildClick() {
+    if (children.length >= 2) {
+      setShowChildLimitPopup(true);
+      return;
+    }
+
+    onAddChild?.();
+  }
+
   // ==========================================
   // CALCULATE CHILD AGE
   // ==========================================
@@ -158,7 +174,6 @@ function DashboardOverview({
         </p>
       </section>
 
-
       {/* DASHBOARD STATISTICS */}
 
       <section className="dashboard-stats">
@@ -175,7 +190,6 @@ function DashboardOverview({
           </h2>
         </div>
 
-
         <div className="stat-card stat-peach">
           <p>
             Children's
@@ -185,7 +199,6 @@ function DashboardOverview({
 
           <h2>{children.length}</h2>
         </div>
-
 
         <div className="stat-card stat-purple">
           <p>
@@ -199,7 +212,6 @@ function DashboardOverview({
           </h2>
         </div>
 
-
         <div className="stat-card stat-yellow">
           <p>👑 Subscription</p>
 
@@ -208,14 +220,11 @@ function DashboardOverview({
 
       </section>
 
-
       {/* BOTTOM DASHBOARD GRID */}
 
       <section className="dashboard-bottom-grid">
 
-        {/* ======================================
-            MY CHILDREN
-        ====================================== */}
+        {/* MY CHILDREN */}
 
         <div className="dashboard-panel">
 
@@ -225,12 +234,11 @@ function DashboardOverview({
             <button
               type="button"
               className="add-child-btn"
-              onClick={onAddChild}
+              onClick={handleAddChildClick}
             >
               + Add Child
             </button>
           </div>
-
 
           {loading ? (
 
@@ -248,7 +256,7 @@ function DashboardOverview({
 
             <div className="children-empty-state">
 
-              <div className="children-empty-icon"> </div>
+              <div className="children-empty-icon"></div>
 
               <h3>No Children Added Yet</h3>
 
@@ -259,7 +267,7 @@ function DashboardOverview({
               <button
                 type="button"
                 className="add-child-btn"
-                onClick={onAddChild}
+                onClick={handleAddChildClick}
               >
                 + Add Child
               </button>
@@ -302,7 +310,6 @@ function DashboardOverview({
 
                       ) : null}
 
-
                       <span
                         className="child-avatar-initial"
                         style={{
@@ -314,16 +321,13 @@ function DashboardOverview({
 
                     </div>
 
-
                     <h3>{childName}</h3>
-
 
                     <p className="child-age">
                       {calculateAge(child.date_of_birth) !== ""
                         ? `${calculateAge(child.date_of_birth)} years old`
                         : ""}
                     </p>
-
 
                     <div className="child-info">
 
@@ -353,10 +357,7 @@ function DashboardOverview({
 
         </div>
 
-
-        {/* ======================================
-            RECENT ACTIVITY
-        ====================================== */}
+        {/* RECENT ACTIVITY */}
 
         <div className="dashboard-panel activity-panel">
 
@@ -373,7 +374,6 @@ function DashboardOverview({
             </button>
 
           </div>
-
 
           <div className="activity-list">
 
@@ -421,14 +421,9 @@ function DashboardOverview({
                     }
                   >
 
-                    {/* ACTIVITY ICON */}
-
                     <div className="activity-icon">
                       ⭐
                     </div>
-
-
-                    {/* ACTIVITY DETAILS */}
 
                     <div className="activity-details">
 
@@ -445,9 +440,6 @@ function DashboardOverview({
                       </span>
 
                     </div>
-
-
-                    {/* ACTIVITY RESULT */}
 
                     <div className="activity-result">
 
@@ -475,12 +467,52 @@ function DashboardOverview({
 
       </section>
 
-
       {/* FOOTER */}
 
       <footer className="dashboard-footer">
         Made with 💗 for little learners | MindSpring
       </footer>
+
+      {/* CHILD LIMIT POPUP */}
+
+      {showChildLimitPopup && (
+        <div
+          className="child-limit-overlay"
+          onClick={() => setShowChildLimitPopup(false)}
+        >
+          <div
+            className="child-limit-modal"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="child-limit-title"
+            aria-describedby="child-limit-description"
+            onClick={(event) => event.stopPropagation()}
+          >
+
+            <div className="child-limit-icon">
+              <span>🌸</span>
+            </div>
+
+            <h2 id="child-limit-title">
+              Child Limit Reached!
+            </h2>
+
+            <p id="child-limit-description">
+              You cannot add more than 2 child profiles.
+            </p>
+
+            <button
+              type="button"
+              className="child-limit-ok-btn"
+              onClick={() => setShowChildLimitPopup(false)}
+              autoFocus
+            >
+              Okay
+            </button>
+
+          </div>
+        </div>
+      )}
 
     </div>
   );

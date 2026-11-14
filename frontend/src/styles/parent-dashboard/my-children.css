@@ -1164,3 +1164,67 @@
     flex-wrap: wrap;
   }
 }
+
+
+/* ========================================
+   CHILD LIMIT VALIDATION MESSAGE
+======================================== */
+
+.my-children-page .children-error-message {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  width: 100%;
+  box-sizing: border-box;
+
+  padding: 16px 20px;
+  margin: 0 0 22px;
+
+  background: linear-gradient(
+    135deg,
+    #fff1fa 0%,
+    #f5edff 100%
+  );
+
+  border: 1px solid #e8cafa;
+  border-left: 5px solid #a900f5;
+  border-radius: 14px;
+
+  color: #7024a5;
+
+  font-family: "Nunito", sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.6;
+
+  box-shadow: 0 5px 16px rgba(130, 45, 170, 0.07);
+
+  animation: childLimitMessageIn 0.25s ease;
+}
+
+.my-children-page .children-error-message[role="alert"] {
+  overflow-wrap: anywhere;
+}
+
+@keyframes childLimitMessageIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mobile responsive */
+
+@media (max-width: 480px) {
+  .my-children-page .children-error-message {
+    padding: 13px 14px;
+    font-size: 13px;
+    border-radius: 12px;
+  }
+}

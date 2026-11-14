@@ -17,6 +17,7 @@ import ParentProfile from "../components/parent-dashboard/ParentProfile";
 import LearningPreferences from "../components/parent-dashboard/LearningPreferences";
 import TopicSelection from "../components/parent-dashboard/TopicSelection";
 import Rewards from "../components/parent-dashboard/Rewards";
+import Subscription from "../components/parent-dashboard/Subscription";
 
 import parentDashboardBg from "../assets/parent-dashboard-bg.png";
 
@@ -327,6 +328,7 @@ function ParentDashboard() {
         />
 
         <div className="parent-dashboard-scroll">
+
           {/* DASHBOARD OVERVIEW */}
 
           {activeMenu === "Dashboard" && (
@@ -391,6 +393,12 @@ function ParentDashboard() {
             <Rewards children={children} />
           )}
 
+          {/* SUBSCRIPTION */}
+
+          {activeMenu === "Subscription" && (
+            <Subscription />
+          )}
+
           {/* PARENT PROFILE */}
 
           {activeMenu === "Profile" && (
@@ -407,12 +415,14 @@ function ParentDashboard() {
             activeMenu !== "Learning Preferences" &&
             activeMenu !== "Life Skill Topics" &&
             activeMenu !== "Rewards" &&
+            activeMenu !== "Subscription" &&
             activeMenu !== "Profile" && (
               <div className="dashboard-content">
                 <h2>{activeMenu}</h2>
                 <p>This section will be available soon.</p>
               </div>
             )}
+
         </div>
       </section>
     </main>

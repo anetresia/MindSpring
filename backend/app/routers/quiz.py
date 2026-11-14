@@ -1,5 +1,4 @@
-
-from fastapi import APIRouter, Depends, HTTPException, status, Body
+from fastapi import APIRouter, Depends, HTTPException, status, Body, Header
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -17,6 +16,7 @@ from app.services import quiz_service
 from app.services import parent_service
 from app.services import child_selected_topic_service
 from app.services import lesson_service
+from app.services.subscription_service import record_activity_completion
 
 
 # ==========================================
@@ -307,6 +307,7 @@ def check_child_answers(
     child_id: int,
     lesson_id: int,
     answers: list[dict] = Body(...),
+    idempotency_key: str = Header(..., alias="Idempotency-Key"),
     db: Session = Depends(get_db),
     current_parent: User = Depends(get_current_parent),
 ):
@@ -496,10 +497,20 @@ def check_child_answers(
             correct_answers=score,
         )
 
-        # 9. Save all records together
+        # 9. Save quiz records and register activity completion
 
         db.add_all(response_rows)
         db.add(lesson_attempt)
+
+        activity_completion = record_activity_completion(
+            db=db,
+            parent_id=current_parent.user_id,
+            child_id=child_id,
+            lesson_id=lesson_id,
+            idempotency_key=idempotency_key,
+        )
+
+        # Commit quiz, reward, lesson attempt and credit update together
 
         db.commit()
 
@@ -516,6 +527,7 @@ def check_child_answers(
             "stars_earned": reward.stars_earned,
             "reward_id": reward.reward_id,
             "attempt_id": lesson_attempt.attempt_id,
+            "activity_completion": activity_completion,
             "results": results,
         }
 
