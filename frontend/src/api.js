@@ -1,4 +1,3 @@
-
 export const API_URL = "http://127.0.0.1:8000";
 
 // ========================================
@@ -771,4 +770,100 @@ export async function createStripeCheckout(planId, idempotencyKey) {
       plan_id: Number(planId),
     }),
   });
+}
+
+// ========================================
+// LEARNING SESSION - START TIMER
+// ========================================
+
+export async function startLearningSession(childId) {
+  if (!childId) {
+    throw new Error("Child ID is required.");
+  }
+
+  return apiRequest("/learning-session/start", {
+    method: "POST",
+    body: JSON.stringify({
+      child_id: Number(childId),
+    }),
+  });
+}
+
+// ========================================
+// LEARNING SESSION - HEARTBEAT
+// ========================================
+
+export async function sendLearningSessionHeartbeat(childId) {
+  if (!childId) {
+    throw new Error("Child ID is required.");
+  }
+
+  return apiRequest("/learning-session/heartbeat", {
+    method: "POST",
+    body: JSON.stringify({
+      child_id: Number(childId),
+    }),
+  });
+}
+
+// ========================================
+// LEARNING SESSION - STOP TIMER
+// ========================================
+
+export async function stopLearningSession(childId) {
+  if (!childId) {
+    throw new Error("Child ID is required.");
+  }
+
+  return apiRequest("/learning-session/stop", {
+    method: "POST",
+    body: JSON.stringify({
+      child_id: Number(childId),
+    }),
+  });
+}
+
+// ========================================
+// LEARNING SESSION - STOP TIMER ON PAGE EXIT
+// ========================================
+
+export function stopLearningSessionOnExit(childId) {
+  if (!childId) {
+    return;
+  }
+
+  try {
+    const headers = getAuthHeaders(true);
+
+    fetch(`${API_URL}/learning-session/stop`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        child_id: Number(childId),
+      }),
+      keepalive: true,
+    }).catch(() => {
+      // The request may fail if the browser closes
+      // or the network connection is unavailable.
+    });
+  } catch (error) {
+    console.error("Unable to stop learning session:", error);
+  }
+}
+
+// ========================================
+// LEARNING SESSION - GET TIMER STATUS
+// ========================================
+
+export async function getLearningSessionStatus(childId) {
+  if (!childId) {
+    throw new Error("Child ID is required.");
+  }
+
+  return apiRequest(
+    `/learning-session/status/${encodeURIComponent(childId)}`,
+    {
+      method: "GET",
+    }
+  );
 }

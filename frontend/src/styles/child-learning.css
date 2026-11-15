@@ -1,4 +1,3 @@
-
 /* ========================================
    MINDSRING - CHILD LEARNING VIDEOS
    Pink & Purple Theme
@@ -1001,4 +1000,49 @@
     animation-iteration-count: 1 !important;
     transition-duration: .01ms !important;
   }
+}
+
+/* ========================================
+   LEARNING TIMER DISPLAY
+   Matches the timer markup in ChildLearning.jsx
+======================================== */
+
+.child-learning-warning[aria-live="polite"] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 10px;
+  border-color: #d9c5ff;
+  background: linear-gradient(135deg, #f6edff, #fff2fb);
+  color: #5520a0;
+  text-align: center;
+  box-shadow: 0 5px 15px rgba(112, 56, 160, .09);
+}
+
+.child-learning-warning[aria-live="polite"] strong {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  border-radius: 20px;
+  background: #fff;
+  color: #8c269e;
+  font-weight: 900;
+  box-shadow: 0 2px 7px rgba(112, 56, 160, .10);
+}
+
+.child-learning-warning[role="alert"] {
+  border-color: #f3b5c1;
+  background: linear-gradient(135deg, #fff0f2, #fff7fb);
+  color: #a51f45;
+  text-align: center;
+}
+
+.child-learning-page button:disabled {
+  cursor: not-allowed;
+}
+
+.child-learning-page button:focus-visible {
+  outline: 3px solid rgba(111, 91, 220, .55);
+  outline-offset: 3px;
 }

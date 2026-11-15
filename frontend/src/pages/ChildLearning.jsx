@@ -14,6 +14,10 @@ import {
   getChildLessonQuestions,
   completeChildVideo,
   checkChildAnswers,
+  startLearningSession,
+  sendLearningSessionHeartbeat,
+  stopLearningSession,
+  stopLearningSessionOnExit,
   API_URL,
 } from "../api";
 
@@ -30,6 +34,15 @@ function ChildLearning() {
   const videoSectionRef = useRef(null);
   const attemptKeyRef = useRef(null);
   const videoEndedRef = useRef(false);
+
+  // Learning timer refs
+  const timerStartedRef = useRef(false);
+  const timerStartRequestRef = useRef(false);
+  const timerLockedRef = useRef(false);
+
+  const [timerStarted, setTimerStarted] = useState(false);
+  const [learningLimitReached, setLearningLimitReached] = useState(false);
+  const [remainingSeconds, setRemainingSeconds] = useState(null);
 
   // Create one idempotency key for each lesson attempt.
   function createAttemptKey() {
@@ -62,7 +75,142 @@ function ChildLearning() {
   const [error, setError] = useState("");
   const [questionError, setQuestionError] = useState("");
 
-  // Load child and topics
+  // ========================================
+  // LEARNING TIMER - START
+  // ========================================
+
+  async function handleVideoPlay() {
+    if (
+      timerStartedRef.current ||
+      timerStartRequestRef.current ||
+      timerLockedRef.current
+    ) {
+      return;
+    }
+
+    timerStartRequestRef.current = true;
+
+    try {
+      const response = await startLearningSession(childId);
+
+      if (response.limit_reached) {
+        timerLockedRef.current = true;
+        setLearningLimitReached(true);
+        setRemainingSeconds(0);
+
+        const video = document.querySelector(
+          ".child-learning-main-video"
+        );
+
+        video?.pause();
+
+        return;
+      }
+
+      timerStartedRef.current = true;
+      setTimerStarted(true);
+
+      if (typeof response.remaining_seconds === "number") {
+        setRemainingSeconds(response.remaining_seconds);
+      } else if (typeof response.total_seconds === "number") {
+        const limitSeconds =
+          Number(child?.daily_learning_limit || 30) * 60;
+
+        setRemainingSeconds(
+          Math.max(0, limitSeconds - response.total_seconds)
+        );
+      }
+    } catch (err) {
+      setError(
+        err.message || "Unable to start your learning timer."
+      );
+
+      const video = document.querySelector(
+        ".child-learning-main-video"
+      );
+
+      video?.pause();
+    } finally {
+      timerStartRequestRef.current = false;
+    }
+  }
+
+  // ========================================
+  // LEARNING TIMER - HEARTBEAT
+  // ========================================
+
+  useEffect(() => {
+    if (!timerStarted || !childId || learningLimitReached) {
+      return;
+    }
+
+    let active = true;
+
+    const heartbeatInterval = window.setInterval(async () => {
+      try {
+        const response = await sendLearningSessionHeartbeat(childId);
+
+        if (!active) return;
+
+        if (typeof response.remaining_seconds === "number") {
+          setRemainingSeconds(response.remaining_seconds);
+        } else if (typeof response.total_seconds === "number") {
+          const limitSeconds =
+            Number(child?.daily_learning_limit || 30) * 60;
+
+          setRemainingSeconds(
+            Math.max(0, limitSeconds - response.total_seconds)
+          );
+        }
+
+        if (response.limit_reached) {
+          timerLockedRef.current = true;
+          setLearningLimitReached(true);
+          setRemainingSeconds(0);
+
+          const video = document.querySelector(
+            ".child-learning-main-video"
+          );
+
+          video?.pause();
+        }
+      } catch (err) {
+        console.error("Learning timer heartbeat failed:", err);
+      }
+    }, 10000);
+
+    return () => {
+      active = false;
+      window.clearInterval(heartbeatInterval);
+    };
+  }, [timerStarted, childId, learningLimitReached, child]);
+
+  // ========================================
+  // LEARNING TIMER - PAGE EXIT
+  // ========================================
+
+  useEffect(() => {
+    function handlePageHide() {
+      if (timerStartedRef.current) {
+        stopLearningSessionOnExit(childId);
+      }
+    }
+
+    window.addEventListener("pagehide", handlePageHide);
+
+    return () => {
+      window.removeEventListener("pagehide", handlePageHide);
+
+      if (timerStartedRef.current) {
+        stopLearningSessionOnExit(childId);
+      }
+    };
+  }, [childId]);
+
+  // ========================================
+  // LOAD CHILD AND TOPICS
+  // ========================================
+
   useEffect(() => {
     let active = true;
 
@@ -109,7 +257,10 @@ function ChildLearning() {
     };
   }, [childId]);
 
-  // Scroll video section into the visible screen
+  // ========================================
+  // SCROLL VIDEO SECTION
+  // ========================================
+
   useEffect(() => {
     if (!currentLesson) return;
 
@@ -123,7 +274,10 @@ function ChildLearning() {
     return () => window.clearTimeout(scrollTimer);
   }, [currentLesson?.lesson_id]);
 
-  // Reset question data
+  // ========================================
+  // RESET QUESTION DATA
+  // ========================================
+
   function resetQuestionData() {
     setQuestions([]);
     setSelectedAnswers({});
@@ -134,8 +288,13 @@ function ChildLearning() {
     setQuestionError("");
   }
 
-  // Load lessons when topic is selected
+  // ========================================
+  // SELECT TOPIC
+  // ========================================
+
   async function handleTopicClick(topic) {
+    if (learningLimitReached) return;
+
     try {
       setSelectedTopic(topic);
       setLessons([]);
@@ -159,7 +318,6 @@ function ChildLearning() {
       if (lessonData.length > 0) {
         setCurrentLesson(lessonData[0]);
 
-        // New attempt key for the selected lesson
         attemptKeyRef.current = createAttemptKey();
         videoEndedRef.current = false;
       }
@@ -170,26 +328,34 @@ function ChildLearning() {
     }
   }
 
-  // Change current lesson
+  // ========================================
+  // CHANGE CURRENT LESSON
+  // ========================================
+
   function handleLessonClick(lesson) {
+    if (learningLimitReached) return;
+
     if (currentLesson?.lesson_id === lesson.lesson_id) {
       videoSectionRef.current?.scrollIntoView({
         behavior: "smooth",
         block: "start",
       });
+
       return;
     }
 
     setCurrentLesson(lesson);
 
-    // New attempt key for a new lesson attempt
     attemptKeyRef.current = createAttemptKey();
     videoEndedRef.current = false;
 
     resetQuestionData();
   }
 
-  // Video URL
+  // ========================================
+  // VIDEO URL
+  // ========================================
+
   function getVideoSource(videoUrl) {
     if (!videoUrl) return "";
 
@@ -200,7 +366,10 @@ function ChildLearning() {
     }
   }
 
-  // Question image URL
+  // ========================================
+  // QUESTION IMAGE URL
+  // ========================================
+
   function getQuestionImageSource(imageUrl) {
     if (!imageUrl) return "";
 
@@ -211,12 +380,16 @@ function ChildLearning() {
     }
   }
 
-  // Record video completion and load questions after video ends
+  // ========================================
+  // VIDEO COMPLETION AND LOAD QUESTIONS
+  // ========================================
+
   async function handleVideoEnded() {
     if (
       !currentLesson ||
       videoCompleted ||
-      videoEndedRef.current
+      videoEndedRef.current ||
+      learningLimitReached
     ) {
       return;
     }
@@ -238,7 +411,6 @@ function ChildLearning() {
       setQuestionError("");
       setQuestionsLoading(true);
 
-      // Record video completion using this attempt's shared key.
       await completeChildVideo(
         childId,
         lessonId,
@@ -269,23 +441,32 @@ function ChildLearning() {
         return current;
       });
     } catch (err) {
-      // Allow retry with the SAME key if the request failed.
       videoEndedRef.current = false;
 
       setQuestionError(
-        err.message || "Unable to record video completion or load questions."
+        err.message ||
+          "Unable to record video completion or load questions."
       );
     } finally {
       setQuestionsLoading(false);
     }
   }
 
-  // Automatic answer checking
+  // ========================================
+  // AUTOMATIC ANSWER CHECKING
+  // ========================================
+
   async function submitAnswersAutomatically(
     updatedAnswers,
     currentQuestions
   ) {
-    if (!currentLesson || checkingAnswers) return;
+    if (
+      !currentLesson ||
+      checkingAnswers ||
+      learningLimitReached
+    ) {
+      return;
+    }
 
     const lessonId = currentLesson.lesson_id;
 
@@ -302,7 +483,6 @@ function ChildLearning() {
         attemptKeyRef.current = createAttemptKey();
       }
 
-      // Use the SAME key used for video completion.
       const response = await checkChildAnswers(
         childId,
         lessonId,
@@ -323,9 +503,18 @@ function ChildLearning() {
     }
   }
 
-  // Select answer
+  // ========================================
+  // SELECT ANSWER
+  // ========================================
+
   function handleAnswerSelect(questionId, optionId) {
-    if (answerResults || checkingAnswers) return;
+    if (
+      answerResults ||
+      checkingAnswers ||
+      learningLimitReached
+    ) {
+      return;
+    }
 
     const updatedAnswers = {
       ...selectedAnswers,
@@ -343,6 +532,31 @@ function ChildLearning() {
       submitAnswersAutomatically(updatedAnswers, questions);
     }
   }
+
+  // ========================================
+  // BACK TO DASHBOARD
+  // ========================================
+
+  async function handleBackToDashboard() {
+    if (timerStartedRef.current) {
+      try {
+        await stopLearningSession(childId);
+      } catch (err) {
+        console.error("Unable to stop learning timer:", err);
+      }
+
+      timerStartedRef.current = false;
+      setTimerStarted(false);
+    }
+
+    navigate(`/child-dashboard/${childId}`, {
+      state: { child },
+    });
+  }
+
+  // ========================================
+  // LOADING SCREEN
+  // ========================================
 
   if (loading) {
     return (
@@ -368,6 +582,7 @@ function ChildLearning() {
       <div className="child-learning-shell">
 
         {/* HEADER */}
+
         <header className="learning-hero">
           <div className="learning-topbar">
             <div className="learning-brand-area">
@@ -382,11 +597,7 @@ function ChildLearning() {
               <button
                 type="button"
                 className="child-learning-back-btn"
-                onClick={() =>
-                  navigate(`/child-dashboard/${childId}`, {
-                    state: { child },
-                  })
-                }
+                onClick={handleBackToDashboard}
               >
                 <span aria-hidden="true">←</span>
                 Back to Dashboard
@@ -442,6 +653,34 @@ function ChildLearning() {
           </div>
         </header>
 
+        {/* DAILY LEARNING LIMIT MESSAGE */}
+
+        {learningLimitReached && (
+          <div
+            className="child-learning-warning"
+            role="alert"
+          >
+            ⏰ Your daily learning time is over! Please come back tomorrow.
+          </div>
+        )}
+
+        {/* TIMER DISPLAY */}
+
+        {timerStarted && !learningLimitReached && (
+          <div
+            className="child-learning-warning"
+            aria-live="polite"
+          >
+            ⏱️ Learning session is active.
+            {remainingSeconds !== null && (
+              <strong>
+                {" "}
+                Remaining time: {Math.ceil(remainingSeconds / 60)} minutes
+              </strong>
+            )}
+          </div>
+        )}
+
         {error && (
           <div className="child-learning-warning">
             {error}
@@ -449,6 +688,7 @@ function ChildLearning() {
         )}
 
         {/* TOPICS */}
+
         <section className="child-learning-topics learning-wide-card">
           <div className="learning-section-heading">
             <span className="learning-heading-icon">📚</span>
@@ -471,6 +711,7 @@ function ChildLearning() {
                       : ""
                   }`}
                   onClick={() => handleTopicClick(topic)}
+                  disabled={learningLimitReached}
                 >
                   {topic.topic_name || `Topic ${topic.topic_id}`}
                 </button>
@@ -480,6 +721,7 @@ function ChildLearning() {
         </section>
 
         {/* LESSONS */}
+
         {selectedTopic && (
           <section className="child-learning-lessons learning-wide-card">
             <div className="learning-section-heading">
@@ -509,6 +751,7 @@ function ChildLearning() {
                         : ""
                     }`}
                     onClick={() => handleLessonClick(lesson)}
+                    disabled={learningLimitReached}
                   >
                     ▶ {lesson.title}
                   </button>
@@ -519,6 +762,7 @@ function ChildLearning() {
         )}
 
         {/* VIDEO AND QUESTIONS */}
+
         {currentLesson && (
           <section
             className="child-learning-split-layout"
@@ -537,6 +781,7 @@ function ChildLearning() {
                 controls
                 preload="metadata"
                 playsInline
+                onPlay={handleVideoPlay}
                 onEnded={handleVideoEnded}
               >
                 <source
@@ -555,6 +800,7 @@ function ChildLearning() {
             </div>
 
             {/* QUESTIONS */}
+
             <aside className="child-learning-questions-section learning-panel">
               <div className="child-learning-questions-heading">
                 <span>✏️</span>
@@ -671,7 +917,8 @@ function ChildLearning() {
                                   }
                                   disabled={
                                     Boolean(answerResults) ||
-                                    checkingAnswers
+                                    checkingAnswers ||
+                                    learningLimitReached
                                   }
                                   aria-pressed={isSelected}
                                 >

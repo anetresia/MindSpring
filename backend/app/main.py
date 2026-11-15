@@ -41,6 +41,7 @@ from app.models.subscription.subscription_credit import SubscriptionCredit
 from app.models.subscription.subscription_payment import SubscriptionPayment
 from app.models.subscription.video_history import VideoHistory
 from app.models.subscription.notification import Notification
+from app.models.learning_session import LearningSession
 
 
 # ==========================================
@@ -74,6 +75,7 @@ from app.routers.parent_life_skill_topic import (
 from app.routers.parent_rewards import router as parent_rewards_router
 from app.routers import admin_management
 
+from app.routers.learning_session import router as learning_session_router
 
 # ==========================================
 # SUBSCRIPTION ROUTERS
@@ -183,6 +185,7 @@ app.include_router(child_selected_topic_router)
 app.include_router(parent_life_skill_topic_router)
 app.include_router(parent_rewards_router)
 app.include_router(admin_management.router)
+app.include_router(learning_session_router)
 
 
 # ==========================================

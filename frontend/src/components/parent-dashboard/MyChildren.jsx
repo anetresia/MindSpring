@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -21,6 +20,7 @@ import "../../styles/parent-dashboard/my-children.css";
 const initialFormData = {
   child_name: "",
   date_of_birth: "",
+  daily_learning_limit: "",
   communicationMethod: "",
   learningMethod: "",
 };
@@ -139,6 +139,7 @@ function MyChildren({
     setFormData({
       child_name: child.child_name || "",
       date_of_birth: child.date_of_birth?.split("T")[0] || "",
+      daily_learning_limit: String(child.daily_learning_limit ?? ""),
       communicationMethod: "",
       learningMethod: "",
     });
@@ -221,6 +222,11 @@ function MyChildren({
         setError("Date of birth cannot be in the future.");
         return;
       }
+
+      if (!formData.daily_learning_limit) {
+        setError("Please select a daily learning time limit.");
+        return;
+      }
     }
 
     if (wizardStep === 2) {
@@ -275,6 +281,7 @@ function MyChildren({
     if (
       !formData.child_name.trim() ||
       !formData.date_of_birth ||
+      !formData.daily_learning_limit ||
       !formData.communicationMethod ||
       !formData.learningMethod
     ) {
@@ -305,6 +312,7 @@ function MyChildren({
     const childData = {
       child_name: formData.child_name.trim(),
       date_of_birth: formData.date_of_birth,
+      daily_learning_limit: Number(formData.daily_learning_limit),
     };
 
     const preferencesData = {
@@ -639,6 +647,31 @@ function MyChildren({
                         max={getTodayString()}
                         required
                       />
+                    </div>
+
+                    {/* DAILY LEARNING TIME LIMIT */}
+                    <div className="children-form-group">
+                      <label htmlFor="daily_learning_limit">
+                        Daily Learning Time Limit
+                      </label>
+
+                      <select
+                        id="daily_learning_limit"
+                        name="daily_learning_limit"
+                        value={formData.daily_learning_limit}
+                        onChange={handleChange}
+                        required
+                      >
+                        <option value="">
+                          Select daily time limit
+                        </option>
+                        <option value="5">5 minutes</option>
+                        <option value="10">10 minutes</option>
+                        <option value="15">15 minutes</option>
+                        <option value="20">20 minutes</option>
+                        <option value="25">25 minutes</option>
+                        <option value="30">30 minutes</option>
+                      </select>
                     </div>
                   </div>
                 </div>

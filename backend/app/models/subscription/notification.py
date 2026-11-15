@@ -32,6 +32,13 @@ class Notification(Base):
         index=True,
     )
 
+    child_id = Column(
+        Integer,
+        ForeignKey("child.child_id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+
     subscription_id = Column(
         Integer,
         ForeignKey(
@@ -42,16 +49,12 @@ class Notification(Base):
         index=True,
     )
 
+    # VARCHAR allows adding new notification types
+    # without changing the MySQL ENUM definition.
     notification_type = Column(
-        Enum(
-            "CREDITS_5_REMAINING",
-            "CREDITS_1_REMAINING",
-            "CREDITS_EXHAUSTED",
-            "SUBSCRIPTION_EXPIRING",
-            "SUBSCRIPTION_EXPIRED",
-            name="subscription_notification_type",
-        ),
+        String(64),
         nullable=False,
+        index=True,
     )
 
     channel = Column(
@@ -61,6 +64,7 @@ class Notification(Base):
             name="notification_channel",
         ),
         nullable=False,
+        default="DASHBOARD",
     )
 
     title = Column(
@@ -77,6 +81,7 @@ class Notification(Base):
         Boolean,
         nullable=False,
         default=False,
+        server_default="0",
         index=True,
     )
 
@@ -84,11 +89,17 @@ class Notification(Base):
         DateTime,
         nullable=False,
         server_default=func.now(),
+        index=True,
     )
 
     parent = relationship(
         "User",
         backref="subscription_notifications",
+    )
+
+    child = relationship(
+        "Child",
+        backref="notifications",
     )
 
     subscription = relationship(
