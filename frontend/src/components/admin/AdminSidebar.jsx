@@ -55,6 +55,28 @@ function AdminSidebar() {
           <span>♧</span>
           Child Management
         </NavLink>
+
+        <NavLink
+          to="/admin-subscriptions"
+          className={({ isActive }) =>
+            `admin-nav-link ${isActive ? "active" : ""}`
+          }
+        >
+          <span>♛</span>
+          Subscription Management
+        </NavLink>
+
+        {/* CONTACT MESSAGES */}
+
+        <NavLink
+          to="/admin-contact"
+          className={({ isActive }) =>
+            `admin-nav-link ${isActive ? "active" : ""}`
+          }
+        >
+          <span>✉</span>
+          Contact Messages
+        </NavLink>
       </nav>
 
       <div className="admin-sidebar-bottom">

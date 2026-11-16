@@ -1,3 +1,4 @@
+
 export const API_URL = "http://127.0.0.1:8000";
 
 // ========================================
@@ -628,6 +629,46 @@ export async function checkChildAnswers(
 }
 
 // ========================================
+// CHILD - VOICE ANSWER CHECKING
+// ========================================
+
+export async function checkChildVoiceAnswer(
+  childId,
+  lessonId,
+  questionId,
+  audioBlob
+) {
+  if (!childId || !lessonId || !questionId) {
+    throw new Error(
+      "Child ID, Lesson ID and Question ID are required."
+    );
+  }
+
+  if (!audioBlob) {
+    throw new Error("Please record your answer.");
+  }
+
+  const formData = new FormData();
+
+  formData.append(
+    "audio",
+    audioBlob,
+    "child-answer.webm"
+  );
+
+  const response = await fetch(
+    `${API_URL}/child/lessons/${encodeURIComponent(childId)}/${encodeURIComponent(lessonId)}/voice-answer?question_id=${encodeURIComponent(questionId)}`,
+    {
+      method: "POST",
+      headers: getAuthHeaders(false),
+      body: formData,
+    }
+  );
+
+  return handleResponse(response);
+}
+
+// ========================================
 // PARENT - GET EACH CHILD'S TOTAL STARS
 // ========================================
 
@@ -866,4 +907,111 @@ export async function getLearningSessionStatus(childId) {
       method: "GET",
     }
   );
+}
+
+// ========================================
+// PARENT - GET NOTIFICATIONS
+// ========================================
+
+export async function getNotifications({
+  skip = 0,
+  limit = 20,
+  unreadOnly = false,
+} = {}) {
+  const query = new URLSearchParams({
+    skip: String(skip),
+    limit: String(limit),
+    unread_only: String(unreadOnly),
+  });
+
+  return apiRequest(`/notifications/?${query.toString()}`, {
+    method: "GET",
+  });
+}
+
+// ========================================
+// PARENT - GET UNREAD NOTIFICATION COUNT
+// ========================================
+
+export async function getUnreadNotificationCount() {
+  return apiRequest("/notifications/unread-count", {
+    method: "GET",
+  });
+}
+
+// ========================================
+// PARENT - MARK SINGLE NOTIFICATION AS READ
+// ========================================
+
+export async function markNotificationRead(notificationId) {
+  if (!notificationId) {
+    throw new Error("Notification ID is required.");
+  }
+
+  return apiRequest(
+    `/notifications/${encodeURIComponent(notificationId)}/read`,
+    {
+      method: "PUT",
+    }
+  );
+}
+
+// ========================================
+// PARENT - MARK ALL NOTIFICATIONS AS READ
+// ========================================
+
+export async function markAllNotificationsRead() {
+  return apiRequest("/notifications/read-all", {
+    method: "PUT",
+  });
+}
+
+// ========================================
+// ADMIN - SUBSCRIPTION PLAN MANAGEMENT
+// ========================================
+
+// GET ALL SUBSCRIPTION PLANS (ACTIVE + INACTIVE)
+export async function getAdminSubscriptionPlans() {
+  return apiRequest("/admin/subscriptions/plans/", {
+    method: "GET",
+  });
+}
+
+// CREATE SUBSCRIPTION PLAN
+export async function createAdminSubscriptionPlan(planData) {
+  return apiRequest("/admin/subscriptions/plans/", {
+    method: "POST",
+    body: JSON.stringify(planData),
+  });
+}
+
+// UPDATE SUBSCRIPTION PLAN
+export async function updateAdminSubscriptionPlan(planId, planData) {
+  return apiRequest(
+    `/admin/subscriptions/plans/${encodeURIComponent(planId)}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(planData),
+    }
+  );
+}
+
+// ACTIVATE / DEACTIVATE SUBSCRIPTION PLAN
+export async function updateAdminSubscriptionPlanStatus(planId, isActive) {
+  return apiRequest(
+    `/admin/subscriptions/plans/${encodeURIComponent(planId)}/status`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({
+        is_active: isActive,
+      }),
+    }
+  );
+}
+
+// GET SUBSCRIBERS
+export async function getAdminSubscribers() {
+  return apiRequest("/admin/subscriptions/subscribers", {
+    method: "GET",
+  });
 }

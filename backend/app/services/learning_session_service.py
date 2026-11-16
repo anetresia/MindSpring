@@ -75,6 +75,10 @@ def get_or_create_daily_session(
     return session
 
 
+# =========================================================
+# CREATE LEARNING NOTIFICATION
+# =========================================================
+
 def create_learning_notification(
     db: Session,
     session: LearningSession,
@@ -112,6 +116,10 @@ def create_learning_notification(
     db.add(notification)
 
 
+# =========================================================
+# UPDATE LEARNING NOTIFICATIONS
+# =========================================================
+
 def update_learning_notifications(
     db: Session,
     session: LearningSession,
@@ -121,6 +129,12 @@ def update_learning_notifications(
     elapsed = session.total_seconds
 
     for remaining, notification_data in REMINDER_THRESHOLDS.items():
+
+        # Do not send reminders that are longer than
+        # or equal to the configured daily learning limit.
+        if remaining >= limit_seconds:
+            continue
+
         threshold = limit_seconds - remaining
 
         if elapsed >= threshold:
@@ -134,11 +148,16 @@ def update_learning_notifications(
                 message=message,
             )
 
+    # Daily learning limit reached
     if elapsed >= limit_seconds:
         session.total_seconds = limit_seconds
         session.is_active = False
         session.limit_reached = True
 
+
+# =========================================================
+# ADD ELAPSED LEARNING TIME
+# =========================================================
 
 def add_elapsed_time(
     db: Session,
@@ -163,6 +182,7 @@ def add_elapsed_time(
         session.is_active = False
 
     limit_seconds = child.daily_learning_limit * 60
+
     remaining = max(
         0,
         limit_seconds - session.total_seconds,
@@ -177,6 +197,10 @@ def add_elapsed_time(
         child.daily_learning_limit,
     )
 
+
+# =========================================================
+# START LEARNING SESSION
+# =========================================================
 
 def start_learning_session(
     db: Session,
@@ -209,6 +233,10 @@ def start_learning_session(
     return session
 
 
+# =========================================================
+# HEARTBEAT LEARNING SESSION
+# =========================================================
+
 def heartbeat_learning_session(
     db: Session,
     child: Child,
@@ -227,6 +255,10 @@ def heartbeat_learning_session(
 
     return session
 
+
+# =========================================================
+# STOP LEARNING SESSION
+# =========================================================
 
 def stop_learning_session(
     db: Session,
@@ -248,6 +280,10 @@ def stop_learning_session(
 
     return session
 
+
+# =========================================================
+# GET LEARNING SESSION STATUS
+# =========================================================
 
 def get_learning_session_status(
     db: Session,

@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from "react";
 
 import {
@@ -14,6 +13,7 @@ import {
   getChildLessonQuestions,
   completeChildVideo,
   checkChildAnswers,
+  checkChildVoiceAnswer,
   startLearningSession,
   sendLearningSessionHeartbeat,
   stopLearningSession,
@@ -39,10 +39,26 @@ function ChildLearning() {
   const timerStartedRef = useRef(false);
   const timerStartRequestRef = useRef(false);
   const timerLockedRef = useRef(false);
+  const previousRemainingSecondsRef = useRef(null);
+  const fiveMinuteWarningShownRef = useRef(false);
+  const oneMinuteWarningShownRef = useRef(false);
+
+  // Voice recording refs
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+  const mediaStreamRef = useRef(null);
+  const recordingQuestionRef = useRef(null);
 
   const [timerStarted, setTimerStarted] = useState(false);
   const [learningLimitReached, setLearningLimitReached] = useState(false);
   const [remainingSeconds, setRemainingSeconds] = useState(null);
+  const [timerPopup, setTimerPopup] = useState(null);
+
+  // Voice states
+  const [recordingQuestionId, setRecordingQuestionId] = useState(null);
+  const [voiceCheckingQuestionId, setVoiceCheckingQuestionId] = useState(null);
+  const [voiceFeedback, setVoiceFeedback] = useState({});
+  const [voiceErrors, setVoiceErrors] = useState({});
 
   // Create one idempotency key for each lesson attempt.
   function createAttemptKey() {
@@ -76,6 +92,318 @@ function ChildLearning() {
   const [questionError, setQuestionError] = useState("");
 
   // ========================================
+  // VOICE - STOP MEDIA STREAM
+  // ========================================
+
+  function stopMediaStream() {
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach((track) => {
+        track.stop();
+      });
+
+      mediaStreamRef.current = null;
+    }
+  }
+
+  // ========================================
+  // VOICE - CHECK ANSWER
+  // ========================================
+
+  async function processVoiceAnswer(questionId, audioBlob) {
+    if (!audioBlob || audioBlob.size === 0) {
+      setVoiceErrors((previous) => ({
+        ...previous,
+        [questionId]: "No audio recorded. Please try again.",
+      }));
+      return;
+    }
+
+    const lessonId = currentLesson?.lesson_id;
+
+    if (!lessonId) return;
+
+    try {
+      setVoiceCheckingQuestionId(questionId);
+
+      setVoiceErrors((previous) => ({
+        ...previous,
+        [questionId]: "",
+      }));
+
+      setVoiceFeedback((previous) => ({
+        ...previous,
+        [questionId]: null,
+      }));
+
+      const response = await checkChildVoiceAnswer(
+        childId,
+        lessonId,
+        questionId,
+        audioBlob
+      );
+
+      if (currentLesson?.lesson_id !== lessonId) return;
+
+      const result = response?.data || response;
+
+      const transcript =
+        result.transcribed_text ||
+        result.transcript ||
+        result.text ||
+        "";
+
+      if (result.is_correct) {
+        const correctOptionId =
+          result.selected_answer ||
+          result.correct_answer;
+
+        if (!correctOptionId) {
+          throw new Error(
+            "Voice answer was recognised, but the correct option was not returned."
+          );
+        }
+
+        const updatedAnswers = {
+          ...selectedAnswers,
+          [questionId]: correctOptionId,
+        };
+
+        setSelectedAnswers(updatedAnswers);
+
+        setVoiceFeedback((previous) => ({
+          ...previous,
+          [questionId]: {
+            isCorrect: true,
+            transcript,
+            message: result.message || "Correct answer! Well done!",
+          },
+        }));
+
+        // Submit all answers using the existing quiz reward logic.
+        if (
+          questions.length > 0 &&
+          questions.every(
+            (question) => updatedAnswers[question.question_id]
+          )
+        ) {
+          await submitAnswersAutomatically(
+            updatedAnswers,
+            questions
+          );
+        }
+      } else {
+        setVoiceFeedback((previous) => ({
+          ...previous,
+          [questionId]: {
+            isCorrect: false,
+            transcript,
+            message:
+              result.message ||
+              "Not quite right. Please try again!",
+          },
+        }));
+      }
+    } catch (err) {
+      setVoiceErrors((previous) => ({
+        ...previous,
+        [questionId]:
+          err.message ||
+          "Unable to check your voice answer. Please try again.",
+      }));
+    } finally {
+      setVoiceCheckingQuestionId(null);
+    }
+  }
+
+  // ========================================
+  // VOICE - START RECORDING
+  // ========================================
+
+  async function startVoiceRecording(questionId) {
+    if (
+      answerResults ||
+      checkingAnswers ||
+      learningLimitReached ||
+      recordingQuestionId ||
+      voiceCheckingQuestionId
+    ) {
+      return;
+    }
+
+    if (
+      !navigator.mediaDevices ||
+      !navigator.mediaDevices.getUserMedia ||
+      typeof MediaRecorder === "undefined"
+    ) {
+      setVoiceErrors((previous) => ({
+        ...previous,
+        [questionId]:
+          "Your browser does not support voice recording. Please use a supported browser.",
+      }));
+
+      return;
+    }
+
+    try {
+      setVoiceErrors((previous) => ({
+        ...previous,
+        [questionId]: "",
+      }));
+
+      setVoiceFeedback((previous) => ({
+        ...previous,
+        [questionId]: null,
+      }));
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+      });
+
+      mediaStreamRef.current = stream;
+
+      let recorder;
+
+      const preferredTypes = [
+        "audio/webm;codecs=opus",
+        "audio/webm",
+        "audio/ogg;codecs=opus",
+        "audio/mp4",
+      ];
+
+      const supportedType = preferredTypes.find((type) =>
+        MediaRecorder.isTypeSupported(type)
+      );
+
+      if (supportedType) {
+        recorder = new MediaRecorder(stream, {
+          mimeType: supportedType,
+        });
+      } else {
+        recorder = new MediaRecorder(stream);
+      }
+
+      mediaRecorderRef.current = recorder;
+      recordingQuestionRef.current = questionId;
+      audioChunksRef.current = [];
+
+      recorder.ondataavailable = (event) => {
+        if (event.data && event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      recorder.onerror = () => {
+        setVoiceErrors((previous) => ({
+          ...previous,
+          [questionId]: "Recording failed. Please try again.",
+        }));
+
+        setRecordingQuestionId(null);
+        stopMediaStream();
+      };
+
+      recorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, {
+          type: recorder.mimeType || "audio/webm",
+        });
+
+        audioChunksRef.current = [];
+
+        stopMediaStream();
+
+        setRecordingQuestionId(null);
+        recordingQuestionRef.current = null;
+
+        await processVoiceAnswer(questionId, audioBlob);
+      };
+
+      recorder.start();
+
+      setRecordingQuestionId(questionId);
+    } catch (err) {
+      stopMediaStream();
+
+      setRecordingQuestionId(null);
+
+      let message = "Unable to access microphone. Please try again.";
+
+      if (err.name === "NotAllowedError") {
+        message =
+          "Microphone permission denied. Please allow microphone access.";
+      } else if (err.name === "NotFoundError") {
+        message = "No microphone found on this device.";
+      } else if (err.name === "NotReadableError") {
+        message = "Microphone is currently being used by another application.";
+      }
+
+      setVoiceErrors((previous) => ({
+        ...previous,
+        [questionId]: message,
+      }));
+    }
+  }
+
+  // ========================================
+  // VOICE - STOP RECORDING
+  // ========================================
+
+  function stopVoiceRecording() {
+    const recorder = mediaRecorderRef.current;
+
+    if (
+      recorder &&
+      recorder.state !== "inactive"
+    ) {
+      recorder.stop();
+    }
+  }
+
+  // ========================================
+  // VOICE - CLEANUP
+  // ========================================
+
+  useEffect(() => {
+    return () => {
+      const recorder = mediaRecorderRef.current;
+
+      if (recorder && recorder.state !== "inactive") {
+        recorder.onstop = null;
+        recorder.stop();
+      }
+
+      stopMediaStream();
+    };
+  }, []);
+
+  // ========================================
+  // LEARNING TIMER - STOP VIDEO AND RECORDING
+  // ========================================
+
+  function stopLearningMedia() {
+    const video = document.querySelector(
+      ".child-learning-main-video"
+    );
+
+    video?.pause();
+
+    const recorder = mediaRecorderRef.current;
+
+    if (recorder && recorder.state !== "inactive") {
+      recorder.onstop = null;
+      recorder.stop();
+    }
+
+    mediaRecorderRef.current = null;
+    recordingQuestionRef.current = null;
+    audioChunksRef.current = [];
+
+    stopMediaStream();
+
+    setRecordingQuestionId(null);
+    setVoiceCheckingQuestionId(null);
+  }
+
+  // ========================================
   // LEARNING TIMER - START
   // ========================================
 
@@ -97,12 +425,9 @@ function ChildLearning() {
         timerLockedRef.current = true;
         setLearningLimitReached(true);
         setRemainingSeconds(0);
+        setTimerPopup("over");
 
-        const video = document.querySelector(
-          ".child-learning-main-video"
-        );
-
-        video?.pause();
+        stopLearningMedia();
 
         return;
       }
@@ -112,13 +437,18 @@ function ChildLearning() {
 
       if (typeof response.remaining_seconds === "number") {
         setRemainingSeconds(response.remaining_seconds);
+        previousRemainingSecondsRef.current = response.remaining_seconds;
       } else if (typeof response.total_seconds === "number") {
         const limitSeconds =
           Number(child?.daily_learning_limit || 30) * 60;
 
-        setRemainingSeconds(
-          Math.max(0, limitSeconds - response.total_seconds)
+        const remaining = Math.max(
+          0,
+          limitSeconds - response.total_seconds
         );
+
+        setRemainingSeconds(remaining);
+        previousRemainingSecondsRef.current = remaining;
       }
     } catch (err) {
       setError(
@@ -152,27 +482,31 @@ function ChildLearning() {
 
         if (!active) return;
 
+        let newRemainingSeconds = null;
+
         if (typeof response.remaining_seconds === "number") {
-          setRemainingSeconds(response.remaining_seconds);
+          newRemainingSeconds = response.remaining_seconds;
         } else if (typeof response.total_seconds === "number") {
           const limitSeconds =
             Number(child?.daily_learning_limit || 30) * 60;
 
-          setRemainingSeconds(
-            Math.max(0, limitSeconds - response.total_seconds)
+          newRemainingSeconds = Math.max(
+            0,
+            limitSeconds - response.total_seconds
           );
         }
 
-        if (response.limit_reached) {
+        if (newRemainingSeconds !== null) {
+          setRemainingSeconds(newRemainingSeconds);
+        }
+
+        if (response.limit_reached || newRemainingSeconds === 0) {
           timerLockedRef.current = true;
           setLearningLimitReached(true);
           setRemainingSeconds(0);
+          setTimerPopup("over");
 
-          const video = document.querySelector(
-            ".child-learning-main-video"
-          );
-
-          video?.pause();
+          stopLearningMedia();
         }
       } catch (err) {
         console.error("Learning timer heartbeat failed:", err);
@@ -184,6 +518,50 @@ function ChildLearning() {
       window.clearInterval(heartbeatInterval);
     };
   }, [timerStarted, childId, learningLimitReached, child]);
+
+  // ========================================
+  // LEARNING TIMER - WARNING POPUPS
+  // ========================================
+
+  useEffect(() => {
+    if (
+      remainingSeconds === null ||
+      learningLimitReached
+    ) {
+      return;
+    }
+
+    const previousSeconds = previousRemainingSecondsRef.current;
+
+    if (previousSeconds === null) {
+      previousRemainingSecondsRef.current = remainingSeconds;
+      return;
+    }
+
+    // Show 5-minute warning only when crossing from above 5 minutes.
+    if (
+      previousSeconds > 300 &&
+      remainingSeconds <= 300 &&
+      remainingSeconds > 60 &&
+      !fiveMinuteWarningShownRef.current
+    ) {
+      fiveMinuteWarningShownRef.current = true;
+      setTimerPopup("five");
+    }
+
+    // Show 1-minute warning only when crossing from above 1 minute.
+    if (
+      previousSeconds > 60 &&
+      remainingSeconds <= 60 &&
+      remainingSeconds > 0 &&
+      !oneMinuteWarningShownRef.current
+    ) {
+      oneMinuteWarningShownRef.current = true;
+      setTimerPopup("one");
+    }
+
+    previousRemainingSecondsRef.current = remainingSeconds;
+  }, [remainingSeconds, learningLimitReached]);
 
   // ========================================
   // LEARNING TIMER - PAGE EXIT
@@ -279,6 +657,25 @@ function ChildLearning() {
   // ========================================
 
   function resetQuestionData() {
+    // Stop an active recording when changing lesson/topic.
+    const recorder = mediaRecorderRef.current;
+
+    if (recorder && recorder.state !== "inactive") {
+      recorder.onstop = null;
+      recorder.stop();
+    }
+
+    stopMediaStream();
+
+    mediaRecorderRef.current = null;
+    recordingQuestionRef.current = null;
+    audioChunksRef.current = [];
+
+    setRecordingQuestionId(null);
+    setVoiceCheckingQuestionId(null);
+    setVoiceFeedback({});
+    setVoiceErrors({});
+
     setQuestions([]);
     setSelectedAnswers({});
     setAnswerResults(null);
@@ -344,12 +741,12 @@ function ChildLearning() {
       return;
     }
 
+    resetQuestionData();
+
     setCurrentLesson(lesson);
 
     attemptKeyRef.current = createAttemptKey();
     videoEndedRef.current = false;
-
-    resetQuestionData();
   }
 
   // ========================================
@@ -410,6 +807,9 @@ function ChildLearning() {
       setAnswerResults(null);
       setQuestionError("");
       setQuestionsLoading(true);
+
+      setVoiceFeedback({});
+      setVoiceErrors({});
 
       await completeChildVideo(
         childId,
@@ -504,14 +904,16 @@ function ChildLearning() {
   }
 
   // ========================================
-  // SELECT ANSWER
+  // SELECT IMAGE ANSWER
   // ========================================
 
   function handleAnswerSelect(questionId, optionId) {
     if (
       answerResults ||
       checkingAnswers ||
-      learningLimitReached
+      learningLimitReached ||
+      recordingQuestionId ||
+      voiceCheckingQuestionId
     ) {
       return;
     }
@@ -538,6 +940,15 @@ function ChildLearning() {
   // ========================================
 
   async function handleBackToDashboard() {
+    const recorder = mediaRecorderRef.current;
+
+    if (recorder && recorder.state !== "inactive") {
+      recorder.onstop = null;
+      recorder.stop();
+    }
+
+    stopMediaStream();
+
     if (timerStartedRef.current) {
       try {
         await stopLearningSession(childId);
@@ -869,6 +1280,15 @@ function ChildLearning() {
                         selectedAnswer === option.id &&
                         !questionResult?.is_correct;
 
+                      const voiceResult =
+                        voiceFeedback[question.question_id];
+
+                      const isRecording =
+                        recordingQuestionId === question.question_id;
+
+                      const isVoiceChecking =
+                        voiceCheckingQuestionId === question.question_id;
+
                       return (
                         <div
                           className="child-learning-question-card"
@@ -881,6 +1301,8 @@ function ChildLearning() {
                           <p className="child-learning-question-text">
                             {question.question_text}
                           </p>
+
+                          {/* IMAGE ANSWER OPTIONS */}
 
                           <div className="child-learning-answer-options">
                             {(question.answer_options || []).map((option) => {
@@ -918,7 +1340,9 @@ function ChildLearning() {
                                   disabled={
                                     Boolean(answerResults) ||
                                     checkingAnswers ||
-                                    learningLimitReached
+                                    learningLimitReached ||
+                                    Boolean(recordingQuestionId) ||
+                                    Boolean(voiceCheckingQuestionId)
                                   }
                                   aria-pressed={isSelected}
                                 >
@@ -960,6 +1384,107 @@ function ChildLearning() {
                                 </button>
                               );
                             })}
+                          </div>
+
+                          {/* VOICE ANSWER SECTION */}
+
+                          <div className="child-learning-voice-section">
+                            <p className="child-learning-voice-instruction">
+                              🎤 Or say your answer in Tamil or English
+                            </p>
+
+                            {!isRecording ? (
+                              <button
+                                type="button"
+                                className="child-learning-voice-btn"
+                                onClick={() =>
+                                  startVoiceRecording(question.question_id)
+                                }
+                                disabled={
+                                  Boolean(answerResults) ||
+                                  checkingAnswers ||
+                                  learningLimitReached ||
+                                  Boolean(recordingQuestionId) ||
+                                  Boolean(voiceCheckingQuestionId) ||
+                                  Boolean(selectedAnswer)
+                                }
+                              >
+                                🎤 Speak Your Answer
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                className="child-learning-voice-btn recording"
+                                onClick={stopVoiceRecording}
+                              >
+                                ⏹ Stop Recording
+                              </button>
+                            )}
+
+                            {isRecording && (
+                              <p className="child-learning-recording-message">
+                                🔴 Listening... Speak your answer now.
+                              </p>
+                            )}
+
+                            {isVoiceChecking && (
+                              <p className="child-learning-voice-loading">
+                                ⏳ Checking your voice answer...
+                              </p>
+                            )}
+
+                            {voiceErrors[question.question_id] && (
+                              <p
+                                className="child-learning-voice-error"
+                                role="alert"
+                              >
+                                {voiceErrors[question.question_id]}
+                              </p>
+                            )}
+
+                            {voiceResult && (
+                              <div
+                                className={`child-learning-voice-feedback ${
+                                  voiceResult.isCorrect
+                                    ? "correct"
+                                    : "incorrect"
+                                }`}
+                                role="status"
+                              >
+                                {voiceResult.transcript && (
+                                  <p>
+                                    <strong>You said:</strong>{" "}
+                                    {voiceResult.transcript}
+                                  </p>
+                                )}
+
+                                <p>
+                                  {voiceResult.isCorrect ? "✅" : "❌"}{" "}
+                                  {voiceResult.message}
+                                </p>
+
+                                {!voiceResult.isCorrect &&
+                                  !answerResults && (
+                                    <button
+                                      type="button"
+                                      className="child-learning-voice-retry-btn"
+                                      onClick={() =>
+                                        startVoiceRecording(
+                                          question.question_id
+                                        )
+                                      }
+                                      disabled={
+                                        Boolean(recordingQuestionId) ||
+                                        Boolean(voiceCheckingQuestionId) ||
+                                        checkingAnswers ||
+                                        learningLimitReached
+                                      }
+                                    >
+                                      🎤 Try Again
+                                    </button>
+                                  )}
+                              </div>
+                            )}
                           </div>
                         </div>
                       );
@@ -1019,6 +1544,104 @@ function ChildLearning() {
                 )}
             </aside>
           </section>
+        )}
+
+        {/* DAILY TIMER POPUP */}
+
+        {timerPopup && (
+          <div
+            className="learning-timer-modal-overlay"
+            role="presentation"
+            style={{
+              position: "fixed",
+              inset: 0,
+              zIndex: 99999,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "20px",
+              background: "rgba(20, 12, 35, 0.72)",
+              backdropFilter: "blur(5px)",
+            }}
+          >
+            <div
+              className={`learning-timer-modal ${
+                timerPopup === "over" ? "time-over" : "time-warning"
+              }`}
+              role="alertdialog"
+              aria-modal="true"
+              aria-labelledby="learning-timer-popup-title"
+              aria-describedby="learning-timer-popup-message"
+              style={{
+                width: "100%",
+                maxWidth: "430px",
+                padding: "32px 26px",
+                borderRadius: "24px",
+                background: "#fff",
+                textAlign: "center",
+                boxShadow: "0 20px 60px rgba(0,0,0,0.28)",
+                border: "3px solid #eadcff",
+              }}
+            >
+              <div
+                className="learning-timer-modal-icon"
+                style={{
+                  fontSize: "48px",
+                  marginBottom: "12px",
+                }}
+              >
+                {timerPopup === "five"
+                  ? "⏰"
+                  : timerPopup === "one"
+                  ? "⚠️"
+                  : "🌙"}
+              </div>
+
+              <h2
+                id="learning-timer-popup-title"
+                style={{
+                  margin: "0 0 12px",
+                  color: "#7542c8",
+                  fontSize: "24px",
+                }}
+              >
+                {timerPopup === "five"
+                  ? "5 Minutes Remaining!"
+                  : timerPopup === "one"
+                  ? "1 Minute Remaining!"
+                  : "Daily Learning Time Over"}
+              </h2>
+
+              <p
+                id="learning-timer-popup-message"
+                style={{ margin: "0 0 22px", lineHeight: 1.6 }}
+              >
+                {timerPopup === "five"
+                  ? "You have 5 minutes of learning time left!"
+                  : timerPopup === "one"
+                  ? "Only 1 minute of learning time left!"
+                  : "Your daily learning time is over! Please come back tomorrow."}
+              </p>
+
+              {timerPopup !== "over" && (
+                <button
+                  type="button"
+                  onClick={() => setTimerPopup(null)}
+                  style={{
+                    border: 0,
+                    borderRadius: "999px",
+                    padding: "11px 28px",
+                    color: "#fff",
+                    background: "linear-gradient(90deg, #a64bd6, #7542c8)",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                  }}
+                >
+                  Continue Learning
+                </button>
+              )}
+            </div>
+          </div>
         )}
       </div>
     </main>

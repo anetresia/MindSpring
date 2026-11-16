@@ -76,6 +76,13 @@ from app.routers.parent_rewards import router as parent_rewards_router
 from app.routers import admin_management
 
 from app.routers.learning_session import router as learning_session_router
+from app.routers.notification import router as notification_router
+from app.routers import admin_subscribers
+from app.routers import admin_subscription_plan
+
+# NEW: ADMIN CONTACT ROUTER
+from app.routers import admin_contact
+
 
 # ==========================================
 # SUBSCRIPTION ROUTERS
@@ -186,6 +193,12 @@ app.include_router(parent_life_skill_topic_router)
 app.include_router(parent_rewards_router)
 app.include_router(admin_management.router)
 app.include_router(learning_session_router)
+app.include_router(notification_router)
+app.include_router(admin_subscribers.router)
+app.include_router(admin_subscription_plan.router)
+
+# NEW: REGISTER ADMIN CONTACT ROUTER
+app.include_router(admin_contact.router)
 
 
 # ==========================================

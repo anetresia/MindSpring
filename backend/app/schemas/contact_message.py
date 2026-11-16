@@ -1,6 +1,14 @@
-from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from datetime import datetime
+from typing import Optional
+
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    EmailStr,
+    Field,
+    field_validator,
+)
 
 
 class ContactMessageCreate(BaseModel):
@@ -30,3 +38,5 @@ class ContactMessageResponse(BaseModel):
     message: str
     status: str
     created_at: datetime
+    admin_reply: Optional[str] = None
+    replied_at: Optional[datetime] = None

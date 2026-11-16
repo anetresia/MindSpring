@@ -3,6 +3,18 @@
   box-sizing: border-box;
 }
 
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100%;
+}
+
+#root {
+  min-height: 100vh;
+}
+
 .admin-layout {
   display: flex;
   width: 100%;
@@ -17,6 +29,7 @@
 .admin-sidebar {
   width: 250px;
   min-width: 250px;
+  height: 100vh;
   min-height: 100vh;
   position: sticky;
   top: 0;
@@ -25,6 +38,18 @@
   padding: 28px 18px;
   background: #ffffff;
   border-right: 1px solid #eee8f4;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #d8c9f3 transparent;
+}
+
+.admin-sidebar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.admin-sidebar::-webkit-scrollbar-thumb {
+  background: #d8c9f3;
+  border-radius: 10px;
 }
 
 .admin-brand {
@@ -45,6 +70,7 @@
   color: #6948b7;
   font-size: 24px;
   font-weight: 900;
+  flex-shrink: 0;
 }
 
 .admin-brand h2 {
@@ -83,7 +109,7 @@
   color: #746b85;
   font-size: 14px;
   font-weight: 700;
-  transition: 0.2s ease;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
 
 .admin-nav-link span {
@@ -93,10 +119,16 @@
   text-align: center;
 }
 
-.admin-nav-link:hover,
+.admin-nav-link:hover {
+  background: #f7f3ff;
+  color: #6845b5;
+  transform: translateX(2px);
+}
+
 .admin-nav-link.active {
   background: #eee8ff;
   color: #6845b5;
+  font-weight: 900;
 }
 
 .admin-sidebar-bottom {
@@ -170,6 +202,7 @@
   background: #eee8ff;
   color: #6845b5;
   font-weight: 900;
+  flex-shrink: 0;
 }
 
 .admin-user-info strong,
@@ -196,10 +229,12 @@
   font-family: inherit;
   font-weight: 800;
   cursor: pointer;
+  transition: 0.2s ease;
 }
 
 .admin-logout-btn:hover {
   background: #f5f0ff;
+  border-color: #d9c9f5;
 }
 
 /* DASHBOARD CONTENT */
@@ -245,6 +280,7 @@
   background: #ffffff;
   color: #8059c9;
   font-size: 43px;
+  flex-shrink: 0;
 }
 
 /* STATS */
@@ -262,6 +298,12 @@
   border-radius: 17px;
   background: #ffffff;
   border: 1px solid #f0ebf4;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.admin-stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(74, 48, 120, 0.07);
 }
 
 .stat-card-purple {
@@ -283,7 +325,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 12px;
-  background: rgba(255,255,255,0.8);
+  background: rgba(255, 255, 255, 0.8);
   font-size: 21px;
 }
 
@@ -346,10 +388,12 @@
   font-size: 13px;
   font-weight: 800;
   cursor: pointer;
+  transition: 0.2s ease;
 }
 
 .admin-quick-panel button:hover {
   background: #55369b;
+  transform: translateY(-1px);
 }
 
 /* INSTRUCTIONS */
@@ -411,12 +455,38 @@
   text-align: center;
 }
 
-/* RESPONSIVE */
+/* RESPONSIVE - TABLET */
+
+@media (max-width: 1100px) {
+  .admin-sidebar {
+    width: 225px;
+    min-width: 225px;
+  }
+
+  .admin-header {
+    padding: 18px 25px;
+  }
+
+  .admin-dashboard-content {
+    padding: 28px 25px;
+  }
+
+  .admin-stat-grid {
+    gap: 15px;
+  }
+}
 
 @media (max-width: 900px) {
   .admin-sidebar {
     width: 210px;
     min-width: 210px;
+    padding: 22px 13px;
+  }
+
+  .admin-nav-link {
+    padding: 12px 10px;
+    font-size: 13px;
+    gap: 9px;
   }
 
   .admin-dashboard-content {
@@ -428,6 +498,8 @@
   }
 }
 
+/* RESPONSIVE - MOBILE */
+
 @media (max-width: 600px) {
   .admin-layout {
     flex-direction: column;
@@ -436,13 +508,27 @@
   .admin-sidebar {
     width: 100%;
     min-width: 0;
+    height: auto;
     min-height: auto;
     position: relative;
     padding: 15px;
+    border-right: none;
+    border-bottom: 1px solid #eee8f4;
+    overflow: visible;
   }
 
   .admin-brand {
     padding: 0 5px 15px;
+  }
+
+  .admin-brand-icon {
+    width: 38px;
+    height: 38px;
+    font-size: 21px;
+  }
+
+  .admin-brand h2 {
+    font-size: 17px;
   }
 
   .admin-sidebar-label,
@@ -483,8 +569,17 @@
     font-size: 11px;
   }
 
+  .admin-header-actions {
+    gap: 10px;
+  }
+
   .admin-user-info {
     display: none;
+  }
+
+  .admin-logout-btn {
+    padding: 9px 11px;
+    font-size: 11px;
   }
 
   .admin-dashboard-content {
@@ -500,10 +595,15 @@
     font-size: 20px;
   }
 
+  .admin-welcome p {
+    font-size: 12px;
+  }
+
   .admin-welcome-icon {
     width: 55px;
     height: 55px;
     font-size: 28px;
+    border-radius: 15px;
   }
 
   .admin-stat-grid {
@@ -511,12 +611,51 @@
     gap: 12px;
   }
 
+  .admin-stat-card {
+    padding: 19px;
+  }
+
+  .admin-stat-card h3 {
+    font-size: 24px;
+  }
+
   .admin-quick-panel {
     align-items: flex-start;
     flex-direction: column;
+    padding: 20px;
   }
 
   .admin-quick-panel button {
     width: 100%;
+  }
+
+  .admin-instruction-panel {
+    padding: 20px;
+  }
+}
+
+/* SMALL MOBILE */
+
+@media (max-width: 380px) {
+  .admin-nav-link {
+    flex: 1 1 100%;
+  }
+
+  .admin-welcome {
+    align-items: flex-start;
+  }
+
+  .admin-welcome h2 {
+    font-size: 18px;
+  }
+
+  .admin-welcome-icon {
+    width: 45px;
+    height: 45px;
+    font-size: 23px;
+  }
+
+  .admin-header h1 {
+    font-size: 17px;
   }
 }

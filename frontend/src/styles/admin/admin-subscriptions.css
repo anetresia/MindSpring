@@ -1,0 +1,885 @@
+
+/* ========================================
+   ADMIN SUBSCRIPTION MANAGEMENT
+======================================== */
+
+.admin-subscription-content {
+  width: 100%;
+  max-width: 1450px;
+  margin: 0 auto;
+  padding: 32px 35px;
+  box-sizing: border-box;
+}
+
+/* WELCOME */
+
+.admin-subscription-welcome {
+  min-height: 150px;
+  padding: 28px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border-radius: 20px;
+  background: linear-gradient(120deg, #eee8ff, #f9edff);
+  box-sizing: border-box;
+}
+
+.admin-subscription-welcome h2 {
+  margin: 0 0 10px;
+  color: #35246f;
+  font-size: 25px;
+  font-weight: 900;
+}
+
+.admin-subscription-welcome p {
+  margin: 0;
+  color: #776b8d;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.admin-subscription-welcome-icon {
+  width: 75px;
+  height: 75px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20px;
+  background: #ffffff;
+  color: #8059c9;
+  font-size: 36px;
+}
+
+/* ========================================
+   STATISTICS
+======================================== */
+
+.admin-subscription-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  margin: 25px 0;
+}
+
+.admin-sub-stat-card {
+  min-width: 0;
+  padding: 22px;
+  border: 1px solid #f0ebf4;
+  border-radius: 16px;
+  background: #ffffff;
+  box-sizing: border-box;
+  transition: 0.2s ease;
+}
+
+.admin-sub-stat-card:hover {
+  border-color: #d9c9f0;
+  box-shadow: 0 7px 20px rgba(76, 49, 125, 0.05);
+}
+
+.admin-sub-stat-card > span {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: #eee8ff;
+  color: #6845b5;
+  font-size: 20px;
+}
+
+.admin-sub-stat-card p {
+  margin: 15px 0 6px;
+  color: #776b8d;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.admin-sub-stat-card h3 {
+  margin: 0;
+  color: #35246f;
+  font-size: 27px;
+  font-weight: 900;
+}
+
+/* ========================================
+   MAIN PANEL
+======================================== */
+
+.admin-subscription-panel {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #eee8f4;
+  border-radius: 18px;
+  background: #ffffff;
+}
+
+.admin-subscription-tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 18px 24px 0;
+  border-bottom: 1px solid #eee8f4;
+}
+
+.admin-subscription-tabs button {
+  padding: 13px 17px;
+  border: none;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  color: #93899f;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.admin-subscription-tabs button:hover,
+.admin-subscription-tabs button.active {
+  border-bottom-color: #6845b5;
+  color: #6845b5;
+}
+
+/* ========================================
+   SECTION HEADING
+======================================== */
+
+.admin-subscription-section {
+  min-width: 0;
+  padding: 25px;
+  box-sizing: border-box;
+}
+
+.admin-sub-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 24px;
+}
+
+.admin-sub-section-heading h2 {
+  margin: 0 0 6px;
+  color: #35246f;
+  font-size: 19px;
+  font-weight: 900;
+}
+
+.admin-sub-section-heading p {
+  margin: 0;
+  color: #958ba4;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* ========================================
+   BUTTONS
+======================================== */
+
+.admin-sub-primary-btn {
+  padding: 12px 18px;
+  border: none;
+  border-radius: 10px;
+  background: #6845b5;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.admin-sub-primary-btn:hover {
+  background: #55369b;
+  transform: translateY(-1px);
+}
+
+.admin-sub-primary-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.admin-sub-cancel-btn {
+  padding: 11px 17px;
+  border: 1px solid #e8e0f0;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #776b8d;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.admin-sub-cancel-btn:hover {
+  background: #f7f3fc;
+  border-color: #cdbbea;
+}
+
+.admin-sub-cancel-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ========================================
+   PLAN CARDS
+======================================== */
+
+.admin-plan-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.admin-plan-card {
+  min-width: 0;
+  padding: 21px;
+  border: 1px solid #eee8f4;
+  border-radius: 16px;
+  background: #ffffff;
+  transition: 0.2s ease;
+  box-sizing: border-box;
+}
+
+.admin-plan-card:hover {
+  border-color: #cdbbea;
+  box-shadow: 0 8px 24px rgba(76, 49, 125, 0.07);
+  transform: translateY(-2px);
+}
+
+.admin-plan-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.admin-plan-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: #eee8ff;
+  color: #6845b5;
+  font-size: 20px;
+}
+
+.admin-plan-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.status-active {
+  background: #e8f6e9;
+  color: #32834a;
+}
+
+.status-inactive {
+  background: #fff0e8;
+  color: #c16a3e;
+}
+
+.admin-plan-card h3 {
+  min-height: 42px;
+  margin: 17px 0 10px;
+  color: #35246f;
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.admin-plan-card > h2 {
+  margin: 0;
+  color: #6845b5;
+  font-size: 23px;
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+
+.admin-plan-details {
+  margin-top: 18px;
+  padding: 15px 0;
+  border-top: 1px solid #f0ebf4;
+  border-bottom: 1px solid #f0ebf4;
+}
+
+.admin-plan-details p {
+  margin: 8px 0;
+  color: #776b8d;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.admin-plan-actions {
+  display: flex;
+  gap: 9px;
+  margin-top: 17px;
+}
+
+.admin-plan-actions button {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 8px;
+  border: 1px solid #e8e0f0;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #6845b5;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.admin-plan-actions button:hover {
+  background: #f5f0ff;
+}
+
+.admin-plan-actions button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.admin-plan-actions .deactivate-btn {
+  border-color: #f2d8d0;
+  color: #bd654b;
+}
+
+.admin-plan-actions .deactivate-btn:hover {
+  background: #fff2ed;
+}
+
+.admin-plan-actions .activate-btn {
+  border-color: #cce8d2;
+  color: #32834a;
+}
+
+.admin-plan-actions .activate-btn:hover {
+  background: #edfaef;
+}
+
+/* ========================================
+   SUBSCRIBERS AND PAYMENT TABLES
+======================================== */
+
+.admin-sub-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid #eee8f4;
+  border-radius: 13px;
+  background: #ffffff;
+}
+
+.admin-sub-table {
+  width: 100%;
+  min-width: 850px;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.admin-sub-table thead {
+  background: #f7f3fc;
+}
+
+.admin-sub-table th {
+  padding: 16px 15px;
+  color: #6845b5;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+  border-bottom: 1px solid #eee8f4;
+}
+
+.admin-sub-table td {
+  padding: 16px 15px;
+  color: #776b8d;
+  font-size: 12px;
+  font-weight: 600;
+  border-bottom: 1px solid #f0ebf4;
+  vertical-align: middle;
+}
+
+.admin-sub-table tbody tr {
+  transition: background 0.2s ease;
+}
+
+.admin-sub-table tbody tr:hover {
+  background: #fbf9ff;
+}
+
+.admin-sub-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.admin-sub-table td strong {
+  display: block;
+  margin-bottom: 5px;
+  color: #35246f;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.admin-sub-table td small {
+  display: block;
+  margin-top: 4px;
+  color: #958ba4;
+  font-size: 11px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.admin-sub-table td .admin-plan-status {
+  font-size: 10px;
+}
+
+/* ========================================
+   LOADING
+======================================== */
+
+.admin-subscription-loading {
+  min-height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+  color: #6845b5;
+  font-size: 14px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.admin-subscription-loading::before {
+  content: "";
+  width: 19px;
+  height: 19px;
+  margin-right: 12px;
+  border: 3px solid #e8e0f0;
+  border-top-color: #6845b5;
+  border-radius: 50%;
+  animation: admin-sub-spin 0.8s linear infinite;
+}
+
+@keyframes admin-sub-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ========================================
+   ERROR MESSAGE
+======================================== */
+
+.admin-subscription-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin: 18px 0;
+  padding: 14px 17px;
+  border: 1px solid #f2c9c2;
+  border-radius: 11px;
+  background: #fff2ef;
+  color: #b74738;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+.admin-subscription-error button {
+  width: 27px;
+  height: 27px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 7px;
+  background: #ffe1dc;
+  color: #b74738;
+  font-size: 19px;
+  cursor: pointer;
+}
+
+/* ========================================
+   EMPTY STATES
+======================================== */
+
+.admin-subscription-empty {
+  min-height: 300px;
+  padding: 45px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.admin-subscription-empty > span {
+  width: 65px;
+  height: 65px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18px;
+  background: #eee8ff;
+  color: #6845b5;
+  font-size: 28px;
+}
+
+.admin-subscription-empty h2 {
+  margin: 18px 0 8px;
+  color: #35246f;
+  font-size: 19px;
+}
+
+.admin-subscription-empty p {
+  max-width: 390px;
+  margin: 0;
+  color: #958ba4;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+/* ========================================
+   MODAL
+======================================== */
+
+.admin-sub-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(35, 24, 60, 0.48);
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.admin-sub-modal {
+  width: 100%;
+  max-width: 490px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 27px;
+  border-radius: 19px;
+  background: #ffffff;
+  box-shadow: 0 20px 60px rgba(35, 24, 60, 0.18);
+  box-sizing: border-box;
+}
+
+.admin-sub-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 22px;
+}
+
+.admin-sub-modal-header h2 {
+  margin: 0 0 6px;
+  color: #35246f;
+  font-size: 21px;
+  font-weight: 900;
+}
+
+.admin-sub-modal-header p {
+  margin: 0;
+  color: #958ba4;
+  font-size: 12px;
+}
+
+.admin-sub-modal-header > button {
+  width: 33px;
+  height: 33px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 9px;
+  background: #f3eff8;
+  color: #6845b5;
+  font-size: 23px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.admin-sub-modal-header > button:hover {
+  background: #e9e0f7;
+}
+
+.admin-sub-modal-header > button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.admin-sub-modal form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.admin-sub-modal form label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: #55456f;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.admin-sub-modal form input,
+.admin-sub-modal form select {
+  width: 100%;
+  min-height: 43px;
+  padding: 10px 12px;
+  outline: none;
+  border: 1px solid #e8e0f0;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #35246f;
+  font-family: inherit;
+  font-size: 13px;
+  box-sizing: border-box;
+  transition: 0.2s ease;
+}
+
+.admin-sub-modal form input:focus,
+.admin-sub-modal form select:focus {
+  border-color: #8059c9;
+  box-shadow: 0 0 0 3px rgba(104, 69, 181, 0.09);
+}
+
+.admin-sub-modal form input:disabled,
+.admin-sub-modal form select:disabled {
+  background: #f5f2f8;
+  color: #958ba4;
+  cursor: not-allowed;
+}
+
+.admin-sub-modal form label small {
+  color: #958ba4;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+/* FORM NOTE */
+
+.admin-sub-form-note {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid #e7ddf6;
+  border-radius: 9px;
+  background: #f8f5ff;
+  color: #776b8d;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+/* MODAL ACTIONS */
+
+.admin-sub-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* ========================================
+   RESPONSIVE
+======================================== */
+
+@media (max-width: 1100px) {
+  .admin-plan-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-subscription-content {
+    padding: 28px 25px;
+  }
+}
+
+@media (max-width: 900px) {
+  .admin-subscription-content {
+    padding: 25px 20px;
+  }
+
+  .admin-subscription-stats {
+    gap: 14px;
+  }
+
+  .admin-sub-stat-card {
+    padding: 18px;
+  }
+}
+
+@media (max-width: 600px) {
+  .admin-subscription-content {
+    padding: 20px 14px;
+  }
+
+  .admin-subscription-welcome {
+    min-height: 125px;
+    padding: 20px;
+  }
+
+  .admin-subscription-welcome h2 {
+    font-size: 20px;
+  }
+
+  .admin-subscription-welcome p {
+    font-size: 12px;
+  }
+
+  .admin-subscription-welcome-icon {
+    width: 55px;
+    height: 55px;
+    font-size: 27px;
+  }
+
+  .admin-subscription-stats {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin: 18px 0;
+  }
+
+  .admin-sub-stat-card {
+    padding: 17px;
+  }
+
+  .admin-sub-stat-card h3 {
+    font-size: 24px;
+  }
+
+  .admin-subscription-tabs {
+    gap: 0;
+    padding: 12px 10px 0;
+  }
+
+  .admin-subscription-tabs button {
+    flex: 1;
+    min-width: 0;
+    padding: 12px 5px;
+    font-size: 10px;
+    white-space: normal;
+  }
+
+  .admin-subscription-section {
+    padding: 17px;
+  }
+
+  .admin-sub-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .admin-sub-section-heading > button {
+    width: 100%;
+  }
+
+  .admin-plan-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-plan-card {
+    padding: 19px;
+  }
+
+  .admin-plan-card h3 {
+    min-height: auto;
+  }
+
+  .admin-subscription-empty {
+    min-height: 250px;
+    padding: 35px 15px;
+  }
+
+  .admin-sub-table {
+    min-width: 800px;
+  }
+
+  .admin-sub-modal-overlay {
+    align-items: flex-start;
+    padding: 15px;
+  }
+
+  .admin-sub-modal {
+    max-height: 92vh;
+    margin: auto 0;
+    padding: 20px;
+  }
+
+  .admin-sub-modal-header h2 {
+    font-size: 19px;
+  }
+
+  .admin-sub-modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .admin-sub-modal-actions button {
+    width: 100%;
+    min-height: 42px;
+  }
+
+  .admin-subscription-error {
+    font-size: 12px;
+  }
+}
+
+/* ========================================
+   SMALL MOBILE
+======================================== */
+
+@media (max-width: 380px) {
+  .admin-subscription-content {
+    padding: 16px 10px;
+  }
+
+  .admin-subscription-welcome {
+    padding: 16px;
+  }
+
+  .admin-subscription-welcome h2 {
+    font-size: 18px;
+  }
+
+  .admin-subscription-welcome-icon {
+    width: 45px;
+    height: 45px;
+    font-size: 23px;
+  }
+
+  .admin-subscription-section {
+    padding: 13px;
+  }
+
+  .admin-subscription-tabs button {
+    font-size: 9px;
+  }
+
+  .admin-plan-actions {
+    gap: 6px;
+  }
+
+  .admin-plan-actions button {
+    padding: 9px 5px;
+    font-size: 10px;
+  }
+}

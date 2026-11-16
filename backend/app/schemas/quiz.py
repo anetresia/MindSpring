@@ -1,3 +1,4 @@
+
 from typing import List, Literal, Optional
 from pydantic import BaseModel, Field, validator
 
@@ -11,6 +12,9 @@ class ImageOption(BaseModel):
     id: Literal["A", "B", "C"]
 
     image_url: str = Field(..., min_length=1)
+
+    # Text represented by the image (used for voice answers)
+    answer_text: Optional[str] = None
 
 
 # ==========================================

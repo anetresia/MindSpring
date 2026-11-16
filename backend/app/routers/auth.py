@@ -906,10 +906,10 @@ def update_parent_profile(
 # PARENT PROFILE - UPLOAD PROFILE IMAGE
 # ==========================================
 
-BACKEND_DIR = Path(__file__).resolve().parents[2]
+APP_DIR = Path(__file__).resolve().parents[1]
 
 PROFILE_IMAGE_DIR = (
-    BACKEND_DIR / "uploads" / "profile_images"
+    APP_DIR / "uploads" / "profile_images"
 )
 
 PROFILE_IMAGE_DIR.mkdir(parents=True, exist_ok=True)

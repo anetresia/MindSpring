@@ -1,3 +1,4 @@
+
 from datetime import datetime, timezone, timedelta
 
 from sqlalchemy.orm import Session
@@ -7,6 +8,7 @@ from app.models.subscription.parent_subscription import ParentSubscription
 from app.models.subscription.subscription_credit import SubscriptionCredit
 from app.models.subscription.video_history import VideoHistory
 from app.models.subscription.subscription_payment import SubscriptionPayment
+from app.models.subscription.notification import Notification
 
 
 # ==========================================
@@ -441,6 +443,26 @@ def _record_lesson_completion(
         if history.activity_completed_at is None:
             history.activity_completed_at = current_time
 
+            # ==========================================
+            # CREATE PARENT ACTIVITY NOTIFICATION
+            # ==========================================
+
+            notification = Notification(
+                parent_id=parent_id,
+                child_id=child_id,
+                subscription_id=subscription.subscription_id,
+                notification_type="ACTIVITY_COMPLETED",
+                channel="DASHBOARD",
+                title="Activity Completed!",
+                message=(
+                    "Your child has successfully completed "
+                    "a learning activity."
+                ),
+                is_read=False,
+            )
+
+            db.add(notification)
+
     credit = None
 
     # Both completions are required.
@@ -693,7 +715,7 @@ def complete_stripe_payment(
         raise ValueError("This Stripe payment is no longer pending.")
 
     if (payment_status or "").lower() != "paid":
-        raise ValueError("Stripe has not confirmed that this payment is paid.")
+        raise ValueError("Stripe has not confirmed that the payment is paid.")
 
     expected_amount = int(round(float(payment.amount_lkr) * 100))
     if int(amount_total) != expected_amount:
@@ -773,6 +795,26 @@ def complete_stripe_payment(
 
     payment.status = "SUCCESS"
     payment.verified_at = current_time
+
+    # ==========================================
+    # CREATE SUBSCRIPTION ACTIVATED NOTIFICATION
+    # ==========================================
+
+    notification = Notification(
+        parent_id=payment.parent_id,
+        child_id=None,
+        subscription_id=subscription.subscription_id,
+        notification_type="SUBSCRIPTION_ACTIVATED",
+        channel="DASHBOARD",
+        title="Subscription Activated!",
+        message=(
+            f"Your {plan.plan_name} subscription plan "
+            "has been successfully activated."
+        ),
+        is_read=False,
+    )
+
+    db.add(notification)
 
     db.flush()
 

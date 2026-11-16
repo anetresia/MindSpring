@@ -25,6 +25,8 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AdminContent from "./pages/AdminContent";
 import AdminParents from "./pages/AdminParents";
 import AdminChildren from "./pages/AdminChildren";
+import AdminSubscriptions from "./pages/AdminSubscriptions";
+import AdminContact from "./pages/AdminContact";
 
 // ========================================
 // GET SAVED ACCESS TOKEN
@@ -65,10 +67,8 @@ function ProtectedRoute({ allowedRoles }) {
   const token = getAccessToken();
   const storedUser = getStoredUser();
 
-  // Parent details passed from Child Dashboard navigation
   const navigationUser = location.state?.parent || null;
 
-  // Check stored user first, then navigation user
   const usersToCheck = [storedUser, navigationUser];
 
   const normalizedAllowedRoles = allowedRoles.map((role) =>
@@ -164,8 +164,6 @@ function App() {
             element={<ParentDashboard />}
           />
 
-          {/* CHILD LEARNING PAGE */}
-
           <Route
             path="/child-learning/:childId"
             element={<ChildLearning />}
@@ -189,18 +187,28 @@ function App() {
             element={<AdminContent />}
           />
 
-          {/* PARENT MANAGEMENT */}
-
           <Route
             path="/admin-parents"
             element={<AdminParents />}
           />
 
-          {/* CHILD MANAGEMENT */}
-
           <Route
             path="/admin-children"
             element={<AdminChildren />}
+          />
+
+          {/* SUBSCRIPTION MANAGEMENT */}
+
+          <Route
+            path="/admin-subscriptions"
+            element={<AdminSubscriptions />}
+          />
+
+          {/* CONTACT MESSAGES */}
+
+          <Route
+            path="/admin-contact"
+            element={<AdminContact />}
           />
         </Route>
 

@@ -13,6 +13,7 @@ from app.models.lesson_attempt import LessonAttempt
 
 from app.models.subscription.parent_subscription import ParentSubscription
 from app.models.subscription.subscription_plan import SubscriptionPlan
+from app.models.subscription.notification import Notification
 
 from app.schemas.child import ChildCreate, ChildUpdate
 
@@ -149,6 +150,7 @@ def create_child(
 
 # ==========================================
 # UPDATE AN EXISTING CHILD PROFILE
+# CREATE PARENT DASHBOARD NOTIFICATION
 # ==========================================
 
 def update_child(
@@ -164,13 +166,37 @@ def update_child(
 
     update_data = child_data.model_dump(exclude_unset=True)
 
-    for field, value in update_data.items():
-        setattr(child, field, value)
+    try:
+        # Update child profile fields
+        for field, value in update_data.items():
+            setattr(child, field, value)
 
-    db.commit()
-    db.refresh(child)
+        # Create notification only when profile data is updated
+        if update_data:
+            notification = Notification(
+                parent_id=parent.user_id,
+                child_id=child.child_id,
+                notification_type="CHILD_PROFILE_UPDATED",
+                channel="DASHBOARD",
+                title="Child Profile Updated",
+                message=(
+                    f"{child.child_name}'s profile has been "
+                    "successfully updated."
+                ),
+                is_read=False,
+            )
 
-    return child
+            db.add(notification)
+
+        # Save profile update and notification together
+        db.commit()
+        db.refresh(child)
+
+        return child
+
+    except SQLAlchemyError:
+        db.rollback()
+        raise
 
 
 # ==========================================

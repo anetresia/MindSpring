@@ -1,4 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Body, Header
+
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    status,
+    Body,
+    Header,
+    UploadFile,
+    File,
+)
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -17,6 +27,10 @@ from app.services import parent_service
 from app.services import child_selected_topic_service
 from app.services import lesson_service
 from app.services.subscription_service import record_activity_completion
+from app.services.groq_service import transcribe_child_voice
+
+import difflib
+import re
 
 
 # ==========================================
@@ -297,6 +311,211 @@ def get_child_lesson_questions(
 
 
 # ==========================================
+# CHILD - VOICE ANSWER CHECKING
+# ==========================================
+
+@child_router.post(
+    "/{child_id}/{lesson_id}/voice-answer"
+)
+async def check_child_voice_answer(
+    child_id: int,
+    lesson_id: int,
+    question_id: int,
+    audio: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_parent: User = Depends(get_current_parent),
+):
+    try:
+        # 1. Verify child and lesson access
+
+        verify_child_lesson_access(
+            db,
+            current_parent,
+            child_id,
+            lesson_id,
+        )
+
+        # 2. Validate audio file
+
+        allowed_types = [
+            "audio/webm",
+            "audio/wav",
+            "audio/mpeg",
+            "audio/mp4",
+            "audio/ogg",
+            "audio/x-wav",
+            "audio/aac",
+            "audio/flac",
+        ]
+
+        audio_content_type = (
+            audio.content_type or ""
+        ).split(";")[0].strip().lower()
+
+        print(
+            "Received audio content type:",
+            audio.content_type,
+        )
+
+        print(
+            "Normalized audio content type:",
+            audio_content_type,
+        )
+
+        if audio_content_type not in allowed_types:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Unsupported audio format: {audio.content_type}",
+            )
+
+        # 3. Validate audio size
+
+        await audio.seek(0)
+        audio_data = await audio.read()
+
+        if not audio_data:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Audio recording is empty. Please try again.",
+            )
+
+        print(
+            "Received audio size:",
+            len(audio_data),
+            "bytes",
+        )
+
+        # 4. Find the requested question
+
+        questions = get_sorted_questions(
+            db,
+            lesson_id,
+        )
+
+        question = next(
+            (
+                item for item in questions
+                if item.question_id == question_id
+            ),
+            None,
+        )
+
+        if not question:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Question not found",
+            )
+
+        # 5. Convert voice to text using Groq Whisper
+
+        filename = audio.filename or "child-answer.webm"
+
+        import io
+
+        audio_file = io.BytesIO(audio_data)
+
+        transcript = transcribe_child_voice(
+            audio_file=audio_file,
+            filename=filename,
+            content_type=audio_content_type,
+        )
+
+        if not transcript or not transcript.strip():
+            return {
+                "question_id": question.question_id,
+                "transcript": "",
+                "is_correct": False,
+                "selected_answer": None,
+                "message": "No speech detected. Please try again.",
+            }
+
+        # 6. Normalize spoken answer and expected answers
+
+        def normalize_answer(value):
+            value = value.lower().strip()
+            value = re.sub(r"[^\w\s]", "", value)
+            value = re.sub(r"\s+", " ", value)
+            return value
+
+        spoken_answer = normalize_answer(transcript)
+
+        # 7. Find the correct option's answer text
+
+        correct_option = next(
+            (
+                option
+                for option in question.answer_options
+                if option.get("id") == question.correct_answer
+            ),
+            None,
+        )
+
+        if not correct_option:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Correct answer configuration is missing",
+            )
+
+        expected_answer = correct_option.get("answer_text")
+
+        if not expected_answer:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Answer text is not configured for this question",
+            )
+
+        expected_normalized = normalize_answer(
+            expected_answer
+        )
+
+        # 8. Compare spoken answer with expected answer
+
+        similarity = difflib.SequenceMatcher(
+            None,
+            spoken_answer,
+            expected_normalized,
+        ).ratio()
+
+        is_correct = (
+            spoken_answer == expected_normalized
+            or similarity >= 0.85
+        )
+
+        # 9. Return result
+
+        return {
+            "question_id": question.question_id,
+            "transcript": transcript,
+            "is_correct": is_correct,
+            "selected_answer": (
+                question.correct_answer if is_correct else None
+            ),
+            "message": (
+                "Correct answer!"
+                if is_correct
+                else "Incorrect answer. Please try again."
+            ),
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as error:
+        print(
+            "Voice answer checking error:",
+            repr(error),
+        )
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unable to check voice answer. Please try again.",
+        )
+
+    finally:
+        await audio.close()
+
+
+# ==========================================
 # CHILD - AUTOMATIC ANSWER CHECKING
 # ==========================================
 
@@ -535,8 +754,13 @@ def check_child_answers(
         db.rollback()
         raise
 
-    except Exception:
+    except Exception as error:
         db.rollback()
+
+        print(
+            "Quiz answer checking error:",
+            repr(error),
+        )
 
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

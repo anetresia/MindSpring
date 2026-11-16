@@ -29,9 +29,9 @@ const emptyQuestion = {
   lesson_id: "",
   question_text: "",
   answer_options: [
-    { id: "A", image_url: "" },
-    { id: "B", image_url: "" },
-    { id: "C", image_url: "" },
+    { id: "A", image_url: "", answer_text: "" },
+    { id: "B", image_url: "", answer_text: "" },
+    { id: "C", image_url: "", answer_text: "" },
   ],
   correct_answer: "A",
   question_type: "Image",
@@ -382,6 +382,38 @@ function AdminContent() {
 
       await loadData();
     } catch (err) {
+      setError(err.message || "Unable to update category status.");
+    }
+  }
+
+    async function toggleCategoryStatus(category) {
+    const nextStatus = category.is_active === false;
+
+    try {
+      setError("");
+      setSuccess("");
+
+      await requestApi(
+        `/admin/life-skill-categories/${category.category_id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            is_active: nextStatus,
+          }),
+        }
+      );
+
+      setSuccess(
+        nextStatus
+          ? "Category activated successfully."
+          : "Category deactivated successfully."
+      );
+
+      await loadData();
+    } catch (err) {
       setError(err.message || "Unable to update category.");
     }
   }
@@ -597,6 +629,7 @@ function AdminContent() {
         return {
           id,
           image_url: option?.image_url || "",
+          answer_text: option?.answer_text || "",
         };
       }),
       correct_answer: ["A", "B", "C"].includes(question.correct_answer)
@@ -689,12 +722,19 @@ function AdminContent() {
           image_url: questionImageFiles[index]
             ? await uploadQuestionImage(questionImageFiles[index])
             : option.image_url,
+          answer_text: option.answer_text.trim(),
         }))
       );
 
       if (answerOptions.some((option) => !option.image_url)) {
         throw new Error(
           "Please upload an image for all three options (A–C)."
+        );
+      }
+
+      if (answerOptions.some((option) => !option.answer_text)) {
+        throw new Error(
+          "Please enter the answer text for all three options (A–C)."
         );
       }
 
@@ -710,7 +750,7 @@ function AdminContent() {
       };
 
       if (editingQuestionId) {
-        await requestApi(
+                await requestApi(
           `/admin/quizzes/questions/${editingQuestionId}`,
           {
             method: "PUT",
@@ -1070,7 +1110,7 @@ function AdminContent() {
                                 >
                                   ⋮
                                 </button>
-                              </div>
+                                    </div>
                             ))
                           )}
                         </div>
@@ -1430,7 +1470,7 @@ function AdminContent() {
                           onChange={(event) =>
                             handleQuestionImageSelection(
                               index,
-                              event.target.files?.[0] || null
+                                                            event.target.files?.[0] || null
                             )
                           }
                           disabled={saving}
@@ -1449,6 +1489,29 @@ function AdminContent() {
                         ) : (
                           <small>PNG / JPG · Maximum 5 MB</small>
                         )}
+
+                        <label>Option {option.id} Answer Text *</label>
+                        <input
+                          type="text"
+                          value={option.answer_text || ""}
+                          onChange={(event) => {
+                            const updatedOptions = questionForm.answer_options.map(
+                              (item, optionIndex) =>
+                                optionIndex === index
+                                  ? { ...item, answer_text: event.target.value }
+                                  : item
+                            );
+
+                            setQuestionForm({
+                              ...questionForm,
+                              answer_options: updatedOptions,
+                            });
+                          }}
+                          placeholder={`Enter answer for option ${option.id}`}
+                          maxLength={100}
+                          required
+                          disabled={saving}
+                        />
                       </div>
                     ))}
 
