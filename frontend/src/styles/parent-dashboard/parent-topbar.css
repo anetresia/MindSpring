@@ -9,7 +9,12 @@
   min-height: 82px;
   padding: 0 4%;
 
-  background: transparent;
+  /* Rainbow Background Image */
+  background-image: url("../../assets/parent-topbar-bg.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
   border-bottom: 1px solid rgba(240, 233, 226, 0.6);
 
   display: flex;
@@ -193,6 +198,9 @@
 
     padding: 0 5%;
     justify-content: space-between;
+
+    background-size: cover;
+    background-position: center;
   }
 
   .mobile-topbar-left {
@@ -226,6 +234,8 @@
     height: 65px;
     min-height: 65px;
     padding: 0 4%;
+
+    background-position: center;
   }
 
   .mobile-topbar-left {

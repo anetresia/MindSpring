@@ -18,8 +18,58 @@ function Subscription() {
   const [error, setError] = useState("");
   const [paymentMessage, setPaymentMessage] = useState("");
   const [paymentNotice, setPaymentNotice] = useState("");
-
   const [paymentLoading, setPaymentLoading] = useState(false);
+
+  // ========================================
+  // LOAD BACKEND SUBSCRIPTION DATA
+  // ========================================
+
+  async function loadSubscriptionData(showLoading = true) {
+    try {
+      if (showLoading) {
+        setLoading(true);
+      }
+
+      setError("");
+
+      const [plansData, subscriptionData] = await Promise.all([
+        getSubscriptionPlans(),
+        getMySubscription(),
+      ]);
+
+      const plansList = Array.isArray(plansData)
+        ? plansData
+        : Array.isArray(plansData?.plans)
+        ? plansData.plans
+        : [];
+
+      const currentSubscription =
+        subscriptionData?.subscription ?? null;
+
+      setPlans(plansList);
+      setSubscription(currentSubscription);
+
+      return currentSubscription;
+    } catch (err) {
+      console.error("Unable to load subscription:", err);
+
+      if (showLoading) {
+        setError(
+          err.message || "Unable to load subscription details."
+        );
+      }
+
+      return null;
+    } finally {
+      if (showLoading) {
+        setLoading(false);
+      }
+    }
+  }
+
+  // ========================================
+  // INITIAL LOAD
+  // ========================================
 
   useEffect(() => {
     loadSubscriptionData();
@@ -35,14 +85,18 @@ function Subscription() {
 
     if (stripeStatus === "success") {
       setPaymentNotice(
-        "Payment completed at Stripe. Your subscription is being refreshed. If the plan has not updated yet, please refresh again in a moment."
+        "Payment successful! We are verifying your payment and updating your subscription. Please wait..."
       );
 
-      loadSubscriptionData();
-    } else if (stripeStatus === "cancelled") {
+      verifySubscriptionAfterPayment();
+    }
+
+    if (stripeStatus === "cancelled") {
       setPaymentNotice(
         "Payment was cancelled. No credits have been added to your account."
       );
+
+      sessionStorage.removeItem("mindspring_pending_plan_id");
     }
 
     if (stripeStatus) {
@@ -61,73 +115,110 @@ function Subscription() {
   }, []);
 
   // ========================================
-  // LOAD SUBSCRIPTION DATA
+  // VERIFY SUBSCRIPTION AFTER STRIPE PAYMENT
   // ========================================
 
-  async function loadSubscriptionData() {
-    try {
-      setLoading(true);
-      setError("");
+  async function verifySubscriptionAfterPayment() {
+    const expectedPlanId = sessionStorage.getItem(
+      "mindspring_pending_plan_id"
+    );
 
-      const [plansData, subscriptionData] = await Promise.all([
-        getSubscriptionPlans(),
-        getMySubscription(),
-      ]);
-
-      const plansList = Array.isArray(plansData)
-        ? plansData
-        : Array.isArray(plansData?.plans)
-        ? plansData.plans
-        : [];
-
-      setPlans(plansList);
-      setSubscription(subscriptionData?.subscription || null);
-    } catch (err) {
-      console.error("Unable to load subscription:", err);
-
-      setError(
-        err.message || "Unable to load subscription details."
+    if (!expectedPlanId) {
+      setPaymentNotice(
+        "Payment was completed. We are checking your subscription. Please refresh if it does not update."
       );
-    } finally {
-      setLoading(false);
+
+      await loadSubscriptionData(false);
+      return;
     }
+
+    const maxAttempts = 30;
+    const delay = 2000;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      const latestSubscription = await loadSubscriptionData(false);
+
+      if (latestSubscription) {
+        const latestPlanId = Number(
+          latestSubscription.plan?.plan_id
+        );
+
+        const latestStatus = String(
+          latestSubscription.status || ""
+        ).toUpperCase();
+
+        if (
+          latestPlanId === Number(expectedPlanId) &&
+          latestStatus === "ACTIVE"
+        ) {
+          setPaymentNotice(
+            "Payment verified successfully! Your subscription and credits have been updated."
+          );
+
+          sessionStorage.removeItem(
+            "mindspring_pending_plan_id"
+          );
+
+          return;
+        }
+      }
+
+      if (attempt < maxAttempts) {
+        setPaymentNotice(
+          `Payment received. Updating your subscription... (${attempt}/${maxAttempts})`
+        );
+
+        await new Promise((resolve) => {
+          setTimeout(resolve, delay);
+        });
+      }
+    }
+
+    // Payment must not be repeated just because webhook is delayed.
+    setPaymentNotice(
+      "Payment was completed, but subscription activation is taking longer than expected. Please contact the administrator to verify your payment. Do not pay again."
+    );
   }
 
   // ========================================
-  // FORMAT PRICE
+  // FORMAT BACKEND PRICE
   // ========================================
 
   function formatPrice(price) {
-    return `LKR ${Number(price || 0).toLocaleString("en-LK")}`;
+    if (price === null || price === undefined || price === "") {
+      return "Price unavailable";
+    }
+
+    return `LKR ${Number(price).toLocaleString("en-LK")}`;
   }
 
   // ========================================
-  // GET PLAN FEATURES
+  // GET PLAN FEATURES FROM BACKEND
   // ========================================
 
   function getPlanFeatures(plan) {
     const features = [];
 
-    features.push(`${plan.video_credits} Video Credits`);
+    if (plan.video_credits !== null && plan.video_credits !== undefined) {
+      features.push(`${plan.video_credits} Video Credits`);
+    }
 
-    features.push(
-      `${plan.max_children} ${
-        Number(plan.max_children) === 1 ? "Child" : "Children"
-      }`
-    );
+    if (plan.max_children !== null && plan.max_children !== undefined) {
+      features.push(
+        `${plan.max_children} ${
+          Number(plan.max_children) === 1 ? "Child" : "Children"
+        }`
+      );
+    }
 
     if (plan.plan_type === "FAMILY") {
       features.push("Shared Family Credits");
     }
 
-    if (plan.validity_days) {
+    if (plan.validity_days !== null && plan.validity_days !== undefined) {
       features.push(`${plan.validity_days} Days Validity`);
     } else if (plan.billing_type === "ONE_TIME") {
       features.push("No Expiry");
-    }
-
-    if (plan.plan_type === "FREE") {
-      features.push("Basic Learning Access");
     }
 
     return features;
@@ -138,7 +229,10 @@ function Subscription() {
   // ========================================
 
   function isCurrentPlan(plan) {
-    return subscription?.plan?.plan_id === plan.plan_id;
+    return (
+      Number(subscription?.plan?.plan_id) ===
+      Number(plan.plan_id)
+    );
   }
 
   // ========================================
@@ -184,7 +278,7 @@ function Subscription() {
 
     if (selectedPlan.plan_type === "FREE") {
       setPaymentMessage(
-        "Free Plan is assigned automatically during registration. Existing accounts without a Free Plan need backend assignment."
+        "Free Plan is normally assigned automatically during registration. Please contact the administrator if you need to change your plan."
       );
       return;
     }
@@ -195,6 +289,7 @@ function Subscription() {
 
       const idempotencyKey = createIdempotencyKey();
 
+      // Send only the selected backend plan ID.
       const response = await createStripeCheckout(
         selectedPlan.plan_id,
         idempotencyKey
@@ -206,7 +301,13 @@ function Subscription() {
         );
       }
 
-      // Redirect to Stripe hosted checkout page.
+      // Remember selected plan for verification after payment.
+      sessionStorage.setItem(
+        "mindspring_pending_plan_id",
+        String(selectedPlan.plan_id)
+      );
+
+      // Redirect to Stripe Checkout.
       window.location.assign(response.checkout_url);
     } catch (err) {
       console.error("Stripe checkout error:", err);
@@ -281,7 +382,7 @@ function Subscription() {
 
             <button
               type="button"
-              onClick={loadSubscriptionData}
+              onClick={() => loadSubscriptionData()}
             >
               Try Again
             </button>
@@ -352,18 +453,6 @@ function Subscription() {
                   .filter(Boolean)
                   .join(" ")}
               >
-                {plan.plan_code === "FAMILY_50" && (
-                  <div className="subscription-popular-label">
-                    BEST VALUE
-                  </div>
-                )}
-
-                {plan.plan_code === "INDIVIDUAL_30" && (
-                  <div className="subscription-popular-label">
-                    POPULAR
-                  </div>
-                )}
-
                 <div className="subscription-plan-icon">
                   {free ? "🌱" : family ? "👨‍👩‍👧‍👦" : "👑"}
                 </div>
@@ -381,7 +470,10 @@ function Subscription() {
                     ? "Free Plan"
                     : plan.billing_type === "ONE_TIME"
                     ? "One-time payment"
-                    : `${plan.validity_days || 30} days`}
+                    : plan.validity_days !== null &&
+                      plan.validity_days !== undefined
+                    ? `${plan.validity_days} days`
+                    : ""}
                 </p>
 
                 <div className="subscription-plan-divider" />
@@ -412,7 +504,7 @@ function Subscription() {
           })}
         </div>
 
-        {/* CENTER CONFIRMATION POPUP */}
+        {/* PLAN CONFIRMATION POPUP */}
 
         {selectedPlan && (
           <div
@@ -458,32 +550,39 @@ function Subscription() {
                 {formatPrice(selectedPlan.price_lkr)}
               </div>
 
-              {/* PLAN DETAILS */}
+              {/* PLAN DETAILS FROM BACKEND */}
 
               <div className="subscription-modal-details">
                 <div>
                   <span>Video Credits</span>
-                  <strong>{selectedPlan.video_credits}</strong>
+                  <strong>
+                    {selectedPlan.video_credits ?? "—"}
+                  </strong>
                 </div>
 
                 <div>
                   <span>Children</span>
-                  <strong>{selectedPlan.max_children}</strong>
+                  <strong>
+                    {selectedPlan.max_children ?? "—"}
+                  </strong>
                 </div>
 
                 <div>
                   <span>Plan Type</span>
-                  <strong>{selectedPlan.plan_type}</strong>
+                  <strong>
+                    {selectedPlan.plan_type || "—"}
+                  </strong>
                 </div>
 
                 <div>
                   <span>Validity</span>
                   <strong>
-                    {selectedPlan.validity_days
+                    {selectedPlan.validity_days !== null &&
+                    selectedPlan.validity_days !== undefined
                       ? `${selectedPlan.validity_days} Days`
                       : selectedPlan.billing_type === "ONE_TIME"
                       ? "No Expiry"
-                      : "Free"}
+                      : "—"}
                   </strong>
                 </div>
               </div>
@@ -501,7 +600,7 @@ function Subscription() {
                 </div>
               )}
 
-              {/* STRIPE CHECKOUT NOTICE */}
+              {/* STRIPE PAYMENT NOTICE */}
 
               {selectedPlan.plan_type !== "FREE" && (
                 <div className="subscription-modal-notice">
@@ -518,7 +617,7 @@ function Subscription() {
                 </div>
               )}
 
-              {/* ERROR / STATUS MESSAGE */}
+              {/* PAYMENT MESSAGE */}
 
               {paymentMessage && (
                 <div

@@ -55,6 +55,7 @@
   color: #5516a0;
   font-size: clamp(25px, 3vw, 36px);
   font-weight: 850;
+  line-height: 1.25;
 }
 
 .subscription-header p {
@@ -115,49 +116,29 @@
   color: #fff;
   font-weight: 700;
   cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.subscription-error button:hover {
+  background: #852357;
 }
 
 /* ==========================================
-   STRIPE PAYMENT STATUS NOTICE
+   PAYMENT STATUS MESSAGE
+   Used by JSX:
+   subscription-modal-message
 ========================================== */
 
-.subscription-payment-notice {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
+.subscription-modal-message {
   margin-bottom: 22px;
-  padding: 16px 19px;
+  padding: 15px 18px;
   border: 1px solid #c9b1f5;
   border-radius: 14px;
   background: #f8f3ff;
   color: #63349a;
   font-size: 14px;
   line-height: 1.6;
-}
-
-.subscription-payment-notice strong {
-  display: block;
-  margin-bottom: 3px;
-  color: #54218e;
-  font-size: 14px;
-}
-
-.subscription-payment-notice p {
-  margin: 0;
-  color: #765b91;
-  font-size: 13px;
-}
-
-.subscription-payment-notice.success {
-  border-color: #a9e2c1;
-  background: #f0fff6;
-  color: #24764a;
-}
-
-.subscription-payment-notice.error {
-  border-color: #ffc3cf;
-  background: #fff1f4;
-  color: #a52e4a;
+  overflow-wrap: anywhere;
 }
 
 /* ==========================================
@@ -205,21 +186,25 @@
   margin: 4px 0;
   color: #3d7858;
   font-size: 19px;
+  font-weight: 800;
 }
 
 .current-subscription-info p {
   margin: 0;
   color: #668675;
   font-size: 13px;
+  line-height: 1.5;
 }
 
 .current-subscription-status {
+  flex-shrink: 0;
   padding: 7px 13px;
   border-radius: 30px;
   background: #d9f8e6;
   color: #16834a;
   font-size: 11px;
   font-weight: 850;
+  text-transform: uppercase;
 }
 
 /* ==========================================
@@ -293,40 +278,13 @@
   background: linear-gradient(160deg, #fff, #fff9ef);
 }
 
-.selected-plan-card {
-  outline: 3px solid rgba(184, 87, 232, 0.2);
-  border-color: #a94cdb;
-}
-
 .current-plan-card {
   border-color: #70ce9b;
+  box-shadow: 0 8px 22px rgba(42, 150, 95, 0.10);
 }
 
 /* ==========================================
-   POPULAR LABEL
-========================================== */
-
-.subscription-popular-label {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  padding: 7px 18px;
-  transform: translateX(-50%);
-  border-radius: 0 0 12px 12px;
-  background: linear-gradient(90deg, #ed48a5, #a64be8);
-  color: #fff;
-  font-size: 10px;
-  font-weight: 850;
-  letter-spacing: 0.6px;
-  white-space: nowrap;
-}
-
-.subscription-plan-card:has(.subscription-popular-label) {
-  padding-top: 43px;
-}
-
-/* ==========================================
-   PLAN CONTENT
+   PLAN ICON
 ========================================== */
 
 .subscription-plan-icon {
@@ -348,12 +306,17 @@
   background: #fff0d7;
 }
 
+/* ==========================================
+   PLAN CONTENT
+========================================== */
+
 .subscription-plan-card h3 {
   margin: 0;
   color: #55199d;
   font-size: 19px;
   font-weight: 850;
   line-height: 1.4;
+  overflow-wrap: anywhere;
 }
 
 .subscription-plan-price {
@@ -364,6 +327,7 @@
 .subscription-plan-price strong {
   font-size: 25px;
   font-weight: 900;
+  overflow-wrap: anywhere;
 }
 
 .free-plan-card .subscription-plan-price {
@@ -387,6 +351,10 @@
   margin: 18px 0;
   background: #eeddf8;
 }
+
+/* ==========================================
+   PLAN FEATURES
+========================================== */
 
 .subscription-plan-features {
   display: flex;
@@ -430,6 +398,7 @@
 .subscription-choose-btn {
   width: 100%;
   min-height: 43px;
+  margin-top: auto;
   padding: 11px 15px;
   border: 0;
   border-radius: 30px;
@@ -499,7 +468,7 @@
 }
 
 /* ==========================================
-   CENTER CONFIRMATION / PAYMENT POPUP
+   CONFIRMATION / PAYMENT POPUP
 ========================================== */
 
 .subscription-modal-overlay {
@@ -570,7 +539,7 @@
 }
 
 /* ==========================================
-   POPUP ICON
+   POPUP ICON AND HEADING
 ========================================== */
 
 .subscription-modal-icon {
@@ -599,6 +568,7 @@
   font-size: 23px;
   font-weight: 850;
   line-height: 1.4;
+  overflow-wrap: anywhere;
 }
 
 .subscription-modal-price {
@@ -606,6 +576,7 @@
   color: #b23ed1;
   font-size: 28px;
   font-weight: 900;
+  overflow-wrap: anywhere;
 }
 
 /* ==========================================
@@ -623,6 +594,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
   padding: 13px 9px;
   border: 1px solid #f0e2fa;
   border-radius: 12px;
@@ -677,10 +649,10 @@
 }
 
 /* ==========================================
-   PAYMENT MESSAGE / ERROR
+   PAYMENT MESSAGE INSIDE POPUP
 ========================================== */
 
-.subscription-modal-message {
+.subscription-modal .subscription-modal-message {
   margin-bottom: 16px;
   padding: 12px;
   border: 1px solid #f3d8a6;
@@ -694,7 +666,7 @@
 }
 
 /* ==========================================
-   PAYMENT POPUP ACTION BUTTONS
+   POPUP ACTION BUTTONS
 ========================================== */
 
 .subscription-modal-actions {
@@ -721,28 +693,20 @@
     opacity 0.2s ease;
 }
 
-/* CANCEL BUTTON */
-
 .subscription-modal-cancel {
   background: #f1e9f7;
   color: #64258e;
 }
-
-/* CONTINUE / PAYMENT BUTTON */
 
 .subscription-modal-continue {
   background: linear-gradient(110deg, #ec36a4, #a943df);
   color: #fff;
 }
 
-/* BUTTON HOVER */
-
 .subscription-modal-actions button:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 6px 15px rgba(139, 49, 176, 0.18);
 }
-
-/* BUTTON DISABLED */
 
 .subscription-modal-actions button:disabled {
   opacity: 0.55;
@@ -827,10 +791,6 @@
     padding: 23px 19px 19px;
   }
 
-  .subscription-plan-card:has(.subscription-popular-label) {
-    padding-top: 43px;
-  }
-
   .current-subscription-card {
     flex-wrap: wrap;
     padding: 16px;
@@ -854,12 +814,6 @@
     align-items: flex-start;
     flex-direction: column;
   }
-
-  .subscription-payment-notice {
-    padding: 13px;
-  }
-
-  /* MOBILE POPUP */
 
   .subscription-modal-overlay {
     padding: 14px;

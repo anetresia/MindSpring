@@ -12,18 +12,14 @@
   height: 100vh;
   height: 100dvh;
   min-height: 0;
-
   display: flex;
   position: relative;
-
   background-repeat: no-repeat;
   background-position: center center;
   background-size: cover;
   background-attachment: fixed;
-
   color: #35246f;
   font-family: "Nunito", sans-serif;
-
   overflow: hidden;
 }
 
@@ -37,13 +33,10 @@
   min-width: 260px;
   height: 100%;
   min-height: 0;
-
   position: relative;
   z-index: 20;
-
   overflow-x: hidden;
   overflow-y: auto;
-
   scrollbar-width: thin;
   scrollbar-color: rgba(155, 115, 190, 0.35) transparent;
 }
@@ -58,14 +51,10 @@
   min-width: 0;
   height: 100%;
   min-height: 0;
-
   display: flex;
   flex-direction: column;
-
   position: relative;
-
   background: transparent;
-
   overflow: hidden;
 }
 
@@ -78,7 +67,6 @@
   width: 100%;
   height: 82px;
   min-height: 82px;
-
   position: relative;
   z-index: 35;
 }
@@ -89,40 +77,30 @@
 
 .parent-dashboard-scroll {
   flex: 1 1 0;
-
   width: 100%;
   height: 0;
-
   min-width: 0;
   min-height: 0;
-
   position: relative;
-
   overflow-x: hidden;
   overflow-y: auto;
-
   padding: 20px 0 30px;
-
   scroll-behavior: smooth;
   overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
-
   isolation: isolate;
 }
 
 /* ========================================
    DASHBOARD CONTENT
+   DashboardOverview CSS controls its padding
 ======================================== */
 
-.dashboard-content {
+.parent-dashboard-scroll > .dashboard-content {
   width: 100%;
   max-width: 100%;
-
   min-width: 0;
   min-height: 0;
-
-  padding: 0;
-
   box-sizing: border-box;
 }
 
@@ -136,9 +114,7 @@
 .my-children-page {
   width: 100%;
   max-width: 100%;
-
   min-width: 0;
-
   box-sizing: border-box;
 }
 
@@ -168,7 +144,6 @@
   width: 100%;
   max-width: 100%;
   min-width: 0;
-
   box-sizing: border-box;
 }
 
@@ -201,7 +176,6 @@
   width: 100%;
   max-width: 100%;
   min-width: 0;
-
   box-sizing: border-box;
 }
 
@@ -242,7 +216,6 @@
   width: 100%;
   max-width: 100%;
   min-width: 0;
-
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -252,17 +225,14 @@
   width: 100%;
   max-width: 100%;
   min-width: 0;
-
   box-sizing: border-box;
 }
 
 .learning-preferences-grid {
   width: 100%;
   min-width: 0;
-
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-
   gap: 20px;
 }
 
@@ -297,7 +267,6 @@
   width: 100%;
   max-width: 100%;
   min-width: 0;
-
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -309,13 +278,11 @@
   width: 100%;
   max-width: 100%;
   min-width: 0;
-
   box-sizing: border-box;
 }
 
 .rewards-topic-list {
   width: 100%;
-
   display: flex;
   flex-direction: column;
   gap: 15px;
@@ -323,7 +290,6 @@
 
 .rewards-lesson-list {
   width: 100%;
-
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -392,7 +358,6 @@
 ======================================== */
 
 @media (max-width: 1100px) and (min-width: 769px) {
-
   .parent-sidebar {
     flex: 0 0 220px;
     width: 220px;
@@ -427,17 +392,13 @@
 ======================================== */
 
 @media (max-width: 768px) {
-
   .parent-dashboard {
     flex-direction: column;
-
     width: 100%;
     height: 100vh;
     height: 100dvh;
-
     background-attachment: scroll;
     background-position: center;
-
     overflow: hidden;
   }
 
@@ -445,10 +406,8 @@
 
   .parent-main-content {
     flex: 1 1 0;
-
     width: 100%;
     height: 0;
-
     min-width: 0;
     min-height: 0;
   }
@@ -457,7 +416,6 @@
 
   .parent-topbar {
     flex: 0 0 70px;
-
     width: 100%;
     height: 70px;
     min-height: 70px;
@@ -467,14 +425,10 @@
 
   .parent-dashboard-scroll {
     flex: 1 1 0;
-
     width: 100%;
     height: 0;
-
     min-height: 0;
-
     padding: 15px 0 25px;
-
     overflow-x: hidden;
     overflow-y: auto;
   }
@@ -484,32 +438,22 @@
   .parent-sidebar {
     display: flex;
     flex-direction: column;
-
     position: fixed;
-
     top: 0;
     left: 0;
-
     width: 280px;
     min-width: 280px;
     max-width: 85vw;
-
     height: 100vh;
     height: 100dvh;
-
     z-index: 51;
-
     transform: translateX(-100%);
     visibility: hidden;
-
     transition:
       transform 0.3s ease,
       visibility 0.3s ease;
-
     background: #fffaf7;
-
     box-shadow: 8px 0 25px rgba(53, 36, 111, 0.12);
-
     overflow-x: hidden;
     overflow-y: auto;
   }
@@ -523,20 +467,14 @@
 
   .sidebar-overlay {
     display: block;
-
     position: fixed;
     inset: 0;
-
     width: 100%;
     height: 100%;
-
     padding: 0;
     border: none;
-
     background: rgba(35, 25, 55, 0.38);
-
     z-index: 50;
-
     cursor: pointer;
   }
 
@@ -591,7 +529,6 @@
   .rewards-lesson-list {
     gap: 10px;
   }
-
 }
 
 /* ========================================
@@ -599,10 +536,8 @@
 ======================================== */
 
 @media (max-width: 480px) {
-
   .parent-topbar {
     flex: 0 0 65px;
-
     height: 65px;
     min-height: 65px;
   }
@@ -632,7 +567,6 @@
   .rewards-content {
     gap: 12px;
   }
-
 }
 
 /* ========================================
@@ -640,7 +574,6 @@
 ======================================== */
 
 @media (max-width: 360px) {
-
   .parent-sidebar {
     width: 260px;
     min-width: 260px;
@@ -653,7 +586,6 @@
   .rewards-page {
     padding: 18px 3%;
   }
-
 }
 
 /* ========================================
@@ -661,7 +593,6 @@
 ======================================== */
 
 @media (prefers-reduced-motion: reduce) {
-
   .parent-dashboard-scroll {
     scroll-behavior: auto;
   }
@@ -669,5 +600,4 @@
   .parent-sidebar {
     transition: none;
   }
-
 }

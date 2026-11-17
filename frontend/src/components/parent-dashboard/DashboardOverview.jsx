@@ -2,13 +2,24 @@
 import { useState } from "react";
 import "../../styles/parent-dashboard/dashboard-overview.css";
 
+import lessonsIcon from "../../assets/lessons-icon.png";
+import rewardsIcon from "../../assets/rewards-icon.png";
+import activityIcon from "../../assets/activity-icon.png";
+import subscriptionIcon from "../../assets/subscription-icon.png";
+
 function DashboardOverview({
   parentName,
   children = [],
   rewardTotals = [],
+  rewardsLoading = false,
+  rewardsError = "",
   recentActivities = [],
   activitiesLoading = false,
   activitiesError = "",
+  dashboardStats = null,
+  dashboardStatsLoading = false,
+  subscriptionData = null,
+  subscriptionLoading = false,
   loading,
   error,
   onAddChild,
@@ -16,10 +27,7 @@ function DashboardOverview({
 }) {
   const [showChildLimitPopup, setShowChildLimitPopup] = useState(false);
 
-  // ==========================================
   // ADD CHILD VALIDATION
-  // ==========================================
-
   function handleAddChildClick() {
     if (children.length >= 2) {
       setShowChildLimitPopup(true);
@@ -29,10 +37,7 @@ function DashboardOverview({
     onAddChild?.();
   }
 
-  // ==========================================
   // CALCULATE CHILD AGE
-  // ==========================================
-
   function calculateAge(dateOfBirth) {
     if (!dateOfBirth) return "";
 
@@ -44,7 +49,8 @@ function DashboardOverview({
 
     if (
       monthDifference < 0 ||
-      (monthDifference === 0 && today.getDate() < birthDate.getDate())
+      (monthDifference === 0 &&
+        today.getDate() < birthDate.getDate())
     ) {
       age--;
     }
@@ -52,10 +58,7 @@ function DashboardOverview({
     return age >= 0 ? age : "";
   }
 
-  // ==========================================
   // GET CHILD IMAGE
-  // ==========================================
-
   function getChildImage(child) {
     return (
       child.profile_image ||
@@ -66,32 +69,75 @@ function DashboardOverview({
     );
   }
 
-  // ==========================================
   // GET CHILD NAME
-  // ==========================================
-
   function getChildName(child) {
     return child.child_name || child.name || "Child";
   }
 
-  // ==========================================
   // GET CHILD REWARD STARS
-  // ==========================================
-
   function getChildStars(child) {
     const childId = child.child_id || child.id;
 
     const reward = rewardTotals.find(
-      (item) => Number(item.child_id) === Number(childId)
+      (item) =>
+        Number(item.child_id) === Number(childId)
     );
 
     return Number(reward?.total_stars || 0);
   }
 
-  // ==========================================
-  // FORMAT ACTIVITY DATE
-  // ==========================================
+  // TOTAL STARS
+  const parentChildIds = new Set(
+    children.map((child) =>
+      Number(child.child_id || child.id)
+    )
+  );
 
+  const totalStars = rewardTotals
+    .filter((reward) =>
+      parentChildIds.has(Number(reward.child_id))
+    )
+    .reduce(
+      (total, reward) =>
+        total + Number(reward.total_stars || 0),
+      0
+    );
+
+  // DASHBOARD STATISTICS
+  const totalCompletedLessons = Number(
+    dashboardStats?.completed_lessons || 0
+  );
+
+  const totalActivityAttempts = Number(
+    dashboardStats?.total_activity_attempts || 0
+  );
+
+  // SUBSCRIPTION DETAILS
+  const subscription =
+    subscriptionData?.subscription ||
+    subscriptionData ||
+    null;
+
+  const subscriptionPlan =
+    subscription?.plan?.plan_name ||
+    subscription?.plan_name ||
+    subscription?.plan?.name ||
+    "No Active Plan";
+
+  const subscriptionStatus =
+    subscription?.status || "Not Available";
+
+  const remainingCredits =
+    subscription?.credits?.remaining_credits ??
+    subscription?.remaining_credits ??
+    0;
+
+  const totalCredits =
+    subscription?.credits?.total_credits ??
+    subscription?.total_credits ??
+    0;
+
+  // FORMAT ACTIVITY DATE
   function formatActivityDate(dateValue) {
     if (!dateValue) return "";
 
@@ -108,10 +154,7 @@ function DashboardOverview({
     });
   }
 
-  // ==========================================
   // GET ACTIVITY CHILD NAME
-  // ==========================================
-
   function getActivityChildName(activity) {
     return (
       activity.child_name ||
@@ -124,40 +167,58 @@ function DashboardOverview({
     );
   }
 
-  // ==========================================
-  // GET RECENT ACTIVITIES
-  // ==========================================
-
+  // NORMALIZE RECENT ACTIVITIES
   const activities = Array.isArray(recentActivities)
     ? recentActivities
     : Array.isArray(recentActivities?.activities)
-      ? recentActivities.activities
-      : Array.isArray(recentActivities?.data)
-        ? recentActivities.data
-        : [];
+    ? recentActivities.activities
+    : Array.isArray(recentActivities?.data)
+    ? recentActivities.data
+    : [];
 
-  // ==========================================
-  // COUNT UNIQUE COMPLETED LESSONS
-  // ==========================================
+  // ACTIVITY ICON
+  function getActivityIcon(activity) {
+    const title = (
+      activity.lesson_title || ""
+    ).toLowerCase();
 
-  const uniqueCompletedLessons = new Set(
-    activities
-      .filter((activity) => activity.lesson_id != null)
-      .map(
-        (activity) =>
-          `${activity.child_id}-${activity.lesson_id}`
-      )
-  );
+    if (
+      title.includes("brush") ||
+      title.includes("tooth")
+    ) {
+      return "🪥";
+    }
 
-  // ==========================================
-  // COUNT ACTIVITY ATTEMPTS
-  // ==========================================
+    if (
+      title.includes("hair") ||
+      title.includes("comb")
+    ) {
+      return "💇";
+    }
 
-  const activeActivityCount = activities.length;
+    if (
+      title.includes("wash") ||
+      title.includes("bath")
+    ) {
+      return "🧼";
+    }
 
-  // ==========================================
-  // RENDER DASHBOARD
-  // ==========================================
+    if (
+      title.includes("communication") ||
+      title.includes("talk")
+    ) {
+      return "💬";
+    }
+
+    if (
+      title.includes("food") ||
+      title.includes("eat")
+    ) {
+      return "🍎";
+    }
+
+    return "⭐";
+  }
 
   return (
     <div className="dashboard-content">
@@ -165,57 +226,145 @@ function DashboardOverview({
       {/* WELCOME SECTION */}
 
       <section className="dashboard-welcome">
-        <h1>
-          Welcome Back, {parentName}! <span>👋</span>
-        </h1>
 
-        <p>
-          Here's an overview of your child's learning journey.
-        </p>
+        <div className="welcome-text">
+
+
+          <h1>
+            Welcome Back, {parentName}! <span>👋</span>
+          </h1>
+
+          <p>
+            Here's an overview of your child's learning journey.
+          </p>
+
+        </div>
+
+
       </section>
 
       {/* DASHBOARD STATISTICS */}
 
       <section className="dashboard-stats">
 
-        <div className="stat-card stat-green">
-          <p>
-            Lessons
-            <br />
-            Completed
-          </p>
+        {/* COMPLETED LESSONS */}
 
-          <h2>
-            {activitiesLoading ? "..." : uniqueCompletedLessons.size}
-          </h2>
+        <div className="stat-card stat-green">
+
+          <div className="stat-icon">
+            <img
+              src={lessonsIcon}
+              alt="Lessons"
+            />
+          </div>
+
+          <div className="stat-info">
+
+            <p>Lessons Completed</p>
+
+            <h2>
+              {dashboardStatsLoading
+                ? "..."
+                : totalCompletedLessons}
+            </h2>
+
+          </div>
+
+          <span className="stat-decoration">
+            ✦
+          </span>
+
         </div>
+
+        {/* CHILDREN REWARDS */}
 
         <div className="stat-card stat-peach">
-          <p>
-            Children's
-            <br />
-            Rewards
-          </p>
 
-          <h2>{children.length}</h2>
+          <div className="stat-icon">
+            <img
+              src={rewardsIcon}
+              alt="Rewards"
+            />
+          </div>
+
+          <div className="stat-info">
+
+            <p>Children's Rewards</p>
+
+            <h2>
+              {rewardsLoading ? "..." : totalStars}
+            </h2>
+
+          </div>
+
+          <span className="stat-decoration">
+            ✦
+          </span>
+
         </div>
+
+        {/* ACTIVITY ATTEMPTS */}
 
         <div className="stat-card stat-purple">
-          <p>
-            Activity
-            <br />
-            Attempts
-          </p>
 
-          <h2>
-            {activitiesLoading ? "..." : activeActivityCount}
-          </h2>
+          <div className="stat-icon">
+            <img
+              src={activityIcon}
+              alt="Activity attempts"
+            />
+          </div>
+
+          <div className="stat-info">
+
+            <p>Activity Attempts</p>
+
+            <h2>
+              {dashboardStatsLoading
+                ? "..."
+                : totalActivityAttempts}
+            </h2>
+
+          </div>
+
+          <span className="stat-decoration">
+            ✦
+          </span>
+
         </div>
 
-        <div className="stat-card stat-yellow">
-          <p>👑 Subscription</p>
+        {/* SUBSCRIPTION */}
 
-          <h2>Not Available</h2>
+        <div className="stat-card stat-yellow">
+
+          <div className="stat-icon">
+            <img
+              src={subscriptionIcon}
+              alt="Subscription"
+            />
+          </div>
+
+          <div className="stat-info subscription-info">
+
+            <p>Subscription</p>
+
+            {subscriptionLoading ? (
+              <h2>Loading...</h2>
+            ) : (
+              <>
+                <h2>{subscriptionPlan}</h2>
+
+                <span className="subscription-status">
+                  {subscriptionStatus}
+                </span>
+
+                <p className="subscription-credits">
+                  Credits: {remainingCredits} / {totalCredits}
+                </p>
+              </>
+            )}
+
+          </div>
+
         </div>
 
       </section>
@@ -226,18 +375,26 @@ function DashboardOverview({
 
         {/* MY CHILDREN */}
 
-        <div className="dashboard-panel">
+        <div className="dashboard-panel children-panel">
 
           <div className="panel-heading">
-            <h2>My Children</h2>
+
+            <h2>
+              <span className="panel-heading-icon">
+                👨‍👩‍👧
+              </span>
+
+              My Children
+            </h2>
 
             <button
               type="button"
               className="add-child-btn"
               onClick={handleAddChildClick}
             >
-              + Add Child
+              <span>+</span> Add Child
             </button>
+
           </div>
 
           {loading ? (
@@ -248,7 +405,10 @@ function DashboardOverview({
 
           ) : error ? (
 
-            <p className="children-error-message" role="alert">
+            <p
+              className="children-error-message"
+              role="alert"
+            >
               {error}
             </p>
 
@@ -256,7 +416,9 @@ function DashboardOverview({
 
             <div className="children-empty-state">
 
-              <div className="children-empty-icon"></div>
+              <div className="children-empty-icon">
+                👶
+              </div>
 
               <h3>No Children Added Yet</h3>
 
@@ -283,6 +445,9 @@ function DashboardOverview({
                 const childName = getChildName(child);
                 const childImage = getChildImage(child);
                 const childStars = getChildStars(child);
+                const childAge = calculateAge(
+                  child.date_of_birth
+                );
 
                 return (
 
@@ -299,9 +464,12 @@ function DashboardOverview({
                           src={childImage}
                           alt={`${childName}'s profile`}
                           onError={(event) => {
-                            event.currentTarget.style.display = "none";
+                            event.currentTarget.style.display =
+                              "none";
 
-                            if (event.currentTarget.nextElementSibling) {
+                            if (
+                              event.currentTarget.nextElementSibling
+                            ) {
                               event.currentTarget.nextElementSibling.style.display =
                                 "flex";
                             }
@@ -321,27 +489,31 @@ function DashboardOverview({
 
                     </div>
 
-                    <h3>{childName}</h3>
+                    <div className="child-main-info">
 
-                    <p className="child-age">
-                      {calculateAge(child.date_of_birth) !== ""
-                        ? `${calculateAge(child.date_of_birth)} years old`
-                        : ""}
-                    </p>
+                      <h3>{childName}</h3>
 
-                    <div className="child-info">
-
-                      <p>
-                        💬 {child.communication_method || "Not selected"}
+                      <p className="child-age">
+                        {childAge !== ""
+                          ? `${childAge} years old`
+                          : "Age not available"}
                       </p>
 
-                      <p>
-                        📚 {child.preferred_learning_mode || "Video Learning"}
-                      </p>
+                      <div className="child-info">
 
-                      <p className="child-reward-stars">
-                        ⭐ {childStars} Stars Earned
-                      </p>
+                        <span>
+                          🖼️ Image
+                        </span>
+
+                        <span>
+                          ▶️ Video
+                        </span>
+
+                        <span className="child-reward-stars">
+                          ⭐ {childStars} Stars Earned
+                        </span>
+
+                      </div>
 
                     </div>
 
@@ -363,7 +535,13 @@ function DashboardOverview({
 
           <div className="panel-heading">
 
-            <h2>Recent Activity</h2>
+            <h2>
+              <span className="panel-heading-icon">
+                🕒
+              </span>
+
+              Recent Activity
+            </h2>
 
             <button
               type="button"
@@ -385,7 +563,10 @@ function DashboardOverview({
 
             ) : activitiesError ? (
 
-              <p className="children-error-message" role="alert">
+              <p
+                className="children-error-message"
+                role="alert"
+              >
                 {activitiesError}
               </p>
 
@@ -400,7 +581,9 @@ function DashboardOverview({
               activities.map((activity, index) => {
 
                 const correctAnswers = Number(
-                  activity.correct_answers ?? activity.score ?? 0
+                  activity.correct_answers ??
+                  activity.score ??
+                  0
                 );
 
                 const totalQuestions = Number(
@@ -408,7 +591,8 @@ function DashboardOverview({
                 );
 
                 const activityDate = formatActivityDate(
-                  activity.completed_at || activity.response_time
+                  activity.completed_at ||
+                  activity.response_time
                 );
 
                 return (
@@ -422,7 +606,7 @@ function DashboardOverview({
                   >
 
                     <div className="activity-icon">
-                      ⭐
+                      {getActivityIcon(activity)}
                     </div>
 
                     <div className="activity-details">
@@ -432,7 +616,8 @@ function DashboardOverview({
                       </h3>
 
                       <p>
-                        {activity.lesson_title || "Learning Activity"}
+                        {activity.lesson_title ||
+                          "Learning Activity"}
                       </p>
 
                       <span className="activity-date">
@@ -476,10 +661,12 @@ function DashboardOverview({
       {/* CHILD LIMIT POPUP */}
 
       {showChildLimitPopup && (
+
         <div
           className="child-limit-overlay"
           onClick={() => setShowChildLimitPopup(false)}
         >
+
           <div
             className="child-limit-modal"
             role="alertdialog"
@@ -511,7 +698,9 @@ function DashboardOverview({
             </button>
 
           </div>
+
         </div>
+
       )}
 
     </div>

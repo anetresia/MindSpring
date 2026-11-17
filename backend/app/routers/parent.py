@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import func
 
 from app.database import get_db
 from app.models.user import User
@@ -76,6 +77,75 @@ def get_children(
         db=db,
         parent=current_parent,
     )
+
+
+# =========================================================
+# PARENT DASHBOARD STATISTICS API
+# =========================================================
+
+@router.get("/dashboard-stats")
+def get_parent_dashboard_stats(
+    db: Session = Depends(get_db),
+    current_parent: User = Depends(get_current_parent),
+):
+    try:
+        parent_id = current_parent.user_id
+
+        # Total children belonging to this parent
+        total_children = (
+            db.query(func.count(Child.child_id))
+            .filter(
+                Child.parent_id == parent_id
+            )
+            .scalar()
+        ) or 0
+
+        # Total activity attempts of this parent's children
+        total_activity_attempts = (
+            db.query(func.count(LessonAttempt.attempt_id))
+            .join(
+                Child,
+                LessonAttempt.child_id == Child.child_id,
+            )
+            .filter(
+                Child.parent_id == parent_id
+            )
+            .scalar()
+        ) or 0
+
+        # Count unique child + lesson combinations
+        completed_lessons = (
+            db.query(
+                LessonAttempt.child_id,
+                LessonAttempt.lesson_id,
+            )
+            .join(
+                Child,
+                LessonAttempt.child_id == Child.child_id,
+            )
+            .filter(
+                Child.parent_id == parent_id
+            )
+            .distinct()
+            .count()
+        )
+
+        return {
+            "total_children": total_children,
+            "completed_lessons": completed_lessons,
+            "total_activity_attempts": total_activity_attempts,
+        }
+
+    except SQLAlchemyError:
+        logger.exception(
+            "Unable to load dashboard statistics for parent_id=%s",
+            current_parent.user_id,
+        )
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unable to load dashboard statistics.",
+        )
 
 
 # =========================================================

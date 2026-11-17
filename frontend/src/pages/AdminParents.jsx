@@ -4,10 +4,10 @@ import { useEffect, useState } from "react";
 import AdminSidebar from "../components/admin/AdminSidebar";
 import AdminHeader from "../components/admin/AdminHeader";
 
-import { getAdminParents, getAdminParent, updateAdminParent } from "../api";
+import { getAdminParents, getAdminParent } from "../api";
 
 import "../styles/admin/admin-dashboard.css";
-import "../styles/admin/admin-management.css";
+import "../styles/admin/admin-parents.css";
 
 function AdminParents() {
   const [parents, setParents] = useState([]);
@@ -17,14 +17,6 @@ function AdminParents() {
 
   const [selectedParent, setSelectedParent] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const [editMode, setEditMode] = useState(false);
-  const [saving, setSaving] = useState(false);
-
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-  });
 
   // ========================================
   // LOAD PARENTS
@@ -69,71 +61,11 @@ function AdminParents() {
       setError("");
 
       const response = await getAdminParent(parentId);
-      const parent = response.parent;
 
-      setSelectedParent(parent);
-
-      setFormData({
-        name: parent.name || "",
-        email: parent.email || "",
-        phone: parent.phone || "",
-      });
-
-      setEditMode(false);
+      setSelectedParent(response.parent);
       setShowModal(true);
     } catch (err) {
       setError(err.message || "Unable to load parent details.");
-    }
-  }
-
-  // ========================================
-  // FORM INPUT
-  // ========================================
-
-  function handleInputChange(event) {
-    const { name, value } = event.target;
-
-    setFormData((previous) => ({
-      ...previous,
-      [name]: value,
-    }));
-  }
-
-  // ========================================
-  // UPDATE PARENT
-  // ========================================
-
-  async function handleUpdateParent(event) {
-    event.preventDefault();
-
-    if (!selectedParent) return;
-
-    try {
-      setSaving(true);
-      setError("");
-
-      const response = await updateAdminParent(
-        selectedParent.parent_id,
-        {
-          name: formData.name.trim(),
-          email: formData.email.trim(),
-          phone: formData.phone.trim() || null,
-        }
-      );
-
-      setSelectedParent((previous) => ({
-        ...previous,
-        ...response.parent,
-      }));
-
-      setEditMode(false);
-
-      await loadParents(search);
-
-    } catch (err) {
-      setError(err.message || "Unable to update parent.");
-    } finally {
-      setSaving(false);
     }
   }
 
@@ -144,7 +76,6 @@ function AdminParents() {
   function closeModal() {
     setShowModal(false);
     setSelectedParent(null);
-    setEditMode(false);
   }
 
   // ========================================
@@ -156,6 +87,10 @@ function AdminParents() {
 
     return new Date(dateValue).toLocaleDateString();
   }
+
+  // ========================================
+  // RENDER
+  // ========================================
 
   return (
     <div className="admin-layout">
@@ -171,8 +106,9 @@ function AdminParents() {
           <section className="management-welcome">
             <div>
               <h2>Parent Management</h2>
+
               <p>
-                View and manage registered parents and their
+                View registered parents and their
                 children's information.
               </p>
             </div>
@@ -188,8 +124,11 @@ function AdminParents() {
 
             <div className="admin-stat-card stat-card-purple">
               <div className="admin-stat-icon">♙</div>
+
               <p>Total Parents</p>
+
               <h3>{parents.length}</h3>
+
               <span>Registered parents</span>
             </div>
 
@@ -202,6 +141,7 @@ function AdminParents() {
             <div className="management-list-heading">
               <div>
                 <h2>Registered Parents</h2>
+
                 <p>
                   View parent information and associated children.
                 </p>
@@ -247,13 +187,19 @@ function AdminParents() {
 
                   {loading ? (
                     <tr>
-                      <td colSpan="6" className="management-message">
+                      <td
+                        colSpan="6"
+                        className="management-message"
+                      >
                         Loading parents...
                       </td>
                     </tr>
                   ) : parents.length === 0 ? (
                     <tr>
-                      <td colSpan="6" className="management-message">
+                      <td
+                        colSpan="6"
+                        className="management-message"
+                      >
                         No parents found.
                       </td>
                     </tr>
@@ -282,7 +228,9 @@ function AdminParents() {
                           </span>
                         </td>
 
-                        <td>{formatDate(parent.created_at)}</td>
+                        <td>
+                          {formatDate(parent.created_at)}
+                        </td>
 
                         <td>
                           <button
@@ -318,7 +266,7 @@ function AdminParents() {
       </main>
 
       {/* ========================================
-          PARENT DETAILS MODAL
+          PARENT DETAILS MODAL - VIEW ONLY
       ======================================== */}
 
       {showModal && selectedParent && (
@@ -331,10 +279,15 @@ function AdminParents() {
             onClick={(event) => event.stopPropagation()}
           >
 
+            {/* MODAL HEADER */}
+
             <div className="management-modal-header">
               <div>
                 <h2>Parent Details</h2>
-                <p>View and update parent information.</p>
+
+                <p>
+                  View parent information and registered children.
+                </p>
               </div>
 
               <button
@@ -352,149 +305,113 @@ function AdminParents() {
               </div>
             )}
 
-            {/* PARENT FORM */}
+            {/* PARENT INFORMATION - READ ONLY */}
 
-            <form onSubmit={handleUpdateParent}>
+            <div className="management-form-grid">
 
-              <div className="management-form-grid">
+              <div className="management-form-group">
+                <label>Parent Name</label>
 
-                <div className="management-form-group">
-                  <label>Parent Name</label>
-
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    disabled={!editMode}
-                    required
-                  />
-                </div>
-
-                <div className="management-form-group">
-                  <label>Email Address</label>
-
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    disabled={!editMode}
-                    required
-                  />
-                </div>
-
-                <div className="management-form-group">
-                  <label>Phone Number</label>
-
-                  <input
-                    type="text"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    disabled={!editMode}
-                  />
-                </div>
-
-                <div className="management-form-group">
-                  <label>Registered Date</label>
-
-                  <input
-                    type="text"
-                    value={formatDate(selectedParent.created_at)}
-                    disabled
-                  />
-                </div>
-
+                <input
+                  type="text"
+                  value={selectedParent.name || "—"}
+                  disabled
+                  readOnly
+                />
               </div>
 
-              {/* CHILDREN */}
+              <div className="management-form-group">
+                <label>Email Address</label>
 
-              <div className="management-children-section">
+                <input
+                  type="email"
+                  value={selectedParent.email || "—"}
+                  disabled
+                  readOnly
+                />
+              </div>
 
-                <div className="management-children-heading">
-                  <h3>Associated Children</h3>
+              <div className="management-form-group">
+                <label>Phone Number</label>
 
-                  <span>
-                    {selectedParent.children_count ?? 0}
-                  </span>
-                </div>
+                <input
+                  type="text"
+                  value={selectedParent.phone || "—"}
+                  disabled
+                  readOnly
+                />
+              </div>
 
-                {selectedParent.children?.length > 0 ? (
-                  <div className="management-children-list">
+              <div className="management-form-group">
+                <label>Registered Date</label>
 
-                    {selectedParent.children.map((child) => (
-                      <div
-                        className="management-child-item"
-                        key={child.child_id}
-                      >
-                        <div className="management-child-avatar">
-                          ♧
-                        </div>
+                <input
+                  type="text"
+                  value={formatDate(selectedParent.created_at)}
+                  disabled
+                  readOnly
+                />
+              </div>
 
-                        <div>
-                          <strong>{child.child_name}</strong>
+            </div>
 
-                          <p>
-                            Date of Birth:{" "}
-                            {formatDate(child.date_of_birth)}
-                          </p>
-                        </div>
+            {/* ASSOCIATED CHILDREN */}
+
+            <div className="management-children-section">
+
+              <div className="management-children-heading">
+                <h3>Associated Children</h3>
+
+                <span>
+                  {selectedParent.children_count ?? 0}
+                </span>
+              </div>
+
+              {selectedParent.children?.length > 0 ? (
+                <div className="management-children-list">
+
+                  {selectedParent.children.map((child) => (
+                    <div
+                      className="management-child-item"
+                      key={child.child_id}
+                    >
+                      <div className="management-child-avatar">
+                        ♧
                       </div>
-                    ))}
 
-                  </div>
-                ) : (
-                  <p className="management-no-children">
-                    No children registered under this parent.
-                  </p>
-                )}
+                      <div>
+                        <strong>{child.child_name}</strong>
 
-              </div>
+                        <p>
+                          Date of Birth:{" "}
+                          {formatDate(child.date_of_birth)}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
 
-              {/* MODAL ACTIONS */}
+                </div>
+              ) : (
+                <p className="management-no-children">
+                  No children registered under this parent.
+                </p>
+              )}
 
-              <div className="management-modal-actions">
+            </div>
 
-                {editMode ? (
-                  <>
-                    <button
-                      type="button"
-                      className="management-cancel-btn"
-                      onClick={() => {
-                        setEditMode(false);
+            {/* MODAL ACTION */}
 
-                        setFormData({
-                          name: selectedParent.name || "",
-                          email: selectedParent.email || "",
-                          phone: selectedParent.phone || "",
-                        });
-                      }}
-                    >
-                      Cancel
-                    </button>
+            <div className="management-modal-actions">
 
-                    <button
-                      type="submit"
-                      className="management-save-btn"
-                      disabled={saving}
-                    >
-                      {saving ? "Saving..." : "Save Changes"}
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    type="button"
-                    className="management-save-btn"
-                    onClick={() => setEditMode(true)}
-                  >
-                    Edit Parent
-                  </button>
-                )}
+              <button
+                type="button"
+                className="management-cancel-btn"
+                onClick={closeModal}
+              >
+                Close
+              </button>
 
-              </div>
-
-            </form>
+            </div>
 
           </div>
         </div>

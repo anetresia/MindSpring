@@ -629,6 +629,40 @@ export async function checkChildAnswers(
 }
 
 // ========================================
+// CHILD - COMPLETE VOICE QUIZ
+// ========================================
+
+export async function checkChildVoiceCompletion(
+  childId,
+  lessonId,
+  answers,
+  idempotencyKey
+) {
+  if (!childId || !lessonId) {
+    throw new Error("Child ID and Lesson ID are required.");
+  }
+
+  if (!Array.isArray(answers) || answers.length === 0) {
+    throw new Error("Please answer all questions using your voice.");
+  }
+
+  if (!idempotencyKey?.trim()) {
+    throw new Error("Idempotency key is required.");
+  }
+
+  return apiRequest(
+    `/child/lessons/${encodeURIComponent(childId)}/${encodeURIComponent(lessonId)}/voice-complete`,
+    {
+      method: "POST",
+      headers: {
+        "Idempotency-Key": idempotencyKey,
+      },
+      body: JSON.stringify(answers),
+    }
+  );
+}
+
+// ========================================
 // CHILD - VOICE ANSWER CHECKING
 // ========================================
 
@@ -689,6 +723,16 @@ export async function getRecentActivities() {
 }
 
 // ========================================
+// PARENT - GET DASHBOARD STATISTICS
+// ========================================
+
+export async function getParentDashboardStats() {
+  return apiRequest("/parent/dashboard-stats", {
+    method: "GET",
+  });
+}
+
+// ========================================
 // PARENT - GET SELECTED CHILD'S REWARDS
 // ========================================
 
@@ -728,16 +772,6 @@ export async function getAdminParent(parentId) {
   );
 }
 
-export async function updateAdminParent(parentId, parentData) {
-  return apiRequest(
-    `/admin/management/parents/${encodeURIComponent(parentId)}`,
-    {
-      method: "PUT",
-      body: JSON.stringify(parentData),
-    }
-  );
-}
-
 // ========================================
 // ADMIN - CHILD MANAGEMENT
 // ========================================
@@ -756,16 +790,6 @@ export async function getAdminChild(childId) {
   return apiRequest(
     `/admin/management/children/${encodeURIComponent(childId)}`,
     { method: "GET" }
-  );
-}
-
-export async function updateAdminChild(childId, childData) {
-  return apiRequest(
-    `/admin/management/children/${encodeURIComponent(childId)}`,
-    {
-      method: "PUT",
-      body: JSON.stringify(childData),
-    }
   );
 }
 

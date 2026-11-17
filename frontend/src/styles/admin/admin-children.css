@@ -1,0 +1,461 @@
+
+/* ========================================
+   CHILD MANAGEMENT - PAGE INTRO
+======================================== */
+
+.management-welcome {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  padding: 25px 28px;
+  border-radius: 16px;
+  background: linear-gradient(120deg, #eee8ff, #f9edff);
+}
+
+.management-welcome h1 {
+  color: #35246f;
+  font-size: 25px;
+  font-weight: 900;
+  margin: 0 0 8px;
+}
+
+.management-welcome p {
+  color: #81758f;
+  font-size: 13px;
+  margin: 0;
+}
+
+/* ========================================
+   STATISTICS
+======================================== */
+
+.management-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 250px));
+  gap: 18px;
+  margin-bottom: 25px;
+}
+
+.management-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 20px;
+  background: #fff;
+  border: 1px solid #eee8f4;
+  border-radius: 14px;
+}
+
+.management-stat-icon {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: #eee8ff;
+  color: #6845b5;
+  font-size: 25px;
+}
+
+.management-stat-card p {
+  color: #958ba4;
+  font-size: 13px;
+  margin: 0 0 5px;
+}
+
+.management-stat-card h2 {
+  color: #35246f;
+  font-size: 25px;
+  margin: 0;
+  font-weight: 900;
+}
+
+/* ========================================
+   CHILD LIST SECTION
+======================================== */
+
+.management-section {
+  padding: 23px;
+  background: #fff;
+  border: 1px solid #eee8f4;
+  border-radius: 16px;
+}
+
+.management-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 22px;
+}
+
+.management-section-header h2 {
+  color: #35246f;
+  font-size: 19px;
+  font-weight: 900;
+  margin: 0 0 7px;
+}
+
+.management-section-header p {
+  color: #958ba4;
+  font-size: 13px;
+  margin: 0;
+}
+
+/* ========================================
+   SEARCH
+======================================== */
+
+.management-search {
+  width: 280px;
+  height: 43px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 13px;
+  border: 1px solid #eee8f4;
+  border-radius: 9px;
+  background: #fcfbfd;
+}
+
+.management-search span {
+  color: #8a7ca1;
+  font-size: 22px;
+}
+
+.management-search input {
+  width: 100%;
+  height: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #35246f;
+  font-family: inherit;
+  font-size: 12px;
+}
+
+/* ========================================
+   TABLE
+======================================== */
+
+.management-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.management-table {
+  width: 100%;
+  min-width: 850px;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.management-table th {
+  padding: 14px 12px;
+  background: #f8f5fc;
+  color: #80748f;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.management-table td {
+  padding: 15px 12px;
+  border-bottom: 1px solid #f1edf4;
+  color: #716681;
+  font-size: 12px;
+}
+
+.management-table tbody tr:hover {
+  background: #fcfaff;
+}
+
+/* ========================================
+   CHILD NAME AND AVATAR
+======================================== */
+
+.management-user-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.management-user-cell strong {
+  color: #35246f;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.management-avatar,
+.management-large-avatar {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #eee8ff;
+  color: #6845b5;
+  font-weight: 900;
+}
+
+.management-avatar {
+  width: 35px;
+  height: 35px;
+  font-size: 14px;
+}
+
+/* ========================================
+   ACTION BUTTON
+======================================== */
+
+.management-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.management-view-btn {
+  padding: 8px 13px;
+  border: none;
+  border-radius: 8px;
+  background: #eee8ff;
+  color: #6845b5;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.management-view-btn:hover {
+  background: #dfd3ff;
+}
+
+/* ========================================
+   EMPTY / LOADING / FOOTER
+======================================== */
+
+.management-empty {
+  padding: 35px !important;
+  text-align: center;
+  color: #958ba4 !important;
+}
+
+.management-table-footer {
+  padding-top: 16px;
+  color: #958ba4;
+  font-size: 12px;
+}
+
+.management-error {
+  margin-bottom: 15px;
+  padding: 12px 14px;
+  border-radius: 9px;
+  background: #fff0f0;
+  color: #bd4545;
+  font-size: 13px;
+}
+
+/* ========================================
+   DETAILS MODAL
+======================================== */
+
+.management-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+  background: rgba(35, 24, 57, 0.5);
+}
+
+.management-modal {
+  width: 100%;
+  max-width: 650px;
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: 17px;
+  background: white;
+  box-shadow: 0 15px 50px rgba(40, 20, 70, 0.15);
+}
+
+.management-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 22px 25px;
+  border-bottom: 1px solid #eee8f4;
+}
+
+.management-modal-header h2 {
+  margin: 0 0 6px;
+  color: #35246f;
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.management-modal-header p {
+  margin: 0;
+  color: #958ba4;
+  font-size: 12px;
+}
+
+.management-close-btn {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 9px;
+  background: #f5f0ff;
+  color: #6845b5;
+  font-size: 23px;
+  cursor: pointer;
+}
+
+/* ========================================
+   DETAILS CONTENT
+======================================== */
+
+.management-details {
+  padding: 23px 25px;
+}
+
+.management-detail-profile {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 25px;
+}
+
+.management-large-avatar {
+  width: 55px;
+  height: 55px;
+  font-size: 22px;
+}
+
+.management-detail-profile h3 {
+  color: #35246f;
+  font-size: 18px;
+  margin: 0 0 5px;
+}
+
+.management-detail-profile p {
+  color: #958ba4;
+  font-size: 12px;
+  margin: 0;
+}
+
+.management-subheading {
+  color: #35246f;
+  font-size: 14px;
+  font-weight: 900;
+  margin: 22px 0 15px;
+}
+
+.management-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.management-detail-grid label {
+  display: block;
+  color: #958ba4;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.management-detail-grid p {
+  color: #39344e;
+  font-size: 13px;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+/* ========================================
+   MODAL ACTIONS
+======================================== */
+
+.management-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 25px;
+}
+
+.management-cancel-btn {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 9px;
+  background: #f2eef7;
+  color: #746b85;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.management-cancel-btn:hover {
+  background: #e9e2f1;
+}
+
+/* ========================================
+   RESPONSIVE
+======================================== */
+
+@media (max-width: 900px) {
+  .management-section {
+    padding: 18px;
+  }
+}
+
+@media (max-width: 700px) {
+  .management-section-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .management-search {
+    width: 100%;
+  }
+
+  .management-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .management-modal-overlay {
+    padding: 10px;
+  }
+
+  .management-modal-header,
+  .management-details {
+    padding: 17px;
+  }
+}
+
+@media (max-width: 500px) {
+  .management-welcome {
+    padding: 20px;
+  }
+
+  .management-welcome h1 {
+    font-size: 21px;
+  }
+
+  .management-stat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .management-modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .management-modal-actions button {
+    width: 100%;
+  }
+}

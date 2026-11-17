@@ -1,9 +1,7 @@
 
-from datetime import date
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel, Field
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
@@ -21,54 +19,6 @@ router = APIRouter(
     prefix="/admin/management",
     tags=["Admin - Parent & Child Management"],
 )
-
-
-# ==========================================
-# REQUEST SCHEMAS
-# ==========================================
-
-class ParentUpdate(BaseModel):
-    name: Optional[str] = Field(
-        default=None,
-        min_length=1,
-        max_length=100,
-    )
-
-    email: Optional[str] = Field(
-        default=None,
-        min_length=1,
-        max_length=150,
-    )
-
-    phone: Optional[str] = Field(
-        default=None,
-        max_length=20,
-    )
-
-
-class ChildUpdate(BaseModel):
-    child_name: Optional[str] = Field(
-        default=None,
-        min_length=1,
-        max_length=100,
-    )
-
-    date_of_birth: Optional[date] = None
-
-    communication_method: Optional[str] = Field(
-        default=None,
-        max_length=100,
-    )
-
-    preferred_learning_mode: Optional[str] = Field(
-        default=None,
-        max_length=100,
-    )
-
-    daily_learning_limit: Optional[int] = Field(
-        default=None,
-        gt=0,
-    )
 
 
 # ==========================================
@@ -278,83 +228,6 @@ def get_parent_details(
     }
 
 
-# UPDATE PARENT DETAILS
-
-@router.put("/parents/{parent_id}")
-def update_parent(
-    parent_id: int,
-    payload: ParentUpdate,
-    db: Session = Depends(get_db),
-    admin: User = Depends(get_current_admin),
-):
-
-    parent = get_parent_or_404(
-        db,
-        parent_id,
-    )
-
-    update_data = payload.dict(
-        exclude_unset=True
-    )
-
-    if not update_data:
-
-        raise HTTPException(
-            status_code=400,
-            detail="No fields provided for update",
-        )
-
-    for field in ("name", "email"):
-
-        if field in update_data:
-
-            value = update_data[field]
-
-            if value is None or not value.strip():
-
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"{field} cannot be empty",
-                )
-
-            update_data[field] = value.strip()
-
-    if "email" in update_data:
-
-        existing_user = (
-            db.query(User)
-            .filter(
-                User.email == update_data["email"],
-                User.user_id != parent_id,
-            )
-            .first()
-        )
-
-        if existing_user:
-
-            raise HTTPException(
-                status_code=409,
-                detail="Email address is already registered",
-            )
-
-    for field, value in update_data.items():
-
-        setattr(
-            parent,
-            field,
-            value,
-        )
-
-    db.commit()
-    db.refresh(parent)
-
-    return {
-        "success": True,
-        "message": "Parent details updated successfully",
-        "parent": parent_data(parent),
-    }
-
-
 # ==========================================
 # CHILD MANAGEMENT
 # ==========================================
@@ -426,85 +299,5 @@ def get_child_details(
 
     return {
         "success": True,
-        "child": child_data(child, parent),
-    }
-
-
-# UPDATE CHILD DETAILS
-
-@router.put("/children/{child_id}")
-def update_child(
-    child_id: int,
-    payload: ChildUpdate,
-    db: Session = Depends(get_db),
-    admin: User = Depends(get_current_admin),
-):
-
-    child = get_child_or_404(
-        db,
-        child_id,
-    )
-
-    update_data = payload.dict(
-        exclude_unset=True
-    )
-
-    if not update_data:
-
-        raise HTTPException(
-            status_code=400,
-            detail="No fields provided for update",
-        )
-
-    if "child_name" in update_data:
-
-        value = update_data["child_name"]
-
-        if value is None or not value.strip():
-
-            raise HTTPException(
-                status_code=400,
-                detail="Child name cannot be empty",
-            )
-
-        update_data["child_name"] = value.strip()
-
-    if "date_of_birth" in update_data:
-
-        dob = update_data["date_of_birth"]
-
-        if dob is None:
-
-            raise HTTPException(
-                status_code=400,
-                detail="Date of birth cannot be empty",
-            )
-
-        if dob > date.today():
-
-            raise HTTPException(
-                status_code=400,
-                detail="Date of birth cannot be in the future",
-            )
-
-    for field, value in update_data.items():
-
-        setattr(
-            child,
-            field,
-            value,
-        )
-
-    db.commit()
-    db.refresh(child)
-
-    parent = get_parent_or_404(
-        db,
-        child.parent_id,
-    )
-
-    return {
-        "success": True,
-        "message": "Child details updated successfully",
         "child": child_data(child, parent),
     }

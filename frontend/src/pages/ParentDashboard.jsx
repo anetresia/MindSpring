@@ -7,6 +7,8 @@ import {
   getParentProfile,
   getChildrenRewardTotals,
   getRecentActivities,
+  getParentDashboardStats,
+  getMySubscription,
 } from "../api";
 
 import ParentSidebar from "../components/parent-dashboard/ParentSidebar";
@@ -60,6 +62,14 @@ function ParentDashboard() {
   const [recentActivities, setRecentActivities] = useState([]);
   const [activitiesLoading, setActivitiesLoading] = useState(true);
   const [activitiesError, setActivitiesError] = useState("");
+
+  // PARENT DASHBOARD STATS
+  const [dashboardStats, setDashboardStats] = useState(null);
+  const [dashboardStatsLoading, setDashboardStatsLoading] = useState(true);
+
+  // PARENT SUBSCRIPTION
+  const [subscriptionData, setSubscriptionData] = useState(null);
+  const [subscriptionLoading, setSubscriptionLoading] = useState(true);
 
   // DASHBOARD ADD CHILD POPUP
   const [showAddChildModal, setShowAddChildModal] = useState(false);
@@ -149,6 +159,38 @@ function ParentDashboard() {
     }
   }, []);
 
+  // LOAD PARENT DASHBOARD STATS
+  const loadDashboardStats = useCallback(async () => {
+    try {
+      setDashboardStatsLoading(true);
+
+      const data = await getParentDashboardStats();
+
+      setDashboardStats(data || null);
+    } catch (error) {
+      console.error("Error loading parent dashboard stats:", error);
+      setDashboardStats(null);
+    } finally {
+      setDashboardStatsLoading(false);
+    }
+  }, []);
+
+  // LOAD CURRENT PARENT SUBSCRIPTION
+  const loadSubscription = useCallback(async () => {
+    try {
+      setSubscriptionLoading(true);
+
+      const data = await getMySubscription();
+
+      setSubscriptionData(data || null);
+    } catch (error) {
+      console.error("Error loading parent subscription:", error);
+      setSubscriptionData(null);
+    } finally {
+      setSubscriptionLoading(false);
+    }
+  }, []);
+
   // LOAD PARENT PROFILE
   const loadParentProfile = useCallback(async () => {
     try {
@@ -168,11 +210,15 @@ function ParentDashboard() {
     loadChildren();
     loadRewardTotals();
     loadRecentActivities();
+    loadDashboardStats();
+    loadSubscription();
     loadParentProfile();
   }, [
     loadChildren,
     loadRewardTotals,
     loadRecentActivities,
+    loadDashboardStats,
+    loadSubscription,
     loadParentProfile,
   ]);
 
@@ -292,12 +338,13 @@ function ParentDashboard() {
     });
   }
 
-  // REFRESH CHILDREN, REWARDS AND ACTIVITIES
+  // REFRESH DASHBOARD DATA AFTER CHILD CHANGES
   async function refreshDashboardChildren() {
     await Promise.all([
       loadChildren(),
       loadRewardTotals(),
       loadRecentActivities(),
+      loadDashboardStats(),
     ]);
   }
 
@@ -341,6 +388,10 @@ function ParentDashboard() {
               recentActivities={recentActivities}
               activitiesLoading={activitiesLoading}
               activitiesError={activitiesError}
+              dashboardStats={dashboardStats}
+              dashboardStatsLoading={dashboardStatsLoading}
+              subscriptionData={subscriptionData}
+              subscriptionLoading={subscriptionLoading}
               loading={childrenLoading}
               error={childrenError}
               onAddChild={() => setShowAddChildModal(true)}

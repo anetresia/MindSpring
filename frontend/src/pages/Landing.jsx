@@ -3,9 +3,6 @@ import { useState } from "react";
 import heroBg from "../assets/hero-bg.png";
 import aboutBg from "../assets/about-bg.png";
 
-import personalHygieneImage from "../assets/personal-hygiene.png";
-import communicationImage from "../assets/communication-skills.png";
-import communityImage from "../assets/community-skills.png";
 
 import contactBg from "../assets/contact-girl-bg.png";
 
@@ -18,49 +15,19 @@ import FAQ from "../components/FAQ";
 
 const categories = [
   {
-    icon: "🪥",
     title: "Personal Hygiene",
     description: "Daily care for a healthy me.",
     color: "hygiene",
-    image: personalHygieneImage,
-    topics: [
-      "Brushing Teeth",
-      "Washing Hands",
-      "Combing Hair",
-      "Nail Trimming",
-      "Washing Face",
-      "Using a Tissue",
-    ],
   },
   {
-    icon: "💬",
     title: "Communication Skills",
     description: "Express, share and connect.",
     color: "communication",
-    image: communicationImage,
-    topics: [
-      "Saying Hello and Goodbye",
-      "Asking for Help",
-      "Expressing Feelings",
-      "Saying Yes or No",
-      "Asking for What You Need",
-      "Saying Please and Thank You",
-    ],
   },
   {
-    icon: "🚦",
     title: "Public & Community Skills",
     description: "Be safe and confident outside.",
     color: "community",
-    image: communityImage,
-    topics: [
-      "Road Safety",
-      "Waiting in a Queue",
-      "Shopping at a Store",
-      "Following Public Place Rules",
-      "Asking a Trusted Adult for Help",
-      "Staying with Your Caregiver",
-    ],
   },
 ];
 

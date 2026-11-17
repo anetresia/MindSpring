@@ -516,7 +516,315 @@ async def check_child_voice_answer(
 
 
 # ==========================================
+# CHILD - VOICE COMPLETION AND REWARDS
+# ==========================================
+
+@child_router.post(
+    "/{child_id}/{lesson_id}/voice-complete"
+)
+def complete_child_voice_answers(
+    child_id: int,
+    lesson_id: int,
+    answers: list[dict] = Body(...),
+    idempotency_key: str = Header(
+        ...,
+        alias="Idempotency-Key",
+    ),
+    db: Session = Depends(get_db),
+    current_parent: User = Depends(get_current_parent),
+):
+    try:
+        # 1. Verify child and lesson access
+
+        child, lesson = verify_child_lesson_access(
+            db,
+            current_parent,
+            child_id,
+            lesson_id,
+        )
+
+        # 2. Only allow voice-mode children
+
+        if (
+            not child.communication_method
+            or child.communication_method.strip().lower() != "voice"
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Voice answering is not enabled for this child",
+            )
+
+        # 3. Get lesson questions
+
+        questions = get_sorted_questions(
+            db,
+            lesson_id,
+        )
+
+        if not questions:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No questions available for this lesson",
+            )
+
+        # 4. Validate submitted answers
+
+        if not isinstance(answers, list):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Answers must be a list",
+            )
+
+        submitted_answers = {}
+
+        for answer in answers:
+            if not isinstance(answer, dict):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid answer format",
+                )
+
+            raw_question_id = answer.get("question_id")
+            transcript = answer.get("transcript")
+
+            if raw_question_id is None or transcript is None:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Question ID and transcript are required",
+                )
+
+            if isinstance(raw_question_id, bool):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid question ID",
+                )
+
+            try:
+                question_id = int(raw_question_id)
+            except (TypeError, ValueError):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid question ID",
+                )
+
+            if (
+                isinstance(raw_question_id, float)
+                and not raw_question_id.is_integer()
+            ):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid question ID",
+                )
+
+            if (
+                not isinstance(transcript, str)
+                or not transcript.strip()
+            ):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Empty transcript cannot be submitted as an answer",
+                )
+
+            if question_id in submitted_answers:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Duplicate question answer submitted",
+                )
+
+            submitted_answers[question_id] = transcript.strip()
+
+        # 5. Require an answer for every question
+
+        question_ids = {
+            question.question_id
+            for question in questions
+        }
+
+        if set(submitted_answers.keys()) != question_ids:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Please answer all questions before completing",
+            )
+
+        # 6. Normalize transcript for answer checking
+
+        def normalize_answer(value):
+            value = value.lower().strip()
+            value = re.sub(r"[^\w\s]", "", value)
+            value = re.sub(r"\s+", " ", value)
+            return value
+
+        results = []
+        response_rows = []
+        score = 0
+
+        # 7. Check every voice answer on the backend
+
+        for question in questions:
+            transcript = submitted_answers[
+                question.question_id
+            ]
+
+            correct_option = next(
+                (
+                    option
+                    for option in question.answer_options
+                    if option.get("id") == question.correct_answer
+                ),
+                None,
+            )
+
+            if not correct_option:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail=(
+                        f"Correct answer configuration is missing "
+                        f"for question {question.question_id}"
+                    ),
+                )
+
+            expected_answer = correct_option.get("answer_text")
+
+            if not expected_answer:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=(
+                        f"Answer text is not configured "
+                        f"for question {question.question_id}"
+                    ),
+                )
+
+            spoken_answer = normalize_answer(transcript)
+            expected_normalized = normalize_answer(expected_answer)
+
+            similarity = difflib.SequenceMatcher(
+                None,
+                spoken_answer,
+                expected_normalized,
+            ).ratio()
+
+            is_correct = (
+                spoken_answer == expected_normalized
+                or similarity >= 0.85
+            )
+
+            if is_correct:
+                score += 1
+
+            # Save the correct option ID for correct answers.
+            # Save VOICE_WRONG for incorrect voice answers.
+
+            saved_answer = (
+                question.correct_answer
+                if is_correct
+                else "VOICE_WRONG"
+            )
+
+            results.append({
+                "question_id": question.question_id,
+                "transcript": transcript,
+                "correct_answer": question.correct_answer,
+                "is_correct": is_correct,
+                "stars_earned": 1 if is_correct else 0,
+            })
+
+            response_rows.append(
+                ActivityResponse(
+                    child_id=child_id,
+                    question_id=question.question_id,
+                    selected_answer=saved_answer,
+                    score=1 if is_correct else 0,
+                    is_correct=is_correct,
+                )
+            )
+
+        # 8. Find existing reward for this child and lesson
+
+        reward = db.query(RewardTransaction).filter(
+            RewardTransaction.child_id == child_id,
+            RewardTransaction.lesson_id == lesson_id,
+        ).first()
+
+        # 9. Create or update reward
+        # One correct voice answer = one star
+
+        if reward:
+            reward.stars_earned = score
+            reward.total_questions = len(questions)
+        else:
+            reward = RewardTransaction(
+                child_id=child_id,
+                lesson_id=lesson_id,
+                stars_earned=score,
+                total_questions=len(questions),
+            )
+
+            db.add(reward)
+
+        # 10. Create lesson attempt
+
+        lesson_attempt = LessonAttempt(
+            child_id=child_id,
+            lesson_id=lesson_id,
+            total_questions=len(questions),
+            correct_answers=score,
+        )
+
+        # 11. Save voice responses and register activity completion
+
+        db.add_all(response_rows)
+        db.add(lesson_attempt)
+
+        activity_completion = record_activity_completion(
+            db=db,
+            parent_id=current_parent.user_id,
+            child_id=child_id,
+            lesson_id=lesson_id,
+            idempotency_key=idempotency_key,
+        )
+
+        # 12. Commit all records together
+
+        db.commit()
+
+        db.refresh(reward)
+        db.refresh(lesson_attempt)
+
+        # 13. Return results and rewards
+
+        return {
+            "message": "Voice answers completed successfully",
+            "score": score,
+            "correct_answers": score,
+            "total_questions": len(questions),
+            "stars_earned": reward.stars_earned,
+            "reward_id": reward.reward_id,
+            "attempt_id": lesson_attempt.attempt_id,
+            "activity_completion": activity_completion,
+            "results": results,
+        }
+
+    except HTTPException:
+        db.rollback()
+        raise
+
+    except Exception as error:
+        db.rollback()
+
+        print(
+            "Voice completion error:",
+            repr(error),
+        )
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unable to complete voice answers and save rewards",
+        )
+
+
+# ==========================================
 # CHILD - AUTOMATIC ANSWER CHECKING
+# EXISTING IMAGE ANSWER FUNCTION
 # ==========================================
 
 @child_router.post(
@@ -531,7 +839,6 @@ def check_child_answers(
     current_parent: User = Depends(get_current_parent),
 ):
     try:
-
         # 1. Verify child and lesson access
 
         verify_child_lesson_access(
@@ -565,7 +872,6 @@ def check_child_answers(
         submitted_answers = {}
 
         for answer in answers:
-
             if not isinstance(answer, dict):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
@@ -591,7 +897,6 @@ def check_child_answers(
 
             try:
                 question_id = int(raw_question_id)
-
             except (TypeError, ValueError):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
@@ -648,7 +953,6 @@ def check_child_answers(
         score = 0
 
         for question in questions:
-
             selected_answer = submitted_answers[
                 question.question_id
             ]
@@ -692,12 +996,9 @@ def check_child_answers(
         # One correct answer = one star
 
         if reward:
-
             reward.stars_earned = score
             reward.total_questions = len(questions)
-
         else:
-
             reward = RewardTransaction(
                 child_id=child_id,
                 lesson_id=lesson_id,

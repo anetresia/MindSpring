@@ -100,6 +100,13 @@ def create_stripe_checkout(
             idempotency_key=idempotency_key,
         )
 
+        print("\n========== STRIPE CHECKOUT CREATED ==========")
+        print("Payment ID:", payment.payment_id)
+        print("Subscription ID:", payment.subscription_id)
+        print("Parent ID:", payment.parent_id)
+        print("Payment Status:", payment.status)
+        print("==============================================\n")
+
         # Reuse an existing Stripe Checkout Session if available.
         if payment.provider_payment_id:
 
@@ -123,9 +130,7 @@ def create_stripe_checkout(
             )
 
         # Create Stripe Checkout Session.
-        # Payment methods are managed through Stripe Dashboard settings.
         checkout_session = stripe.checkout.Session.create(
-
             mode="payment",
 
             line_items=[
@@ -177,6 +182,11 @@ def create_stripe_checkout(
         db.commit()
         db.refresh(payment)
 
+        print("\n========== STRIPE SESSION SAVED ==========")
+        print("Payment ID:", payment.payment_id)
+        print("Stripe Session ID:", checkout_session.id)
+        print("==========================================\n")
+
         return {
             "success": True,
             "test_mode": True,
@@ -191,9 +201,9 @@ def create_stripe_checkout(
     except ValueError as error:
         db.rollback()
 
-        print("========== PAYMENT VALIDATION ERROR ==========")
+        print("\n========== PAYMENT VALIDATION ERROR ==========")
         print("Error:", str(error))
-        print("===============================================")
+        print("===============================================\n")
 
         raise HTTPException(
             status_code=400,
@@ -249,9 +259,13 @@ async def stripe_webhook(
     happen only after verified payment success.
     """
 
+    print("\n========== STRIPE WEBHOOK REQUEST ==========")
+
     webhook_secret = os.getenv("STRIPE_WEBHOOK_SECRET")
 
     if not webhook_secret:
+        print("ERROR: STRIPE_WEBHOOK_SECRET is missing.")
+
         raise HTTPException(
             status_code=500,
             detail="Stripe webhook secret is not configured.",
@@ -260,6 +274,8 @@ async def stripe_webhook(
     signature = request.headers.get("Stripe-Signature")
 
     if not signature:
+        print("ERROR: Stripe signature is missing.")
+
         raise HTTPException(
             status_code=400,
             detail="Missing Stripe signature.",
@@ -275,24 +291,44 @@ async def stripe_webhook(
             secret=webhook_secret,
         )
 
-    except ValueError:
+    except ValueError as error:
+        print("ERROR: Invalid webhook payload:", str(error))
+
         raise HTTPException(
             status_code=400,
             detail="Invalid webhook payload.",
         )
 
-    except stripe.SignatureVerificationError:
+    except stripe.SignatureVerificationError as error:
+        print("ERROR: Invalid Stripe signature:", str(error))
+
         raise HTTPException(
             status_code=400,
             detail="Invalid Stripe webhook signature.",
         )
 
     event_type = event["type"]
-    session = event["data"]["object"]
+
+    # Convert Stripe Session object into a Python dictionary.
+    session = event["data"]["object"].to_dict()
 
     checkout_session_id = session.get("id")
 
+    # Diagnostic information.
+    print("Event Type:", event_type)
+    print("Session ID:", checkout_session_id)
+    print("Payment Status:", session.get("payment_status"))
+    print("Session Mode:", session.get("mode"))
+    print("Live Mode:", session.get("livemode"))
+    print("Metadata:", session.get("metadata"))
+    print("Amount Total:", session.get("amount_total"))
+    print("Currency:", session.get("currency"))
+
+    print("============================================\n")
+
     if not checkout_session_id:
+        print("WARNING: No Checkout Session ID found.")
+
         return {
             "success": True,
             "message": "No Checkout Session ID found.",
@@ -302,6 +338,8 @@ async def stripe_webhook(
 
     # Only process MindSpring Stripe payments.
     if metadata.get("provider") != "STRIPE":
+        print("INFO: Unrelated Stripe event ignored.")
+
         return {
             "success": True,
             "message": "Unrelated Stripe event ignored.",
@@ -309,6 +347,8 @@ async def stripe_webhook(
 
     # Reject live-mode events.
     if session.get("livemode") is True:
+        print("ERROR: Live-mode payment rejected.")
+
         raise HTTPException(
             status_code=400,
             detail="Live-mode payments are not accepted.",
@@ -328,6 +368,12 @@ async def stripe_webhook(
             payment_id = metadata.get("payment_id")
             parent_id = metadata.get("parent_id")
             subscription_id = metadata.get("subscription_id")
+
+            print("\n========== PAYMENT METADATA CHECK ==========")
+            print("Payment ID:", payment_id)
+            print("Parent ID:", parent_id)
+            print("Subscription ID:", subscription_id)
+            print("=============================================\n")
 
             if not all([
                 payment_id,
@@ -361,10 +407,19 @@ async def stripe_webhook(
             )
 
             if not payment:
+                print("ERROR: Matching MindSpring payment not found.")
+
                 raise HTTPException(
                     status_code=400,
                     detail="Matching MindSpring payment was not found.",
                 )
+
+            print("\n========== LOCAL PAYMENT FOUND ==========")
+            print("Payment ID:", payment.payment_id)
+            print("Payment Status:", payment.status)
+            print("Subscription ID:", payment.subscription_id)
+            print("Stripe Session ID:", payment.provider_payment_id)
+            print("==========================================\n")
 
             # Verify pending subscription exists.
             subscription = (
@@ -375,17 +430,27 @@ async def stripe_webhook(
                     ParentSubscription.parent_id
                     == payment.parent_id,
                 )
+                .with_for_update()
                 .first()
             )
 
             if not subscription:
+                print("ERROR: Matching subscription not found.")
+
                 raise HTTPException(
                     status_code=400,
                     detail="Matching subscription was not found.",
                 )
 
+            print("Subscription Status:", subscription.status)
+
             # Do not activate before payment confirmation.
             if session.get("payment_status") != "paid":
+                print(
+                    "WARNING: Stripe payment is not paid yet. "
+                    "Subscription remains pending."
+                )
+
                 return {
                     "success": True,
                     "payment_status": "PENDING",
@@ -395,6 +460,8 @@ async def stripe_webhook(
                 }
 
             # Activate only after verified Stripe payment.
+            print("\n========== ACTIVATING SUBSCRIPTION ==========")
+
             result = complete_stripe_payment(
                 db=db,
                 checkout_session_id=checkout_session_id,
@@ -404,6 +471,10 @@ async def stripe_webhook(
             )
 
             db.commit()
+
+            print("PAYMENT ACTIVATION RESULT:", result)
+            print("SUCCESS: Subscription payment processed.")
+            print("==============================================\n")
 
             return {
                 **result,
@@ -420,12 +491,18 @@ async def stripe_webhook(
             "checkout.session.expired",
         ):
 
+            print("\n========== PAYMENT FAILED / EXPIRED ==========")
+            print("Session ID:", checkout_session_id)
+
             result = mark_stripe_payment_failed(
                 db=db,
                 checkout_session_id=checkout_session_id,
             )
 
             db.commit()
+
+            print("FAILURE RESULT:", result)
+            print("==============================================\n")
 
             return {
                 **result,
@@ -436,18 +513,30 @@ async def stripe_webhook(
         # OTHER EVENTS
         # ======================================
 
+        print("INFO: No action required for event:", event_type)
+
         return {
             "success": True,
             "message": "Stripe event received. No action required.",
             "event": event_type,
         }
 
-    except HTTPException:
+    except HTTPException as error:
         db.rollback()
+
+        print("\n========== STRIPE WEBHOOK VALIDATION ERROR ==========")
+        print("Status Code:", error.status_code)
+        print("Error Detail:", error.detail)
+        print("=====================================================\n")
+
         raise
 
     except ValueError as error:
         db.rollback()
+
+        print("\n========== STRIPE WEBHOOK VALUE ERROR ==========")
+        print("Error:", str(error))
+        print("================================================\n")
 
         raise HTTPException(
             status_code=400,

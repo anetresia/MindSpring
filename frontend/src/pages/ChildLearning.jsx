@@ -14,6 +14,7 @@ import {
   completeChildVideo,
   checkChildAnswers,
   checkChildVoiceAnswer,
+  checkChildVoiceCompletion,
   startLearningSession,
   sendLearningSessionHeartbeat,
   stopLearningSession,
@@ -59,6 +60,7 @@ function ChildLearning() {
   const [voiceCheckingQuestionId, setVoiceCheckingQuestionId] = useState(null);
   const [voiceFeedback, setVoiceFeedback] = useState({});
   const [voiceErrors, setVoiceErrors] = useState({});
+  const [voiceAnswers, setVoiceAnswers] = useState({});
 
   // Create one idempotency key for each lesson attempt.
   function createAttemptKey() {
@@ -146,63 +148,59 @@ function ChildLearning() {
 
       const result = response?.data || response;
 
-      const transcript =
+      const transcript = String(
         result.transcribed_text ||
-        result.transcript ||
-        result.text ||
-        "";
+          result.transcript ||
+          result.text ||
+          ""
+      ).trim();
 
-      if (result.is_correct) {
-        const correctOptionId =
-          result.selected_answer ||
-          result.correct_answer;
-
-        if (!correctOptionId) {
-          throw new Error(
-            "Voice answer was recognised, but the correct option was not returned."
-          );
-        }
-
-        const updatedAnswers = {
-          ...selectedAnswers,
-          [questionId]: correctOptionId,
-        };
-
-        setSelectedAnswers(updatedAnswers);
-
-        setVoiceFeedback((previous) => ({
+      // No speech or an empty transcript is not a completed answer.
+      if (!transcript) {
+        setVoiceErrors((previous) => ({
           ...previous,
-          [questionId]: {
-            isCorrect: true,
-            transcript,
-            message: result.message || "Correct answer! Well done!",
-          },
+          [questionId]:
+            result.message ||
+            "I couldn't hear your answer. Please try again.",
         }));
 
-        // Submit all answers using the existing quiz reward logic.
-        if (
-          questions.length > 0 &&
-          questions.every(
-            (question) => updatedAnswers[question.question_id]
-          )
-        ) {
-          await submitAnswersAutomatically(
-            updatedAnswers,
-            questions
-          );
-        }
-      } else {
-        setVoiceFeedback((previous) => ({
-          ...previous,
-          [questionId]: {
-            isCorrect: false,
-            transcript,
-            message:
-              result.message ||
-              "Not quite right. Please try again!",
-          },
-        }));
+        return;
       }
+
+      const updatedVoiceAnswers = {
+        ...voiceAnswers,
+        [questionId]: transcript,
+      };
+
+      setVoiceAnswers(updatedVoiceAnswers);
+
+      setVoiceFeedback((previous) => ({
+        ...previous,
+        [questionId]: {
+          isCorrect: Boolean(result.is_correct),
+          transcript,
+          message: result.is_correct
+            ? result.message || "Correct answer! Well done!"
+            : result.message ||
+              "Answer recorded. Moving to the next question.",
+        },
+      }));
+
+      const allQuestionsAnswered =
+        questions.length > 0 &&
+        questions.every(
+          (question) => Boolean(updatedVoiceAnswers[question.question_id])
+        );
+
+      if (allQuestionsAnswered) {
+        await submitVoiceAnswersAutomatically(
+          updatedVoiceAnswers,
+          questions,
+          lessonId
+        );
+      }
+      // Wrong answers are recorded too, so the next unanswered question
+      // appears automatically without asking the child to retry.
     } catch (err) {
       setVoiceErrors((previous) => ({
         ...previous,
@@ -212,6 +210,47 @@ function ChildLearning() {
       }));
     } finally {
       setVoiceCheckingQuestionId(null);
+    }
+  }
+
+  async function submitVoiceAnswersAutomatically(
+    completedVoiceAnswers,
+    currentQuestions,
+    lessonId
+  ) {
+    if (checkingAnswers || learningLimitReached) return;
+
+    try {
+      setCheckingAnswers(true);
+      setQuestionError("");
+
+      if (!attemptKeyRef.current) {
+        attemptKeyRef.current = createAttemptKey();
+      }
+
+      const answers = currentQuestions.map((question) => ({
+        question_id: question.question_id,
+        transcript: completedVoiceAnswers[question.question_id],
+      }));
+
+      const response = await checkChildVoiceCompletion(
+        childId,
+        lessonId,
+        answers,
+        attemptKeyRef.current
+      );
+
+      if (currentLesson?.lesson_id !== lessonId) return;
+
+      const resultData = response?.data || response;
+      setAnswerResults(resultData);
+    } catch (err) {
+      setQuestionError(
+        err.message ||
+          "Unable to save your voice answers. Please try again."
+      );
+    } finally {
+      setCheckingAnswers(false);
     }
   }
 
@@ -225,7 +264,9 @@ function ChildLearning() {
       checkingAnswers ||
       learningLimitReached ||
       recordingQuestionId ||
-      voiceCheckingQuestionId
+      voiceCheckingQuestionId ||
+      voiceAnswers[questionId] ||
+      questionId !== currentVoiceQuestionId
     ) {
       return;
     }
@@ -342,8 +383,7 @@ function ChildLearning() {
       }));
     }
   }
-
-  // ========================================
+    // ========================================
   // VOICE - STOP RECORDING
   // ========================================
 
@@ -675,6 +715,7 @@ function ChildLearning() {
     setVoiceCheckingQuestionId(null);
     setVoiceFeedback({});
     setVoiceErrors({});
+    setVoiceAnswers({});
 
     setQuestions([]);
     setSelectedAnswers({});
@@ -776,8 +817,7 @@ function ChildLearning() {
       return imageUrl;
     }
   }
-
-  // ========================================
+    // ========================================
   // VIDEO COMPLETION AND LOAD QUESTIONS
   // ========================================
 
@@ -810,6 +850,7 @@ function ChildLearning() {
 
       setVoiceFeedback({});
       setVoiceErrors({});
+      setVoiceAnswers({});
 
       await completeChildVideo(
         childId,
@@ -982,6 +1023,14 @@ function ChildLearning() {
 
   const childStars =
     child?.stars ?? child?.points ?? 0;
+
+  const isVoiceMode =
+    String(child?.communication_method || "").toLowerCase() === "voice";
+
+  const currentVoiceQuestionId =
+    questions.find(
+      (question) => !voiceAnswers[question.question_id]
+    )?.question_id ?? null;
 
   return (
     <main
@@ -1171,8 +1220,7 @@ function ChildLearning() {
             )}
           </section>
         )}
-
-        {/* VIDEO AND QUESTIONS */}
+                {/* VIDEO AND QUESTIONS */}
 
         {currentLesson && (
           <section
@@ -1302,7 +1350,7 @@ function ChildLearning() {
                             {question.question_text}
                           </p>
 
-                          {/* IMAGE ANSWER OPTIONS */}
+                          {/* IMAGE ANSWER OPTIONS - visible in both modes */}
 
                           <div className="child-learning-answer-options">
                             {(question.answer_options || []).map((option) => {
@@ -1338,6 +1386,7 @@ function ChildLearning() {
                                     )
                                   }
                                   disabled={
+                                    isVoiceMode ||
                                     Boolean(answerResults) ||
                                     checkingAnswers ||
                                     learningLimitReached ||
@@ -1388,104 +1437,86 @@ function ChildLearning() {
 
                           {/* VOICE ANSWER SECTION */}
 
-                          <div className="child-learning-voice-section">
-                            <p className="child-learning-voice-instruction">
-                              🎤 Or say your answer in Tamil or English
-                            </p>
-
-                            {!isRecording ? (
-                              <button
-                                type="button"
-                                className="child-learning-voice-btn"
-                                onClick={() =>
-                                  startVoiceRecording(question.question_id)
-                                }
-                                disabled={
-                                  Boolean(answerResults) ||
-                                  checkingAnswers ||
-                                  learningLimitReached ||
-                                  Boolean(recordingQuestionId) ||
-                                  Boolean(voiceCheckingQuestionId) ||
-                                  Boolean(selectedAnswer)
-                                }
-                              >
-                                🎤 Speak Your Answer
-                              </button>
-                            ) : (
-                              <button
-                                type="button"
-                                className="child-learning-voice-btn recording"
-                                onClick={stopVoiceRecording}
-                              >
-                                ⏹ Stop Recording
-                              </button>
-                            )}
-
-                            {isRecording && (
-                              <p className="child-learning-recording-message">
-                                🔴 Listening... Speak your answer now.
+                          {isVoiceMode && (
+                            <div className="child-learning-voice-section">
+                              <p className="child-learning-voice-instruction">
+                                🎤 Or say your answer in Tamil or English
                               </p>
-                            )}
 
-                            {isVoiceChecking && (
-                              <p className="child-learning-voice-loading">
-                                ⏳ Checking your voice answer...
-                              </p>
-                            )}
+                              {!isRecording ? (
+                                <button
+                                  type="button"
+                                  className="child-learning-voice-btn"
+                                  onClick={() =>
+                                    startVoiceRecording(question.question_id)
+                                  }
+                                  disabled={
+                                    Boolean(answerResults) ||
+                                    checkingAnswers ||
+                                    learningLimitReached ||
+                                    Boolean(recordingQuestionId) ||
+                                    Boolean(voiceCheckingQuestionId) ||
+                                    question.question_id !== currentVoiceQuestionId ||
+                                    Boolean(voiceAnswers[question.question_id])
+                                  }
+                                >
+                                  🎤 Speak Your Answer
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  className="child-learning-voice-btn recording"
+                                  onClick={stopVoiceRecording}
+                                >
+                                  ⏹ Stop Recording
+                                </button>
+                              )}
 
-                            {voiceErrors[question.question_id] && (
-                              <p
-                                className="child-learning-voice-error"
-                                role="alert"
-                              >
-                                {voiceErrors[question.question_id]}
-                              </p>
-                            )}
-
-                            {voiceResult && (
-                              <div
-                                className={`child-learning-voice-feedback ${
-                                  voiceResult.isCorrect
-                                    ? "correct"
-                                    : "incorrect"
-                                }`}
-                                role="status"
-                              >
-                                {voiceResult.transcript && (
-                                  <p>
-                                    <strong>You said:</strong>{" "}
-                                    {voiceResult.transcript}
-                                  </p>
-                                )}
-
-                                <p>
-                                  {voiceResult.isCorrect ? "✅" : "❌"}{" "}
-                                  {voiceResult.message}
+                              {isRecording && (
+                                <p className="child-learning-recording-message">
+                                  🔴 Listening... Speak your answer now.
                                 </p>
+                              )}
 
-                                {!voiceResult.isCorrect &&
-                                  !answerResults && (
-                                    <button
-                                      type="button"
-                                      className="child-learning-voice-retry-btn"
-                                      onClick={() =>
-                                        startVoiceRecording(
-                                          question.question_id
-                                        )
-                                      }
-                                      disabled={
-                                        Boolean(recordingQuestionId) ||
-                                        Boolean(voiceCheckingQuestionId) ||
-                                        checkingAnswers ||
-                                        learningLimitReached
-                                      }
-                                    >
-                                      🎤 Try Again
-                                    </button>
+                              {isVoiceChecking && (
+                                <p className="child-learning-voice-loading">
+                                  ⏳ Checking your voice answer...
+                                </p>
+                              )}
+
+                              {voiceErrors[question.question_id] && (
+                                <p
+                                  className="child-learning-voice-error"
+                                  role="alert"
+                                >
+                                  {voiceErrors[question.question_id]}
+                                </p>
+                              )}
+
+                              {voiceResult && (
+                                <div
+                                  className={`child-learning-voice-feedback ${
+                                    voiceResult.isCorrect
+                                      ? "correct"
+                                      : "incorrect"
+                                  }`}
+                                  role="status"
+                                >
+                                  {voiceResult.transcript && (
+                                    <p>
+                                      <strong>You said:</strong>{" "}
+                                      {voiceResult.transcript}
+                                    </p>
                                   )}
-                              </div>
-                            )}
-                          </div>
+
+                                  <p>
+                                    {voiceResult.isCorrect ? "✅" : "❌"}{" "}
+                                    {voiceResult.message}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
                       );
                     })}
@@ -1496,8 +1527,7 @@ function ChildLearning() {
                         <p>Checking your answers...</p>
                       </div>
                     )}
-
-                    {answerResults && (() => {
+                                        {answerResults && (() => {
                       const earnedStars = Math.max(
                         0,
                         Math.min(
