@@ -20,15 +20,10 @@ function Subscription() {
   const [paymentNotice, setPaymentNotice] = useState("");
   const [paymentLoading, setPaymentLoading] = useState(false);
 
-  // ========================================
-  // LOAD BACKEND SUBSCRIPTION DATA
-  // ========================================
-
+  // LOAD SUBSCRIPTION DATA
   async function loadSubscriptionData(showLoading = true) {
     try {
-      if (showLoading) {
-        setLoading(true);
-      }
+      if (showLoading) setLoading(true);
 
       setError("");
 
@@ -46,7 +41,15 @@ function Subscription() {
       const currentSubscription =
         subscriptionData?.subscription ?? null;
 
-      setPlans(plansList);
+      // Backend eligibility filtering is preserved.
+      // Free plan is displayed separately below.
+      const eligiblePaidPlans = plansList.filter(
+        (plan) =>
+          plan.plan_type !== "FREE" &&
+          Number(plan.price_lkr) > 0
+      );
+
+      setPlans(eligiblePaidPlans);
       setSubscription(currentSubscription);
 
       return currentSubscription;
@@ -61,24 +64,16 @@ function Subscription() {
 
       return null;
     } finally {
-      if (showLoading) {
-        setLoading(false);
-      }
+      if (showLoading) setLoading(false);
     }
   }
 
-  // ========================================
   // INITIAL LOAD
-  // ========================================
-
   useEffect(() => {
     loadSubscriptionData();
   }, []);
 
-  // ========================================
   // HANDLE STRIPE RETURN
-  // ========================================
-
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const stripeStatus = params.get("stripe");
@@ -114,10 +109,7 @@ function Subscription() {
     }
   }, []);
 
-  // ========================================
-  // VERIFY SUBSCRIPTION AFTER STRIPE PAYMENT
-  // ========================================
-
+  // VERIFY PAYMENT AFTER STRIPE RETURN
   async function verifySubscriptionAfterPayment() {
     const expectedPlanId = sessionStorage.getItem(
       "mindspring_pending_plan_id"
@@ -174,16 +166,12 @@ function Subscription() {
       }
     }
 
-    // Payment must not be repeated just because webhook is delayed.
     setPaymentNotice(
       "Payment was completed, but subscription activation is taking longer than expected. Please contact the administrator to verify your payment. Do not pay again."
     );
   }
 
-  // ========================================
-  // FORMAT BACKEND PRICE
-  // ========================================
-
+  // FORMAT PRICE
   function formatPrice(price) {
     if (price === null || price === undefined || price === "") {
       return "Price unavailable";
@@ -192,18 +180,21 @@ function Subscription() {
     return `LKR ${Number(price).toLocaleString("en-LK")}`;
   }
 
-  // ========================================
-  // GET PLAN FEATURES FROM BACKEND
-  // ========================================
-
+  // GET PLAN FEATURES
   function getPlanFeatures(plan) {
     const features = [];
 
-    if (plan.video_credits !== null && plan.video_credits !== undefined) {
+    if (
+      plan.video_credits !== null &&
+      plan.video_credits !== undefined
+    ) {
       features.push(`${plan.video_credits} Video Credits`);
     }
 
-    if (plan.max_children !== null && plan.max_children !== undefined) {
+    if (
+      plan.max_children !== null &&
+      plan.max_children !== undefined
+    ) {
       features.push(
         `${plan.max_children} ${
           Number(plan.max_children) === 1 ? "Child" : "Children"
@@ -215,39 +206,36 @@ function Subscription() {
       features.push("Shared Family Credits");
     }
 
-    if (plan.validity_days !== null && plan.validity_days !== undefined) {
-      features.push(`${plan.validity_days} Days Validity`);
-    } else if (plan.billing_type === "ONE_TIME") {
+    if (plan.billing_type === "ONE_TIME") {
       features.push("No Expiry");
+    } else if (
+      plan.validity_days !== null &&
+      plan.validity_days !== undefined
+    ) {
+      features.push(`${plan.validity_days} Days Validity`);
     }
 
     return features;
   }
 
-  // ========================================
   // CHECK CURRENT PLAN
-  // ========================================
-
   function isCurrentPlan(plan) {
     return (
       Number(subscription?.plan?.plan_id) ===
-      Number(plan.plan_id)
+        Number(plan.plan_id) &&
+      String(subscription?.status || "").toUpperCase() === "ACTIVE"
     );
   }
 
-  // ========================================
   // CHOOSE PLAN
-  // ========================================
-
   function handleChoosePlan(plan) {
+    if (isCurrentPlan(plan)) return;
+
     setSelectedPlan(plan);
     setPaymentMessage("");
   }
 
-  // ========================================
   // CLOSE POPUP
-  // ========================================
-
   function handleClosePopup() {
     if (paymentLoading) return;
 
@@ -255,10 +243,7 @@ function Subscription() {
     setPaymentMessage("");
   }
 
-  // ========================================
   // CREATE IDEMPOTENCY KEY
-  // ========================================
-
   function createIdempotencyKey() {
     if (window.crypto?.randomUUID) {
       return `stripe-payment-${window.crypto.randomUUID()}`;
@@ -269,19 +254,9 @@ function Subscription() {
       .slice(2)}`;
   }
 
-  // ========================================
   // CONTINUE TO STRIPE PAYMENT
-  // ========================================
-
   async function handleContinuePayment() {
     if (!selectedPlan || paymentLoading) return;
-
-    if (selectedPlan.plan_type === "FREE") {
-      setPaymentMessage(
-        "Free Plan is normally assigned automatically during registration. Please contact the administrator if you need to change your plan."
-      );
-      return;
-    }
 
     try {
       setPaymentLoading(true);
@@ -289,7 +264,6 @@ function Subscription() {
 
       const idempotencyKey = createIdempotencyKey();
 
-      // Send only the selected backend plan ID.
       const response = await createStripeCheckout(
         selectedPlan.plan_id,
         idempotencyKey
@@ -301,13 +275,11 @@ function Subscription() {
         );
       }
 
-      // Remember selected plan for verification after payment.
       sessionStorage.setItem(
         "mindspring_pending_plan_id",
         String(selectedPlan.plan_id)
       );
 
-      // Redirect to Stripe Checkout.
       window.location.assign(response.checkout_url);
     } catch (err) {
       console.error("Stripe checkout error:", err);
@@ -320,51 +292,33 @@ function Subscription() {
     }
   }
 
-  // ========================================
-  // LOADING SCREEN
-  // ========================================
+  // GET PLAN ICON
+  function getPlanIcon(plan) {
+    return plan.plan_type === "FAMILY"
+      ? "👨‍👩‍👧‍👦"
+      : "🎬";
+  }
 
+  // LOADING SCREEN
   if (loading) {
     return (
       <section className="subscription-page">
-        <div className="subscription-loading">
-          Loading subscription plans...
+        <div className="subscription-container">
+          <div className="subscription-loading">
+            <span className="subscription-loading-icon">👑</span>
+            <p>Loading your membership plans...</p>
+          </div>
         </div>
       </section>
     );
   }
 
-  // ========================================
   // MAIN PAGE
-  // ========================================
-
   return (
     <section className="subscription-page">
       <div className="subscription-container">
 
-        {/* PAGE HEADER */}
-
-        <div className="subscription-header">
-          <div>
-            <span className="subscription-eyebrow">
-              MINDSPRING MEMBERSHIP
-            </span>
-
-            <h1>Choose Your Plan</h1>
-
-            <p>
-              Unlock more learning videos and support
-              your child's growth.
-            </p>
-          </div>
-
-          <div className="subscription-header-icon">
-            👑
-          </div>
-        </div>
-
         {/* PAYMENT RETURN NOTICE */}
-
         {paymentNotice && (
           <div
             className="subscription-modal-message"
@@ -375,10 +329,9 @@ function Subscription() {
         )}
 
         {/* ERROR */}
-
         {error && (
           <div className="subscription-error">
-            {error}
+            <p>{error}</p>
 
             <button
               type="button"
@@ -390,7 +343,6 @@ function Subscription() {
         )}
 
         {/* CURRENT SUBSCRIPTION */}
-
         {subscription && (
           <div className="current-subscription-card">
             <div className="current-subscription-icon">
@@ -419,61 +371,92 @@ function Subscription() {
           </div>
         )}
 
-        {/* AVAILABLE PLANS */}
-
+        {/* AVAILABLE PLANS HEADING */}
         <div className="subscription-section-heading">
-          <h2>Available Plans</h2>
+          <div>
+            <span className="subscription-section-eyebrow">
+              MEMBERSHIP OPTIONS
+            </span>
 
-          <p>
-            Select the plan that works best for your family.
-          </p>
+            <h2>Available Plans</h2>
+
+            <p>
+              Select the plan that works best for your family.
+            </p>
+          </div>
         </div>
 
-        {plans.length === 0 && !error && (
-          <div className="subscription-empty">
-            No subscription plans are available right now.
-          </div>
-        )}
-
+        {/* SUBSCRIPTION PLAN CARDS */}
         <div className="subscription-plans-grid">
+
+          {/* FREE PLAN - DISPLAY ONLY, NO BUTTON */}
+          <article className="subscription-plan-card free-plan-card">
+            <div className="subscription-plan-icon">
+              🌱
+            </div>
+
+            <h3>Free</h3>
+
+            <div className="subscription-plan-price">
+              <strong>LKR 0</strong>
+            </div>
+
+            <p className="subscription-plan-billing">
+              Free Plan
+            </p>
+
+            <div className="subscription-plan-divider" />
+
+            <ul className="subscription-plan-features">
+              <li>
+                <span>✓</span>
+                3 Video Credits
+              </li>
+
+              <li>
+                <span>✓</span>
+                1 Child
+              </li>
+
+              <li>
+                <span>✓</span>
+                No Expiry
+              </li>
+            </ul>
+
+            {/* Intentionally no button on Free plan */}
+          </article>
+
+          {/* ELIGIBLE PAID PLANS FROM BACKEND */}
           {plans.map((plan) => {
             const current = isCurrentPlan(plan);
             const family = plan.plan_type === "FAMILY";
-            const free = plan.plan_type === "FREE";
 
             return (
               <article
                 key={plan.plan_id}
                 className={[
                   "subscription-plan-card",
-                  family ? "family-plan-card" : "",
-                  free ? "free-plan-card" : "",
+                  family
+                    ? "family-plan-card"
+                    : "individual-plan-card",
                   current ? "current-plan-card" : "",
                 ]
                   .filter(Boolean)
                   .join(" ")}
               >
                 <div className="subscription-plan-icon">
-                  {free ? "🌱" : family ? "👨‍👩‍👧‍👦" : "👑"}
+                  {getPlanIcon(plan)}
                 </div>
 
                 <h3>{plan.plan_name}</h3>
 
                 <div className="subscription-plan-price">
-                  <strong>
-                    {formatPrice(plan.price_lkr)}
-                  </strong>
+                  <strong>{formatPrice(plan.price_lkr)}</strong>
                 </div>
 
                 <p className="subscription-plan-billing">
-                  {free
-                    ? "Free Plan"
-                    : plan.billing_type === "ONE_TIME"
-                    ? "One-time payment"
-                    : plan.validity_days !== null &&
-                      plan.validity_days !== undefined
-                    ? `${plan.validity_days} days`
-                    : ""}
+                  One-time payment
                 </p>
 
                 <div className="subscription-plan-divider" />
@@ -493,11 +476,13 @@ function Subscription() {
                   disabled={current}
                   onClick={() => handleChoosePlan(plan)}
                 >
-                  {current
-                    ? "Current Plan"
-                    : free
-                    ? "Choose Free Plan"
-                    : "Choose Plan"}
+                  {current ? (
+                    <>
+                      <span>✓</span> Current Plan
+                    </>
+                  ) : (
+                    "Choose Plan"
+                  )}
                 </button>
               </article>
             );
@@ -505,7 +490,6 @@ function Subscription() {
         </div>
 
         {/* PLAN CONFIRMATION POPUP */}
-
         {selectedPlan && (
           <div
             className="subscription-modal-overlay"
@@ -528,14 +512,8 @@ function Subscription() {
                 ×
               </button>
 
-              {/* PLAN ICON */}
-
               <div className="subscription-modal-icon">
-                {selectedPlan.plan_type === "FREE"
-                  ? "🌱"
-                  : selectedPlan.plan_type === "FAMILY"
-                  ? "👨‍👩‍👧‍👦"
-                  : "👑"}
+                {getPlanIcon(selectedPlan)}
               </div>
 
               <span className="subscription-modal-eyebrow">
@@ -549,8 +527,6 @@ function Subscription() {
               <div className="subscription-modal-price">
                 {formatPrice(selectedPlan.price_lkr)}
               </div>
-
-              {/* PLAN DETAILS FROM BACKEND */}
 
               <div className="subscription-modal-details">
                 <div>
@@ -577,48 +553,30 @@ function Subscription() {
                 <div>
                   <span>Validity</span>
                   <strong>
-                    {selectedPlan.validity_days !== null &&
-                    selectedPlan.validity_days !== undefined
-                      ? `${selectedPlan.validity_days} Days`
-                      : selectedPlan.billing_type === "ONE_TIME"
+                    {selectedPlan.billing_type === "ONE_TIME"
                       ? "No Expiry"
+                      : selectedPlan.validity_days != null
+                      ? `${selectedPlan.validity_days} Days`
                       : "—"}
                   </strong>
                 </div>
               </div>
 
-              {/* FREE PLAN NOTICE */}
+              <div className="subscription-modal-notice">
+                <strong>🔒 Secure Stripe Payment</strong>
 
-              {selectedPlan.plan_type === "FREE" && (
-                <div className="subscription-modal-notice">
-                  <strong>Free Plan</strong>
+                <p>
+                  Continue to Stripe's secure checkout page to
+                  complete your one-time subscription payment.
+                </p>
 
-                  <p>
-                    Free subscriptions are normally assigned
-                    automatically during registration.
-                  </p>
-                </div>
-              )}
-
-              {/* STRIPE PAYMENT NOTICE */}
-
-              {selectedPlan.plan_type !== "FREE" && (
-                <div className="subscription-modal-notice">
-                  <strong>Secure Stripe Payment</strong>
-
-                  <p>
-                    Continue to Stripe's secure checkout page
-                    to complete your subscription payment.
-                  </p>
-
-                  <span>
-                    You can use Stripe test card details in test mode.
-                  </span>
-                </div>
-              )}
+                <span>
+                  Your credits will be added after successful payment
+                  verification. No automatic renewal.
+                </span>
+              </div>
 
               {/* PAYMENT MESSAGE */}
-
               {paymentMessage && (
                 <div
                   className="subscription-modal-message"
@@ -629,7 +587,6 @@ function Subscription() {
               )}
 
               {/* POPUP ACTIONS */}
-
               <div className="subscription-modal-actions">
                 <button
                   type="button"
@@ -637,7 +594,7 @@ function Subscription() {
                   onClick={handleClosePopup}
                   disabled={paymentLoading}
                 >
-                  Cancel
+                  Back
                 </button>
 
                 <button
@@ -648,8 +605,6 @@ function Subscription() {
                 >
                   {paymentLoading
                     ? "Connecting to Stripe..."
-                    : selectedPlan.plan_type === "FREE"
-                    ? "Continue"
                     : "Continue to Payment"}
                 </button>
               </div>
@@ -658,7 +613,6 @@ function Subscription() {
         )}
 
         {/* FOOTER BENEFITS */}
-
         <div className="subscription-benefits">
           <div>
             <span>🔒</span>

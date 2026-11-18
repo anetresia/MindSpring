@@ -1,20 +1,27 @@
+
 import { NavLink } from "react-router-dom";
-import "../../styles/admin/admin-dashboard.css";
+import mindspringLogo from "../../assets/mindspring-logo.png";
+import "../../styles/admin/admin-sidebar.css";
 
 function AdminSidebar() {
   return (
     <aside className="admin-sidebar">
+
+      {/* BRAND LOGO */}
       <div className="admin-brand">
-        <div className="admin-brand-icon">M</div>
-        <div>
-          <h2>MindSpring</h2>
-          <p>Admin Panel</p>
-        </div>
+        <img
+          src={mindspringLogo}
+          alt="MindSpring Logo"
+          className="admin-brand-logo"
+        />
       </div>
 
+      {/* MENU LABEL */}
       <div className="admin-sidebar-label">MENU</div>
 
+      {/* NAVIGATION */}
       <nav className="admin-navigation">
+
         <NavLink
           to="/admin-dashboard"
           end
@@ -66,8 +73,6 @@ function AdminSidebar() {
           Subscription Management
         </NavLink>
 
-        {/* CONTACT MESSAGES */}
-
         <NavLink
           to="/admin-contact"
           className={({ isActive }) =>
@@ -77,12 +82,15 @@ function AdminSidebar() {
           <span>✉</span>
           Contact Messages
         </NavLink>
+
       </nav>
 
+      {/* SIDEBAR FOOTER */}
       <div className="admin-sidebar-bottom">
         <p>MindSpring</p>
         <span>Learning made meaningful</span>
       </div>
+
     </aside>
   );
 }

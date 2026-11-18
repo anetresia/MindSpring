@@ -1,0 +1,240 @@
+
+/* =========================================
+   MINDSPRING ADMIN SIDEBAR
+   PINK + PURPLE THEME
+========================================= */
+
+.admin-sidebar {
+  width: 260px;
+  min-width: 260px;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 28px 18px 20px;
+  background: #ffffff;
+  border-right: 1px solid #f3e6f2;
+  box-shadow: 4px 0 20px rgba(100, 55, 130, 0.04);
+  z-index: 1000;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+/* =========================================
+   BRAND LOGO
+========================================= */
+
+.admin-brand {
+  width: 100%;
+  min-height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 5px 10px 22px;
+  border-bottom: 1px solid #f4eaf4;
+  box-sizing: border-box;
+}
+
+.admin-brand-logo {
+  width: 190px;
+  height: 75px;
+  display: block;
+  object-fit: contain;
+  object-position: left center;
+}
+
+/* =========================================
+   MENU LABEL
+========================================= */
+
+.admin-sidebar-label {
+  margin: 28px 10px 12px;
+  color: #b09dbb;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+}
+
+/* =========================================
+   NAVIGATION
+========================================= */
+
+.admin-navigation {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.admin-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 46px;
+  padding: 11px 13px;
+  border-radius: 12px;
+  color: #766783;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+
+.admin-nav-link span {
+  width: 23px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #a78bc5;
+  font-size: 17px;
+  flex-shrink: 0;
+}
+
+.admin-nav-link:hover {
+  background: #fff0f7;
+  color: #d63384;
+  transform: translateX(3px);
+}
+
+.admin-nav-link:hover span {
+  color: #e84393;
+}
+
+/* =========================================
+   ACTIVE NAVIGATION LINK
+========================================= */
+
+.admin-nav-link.active {
+  background: linear-gradient(
+    110deg,
+    #ffe4f0,
+    #f0e7ff
+  );
+  color: #713bb0;
+  font-weight: 900;
+  box-shadow: 0 4px 12px rgba(150, 85, 170, 0.06);
+}
+
+.admin-nav-link.active span {
+  color: #e84393;
+}
+
+/* =========================================
+   SIDEBAR BOTTOM
+========================================= */
+
+.admin-sidebar-bottom {
+  margin-top: auto;
+  padding: 20px 10px 5px;
+  border-top: 1px solid #f4eaf4;
+}
+
+.admin-sidebar-bottom p {
+  margin: 0 0 5px;
+  color: #7545ac;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.admin-sidebar-bottom span {
+  color: #a493b0;
+  font-size: 11px;
+}
+
+/* =========================================
+   SCROLLBAR
+========================================= */
+
+.admin-sidebar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.admin-sidebar::-webkit-scrollbar-thumb {
+  background: #ead8f0;
+  border-radius: 10px;
+}
+
+.admin-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* =========================================
+   TABLET RESPONSIVE
+========================================= */
+
+@media (max-width: 900px) {
+  .admin-sidebar {
+    width: 230px;
+    min-width: 230px;
+    padding: 24px 13px 18px;
+  }
+
+  .admin-brand-logo {
+    width: 175px;
+    height: 70px;
+  }
+
+  .admin-nav-link {
+    font-size: 12px;
+    padding: 10px;
+  }
+}
+
+/* =========================================
+   MOBILE RESPONSIVE
+========================================= */
+
+@media (max-width: 600px) {
+  .admin-sidebar {
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    min-height: 100vh;
+    position: relative;
+    padding: 18px;
+    border-right: none;
+    border-bottom: 1px solid #f3e6f2;
+  }
+
+  .admin-brand {
+    min-height: 75px;
+    padding: 5px 8px 18px;
+  }
+
+  .admin-brand-logo {
+    width: 180px;
+    height: 65px;
+  }
+
+  .admin-sidebar-label {
+    margin-top: 18px;
+  }
+
+  .admin-navigation {
+    gap: 5px;
+  }
+
+  .admin-sidebar-bottom {
+    margin-top: 25px;
+  }
+}
+
+/* =========================================
+   SMALL MOBILE
+========================================= */
+
+@media (max-width: 380px) {
+  .admin-sidebar {
+    padding: 15px;
+  }
+
+  .admin-brand-logo {
+    width: 160px;
+    height: 60px;
+  }
+
+  .admin-nav-link {
+    font-size: 12px;
+  }
+}

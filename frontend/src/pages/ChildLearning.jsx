@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState } from "react";
 
 import {
@@ -24,6 +25,7 @@ import {
 
 import learningVideosBg from "../assets/learning-videos-bg.png";
 import mindspringLogo from "../assets/mindspring-logo.png";
+import activityRewardGirl from "../assets/activity-reward-girl.png";
 
 import "../styles/child-learning.css";
 
@@ -76,6 +78,8 @@ function ChildLearning() {
   const [child, setChild] = useState(location.state?.child || null);
   const [topics, setTopics] = useState([]);
   const [lessons, setLessons] = useState([]);
+  const [topicLessonGroups, setTopicLessonGroups] = useState([]);
+  const [currentTopicIndex, setCurrentTopicIndex] = useState(0);
 
   const [selectedTopic, setSelectedTopic] = useState(null);
   const [currentLesson, setCurrentLesson] = useState(null);
@@ -89,6 +93,8 @@ function ChildLearning() {
   const [videoCompleted, setVideoCompleted] = useState(false);
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [answerResults, setAnswerResults] = useState(null);
+
+  const [showRewardsPopup, setShowRewardsPopup] = useState(false);
 
   const [error, setError] = useState("");
   const [questionError, setQuestionError] = useState("");
@@ -383,7 +389,8 @@ function ChildLearning() {
       }));
     }
   }
-    // ========================================
+
+  // ========================================
   // VOICE - STOP RECORDING
   // ========================================
 
@@ -442,6 +449,8 @@ function ChildLearning() {
     setRecordingQuestionId(null);
     setVoiceCheckingQuestionId(null);
   }
+
+  
 
   // ========================================
   // LEARNING TIMER - START
@@ -653,9 +662,47 @@ function ChildLearning() {
             topicsResponse?.selected_topics ||
             [];
 
+        // Keep every selected topic and its lessons in a separate group.
+        // Promise.all preserves the parent's selected topic order.
+        const loadedTopicGroups = await Promise.all(
+          topicData.map(async (topic) => {
+            const lessonResponse = await getChildTopicLessons(
+              childId,
+              topic.topic_id
+            );
+
+            const topicLessons = Array.isArray(lessonResponse)
+              ? lessonResponse
+              : lessonResponse?.data || lessonResponse?.lessons || [];
+
+            return {
+              topic,
+              lessons: topicLessons,
+            };
+          })
+        );
+
+        const availableTopicGroups = loadedTopicGroups.filter(
+          (group) => group.lessons.length > 0
+        );
+
+        const firstGroup = availableTopicGroups[0];
+
         if (active) {
           setChild(childData);
           setTopics(topicData);
+          setTopicLessonGroups(availableTopicGroups);
+          setCurrentTopicIndex(0);
+          setSelectedTopic(firstGroup?.topic || null);
+          setLessons(firstGroup?.lessons || []);
+
+          if (firstGroup?.lessons?.length > 0) {
+            setCurrentLesson(firstGroup.lessons[0]);
+            attemptKeyRef.current = createAttemptKey();
+            videoEndedRef.current = false;
+          } else {
+            setCurrentLesson(null);
+          }
         }
       } catch (err) {
         if (active) {
@@ -674,6 +721,13 @@ function ChildLearning() {
       active = false;
     };
   }, [childId]);
+
+  // Show rewards only after the answer-checking request has completed.
+  useEffect(() => {
+    if (answerResults) {
+      setShowRewardsPopup(true);
+    }
+  }, [answerResults]);
 
   // ========================================
   // SCROLL VIDEO SECTION
@@ -731,39 +785,20 @@ function ChildLearning() {
   // ========================================
 
   async function handleTopicClick(topic) {
-    if (learningLimitReached) return;
+    // Children cannot jump ahead to a locked topic.
+    const activeGroup = topicLessonGroups[currentTopicIndex];
 
-    try {
-      setSelectedTopic(topic);
-      setLessons([]);
-      setCurrentLesson(null);
-
-      resetQuestionData();
-      setError("");
-      setLessonsLoading(true);
-
-      const response = await getChildTopicLessons(
-        childId,
-        topic.topic_id
-      );
-
-      const lessonData = Array.isArray(response)
-        ? response
-        : response?.data || response?.lessons || [];
-
-      setLessons(lessonData);
-
-      if (lessonData.length > 0) {
-        setCurrentLesson(lessonData[0]);
-
-        attemptKeyRef.current = createAttemptKey();
-        videoEndedRef.current = false;
-      }
-    } catch (err) {
-      setError(err.message || "Unable to load videos.");
-    } finally {
-      setLessonsLoading(false);
+    if (
+      learningLimitReached ||
+      !activeGroup ||
+      Number(topic.topic_id) !== Number(activeGroup.topic.topic_id)
+    ) {
+      return;
     }
+
+    // The current topic is already loaded. Keep its lessons visible.
+    setSelectedTopic(activeGroup.topic);
+    setLessons(activeGroup.lessons);
   }
 
   // ========================================
@@ -817,7 +852,8 @@ function ChildLearning() {
       return imageUrl;
     }
   }
-    // ========================================
+
+  // ========================================
   // VIDEO COMPLETION AND LOAD QUESTIONS
   // ========================================
 
@@ -966,14 +1002,56 @@ function ChildLearning() {
 
     setSelectedAnswers(updatedAnswers);
 
-    if (
+    const allQuestionsAnswered =
       questions.length > 0 &&
       questions.every(
         (question) => updatedAnswers[question.question_id]
-      )
-    ) {
+      );
+
+    if (allQuestionsAnswered) {
       submitAnswersAutomatically(updatedAnswers, questions);
     }
+  }
+
+  // ========================================
+  // NEXT ACTIVITY AFTER REWARDS
+  // ========================================
+
+  function handleNextActivity() {
+    const currentIndex = lessons.findIndex(
+      (lesson) => lesson.lesson_id === currentLesson?.lesson_id
+    );
+
+    const nextLesson = lessons[currentIndex + 1];
+
+    setShowRewardsPopup(false);
+
+    // Continue to the next lesson inside the current topic first.
+    if (nextLesson) {
+      resetQuestionData();
+      setCurrentLesson(nextLesson);
+      attemptKeyRef.current = createAttemptKey();
+      videoEndedRef.current = false;
+      return;
+    }
+
+    // Only after every lesson in this topic is completed, unlock next topic.
+    const nextTopicIndex = currentTopicIndex + 1;
+    const nextTopicGroup = topicLessonGroups[nextTopicIndex];
+
+    if (nextTopicGroup && nextTopicGroup.lessons.length > 0) {
+      resetQuestionData();
+      setCurrentTopicIndex(nextTopicIndex);
+      setSelectedTopic(nextTopicGroup.topic);
+      setLessons(nextTopicGroup.lessons);
+      setCurrentLesson(nextTopicGroup.lessons[0]);
+      attemptKeyRef.current = createAttemptKey();
+      videoEndedRef.current = false;
+      return;
+    }
+
+    // All selected topics have been completed.
+    handleBackToDashboard();
   }
 
   // ========================================
@@ -1074,13 +1152,6 @@ function ChildLearning() {
                 <span>⭐</span>
                 <strong>{childStars}</strong>
               </div>
-
-              <div
-                className="learning-settings-pill"
-                aria-label="Settings"
-              >
-                ⚙
-              </div>
             </div>
           </div>
 
@@ -1147,80 +1218,45 @@ function ChildLearning() {
           </div>
         )}
 
-        {/* TOPICS */}
+        {/* LESSONS IN PARENT-SELECTED ORDER */}
 
-        <section className="child-learning-topics learning-wide-card">
+        <section className="child-learning-lessons learning-wide-card">
           <div className="learning-section-heading">
-            <span className="learning-heading-icon">📚</span>
-            <h3>Choose Your Topic</h3>
+            <span className="learning-heading-icon">📺</span>
+            <h3>Your Learning Activities</h3>
           </div>
 
-          {topics.length === 0 ? (
+          {lessonsLoading ? (
             <p className="child-learning-message">
-              No topics selected yet. Please ask your parent to select your learning topics.
+              Loading videos...
+            </p>
+          ) : !topicLessonGroups.length || !selectedTopic ? (
+            <p className="child-learning-message">
+              No videos are available yet. Please ask your parent to select learning topics.
             </p>
           ) : (
-            <div className="child-learning-topic-list">
-              {topics.map((topic) => (
-                <button
-                  key={topic.topic_id}
-                  type="button"
-                  className={`child-learning-topic-btn ${
-                    selectedTopic?.topic_id === topic.topic_id
-                      ? "active"
-                      : ""
-                  }`}
-                  onClick={() => handleTopicClick(topic)}
-                  disabled={learningLimitReached}
-                >
-                  {topic.topic_name || `Topic ${topic.topic_id}`}
-                </button>
-              ))}
+            <div className="child-learning-lesson-list">
+              <button
+                key={selectedTopic.topic_id}
+                type="button"
+                className="child-learning-lesson-btn active"
+                disabled
+                aria-current="step"
+              >
+                <span className="child-learning-lesson-order">
+                  {currentTopicIndex + 1}.
+                </span>
+                {selectedTopic.topic_name ||
+                  selectedTopic.name ||
+                  selectedTopic.title ||
+                  lessons[0]?.title ||
+                  "Learning Topic"}
+              </button>
             </div>
           )}
         </section>
 
-        {/* LESSONS */}
-
-        {selectedTopic && (
-          <section className="child-learning-lessons learning-wide-card">
-            <div className="learning-section-heading">
-              <span className="learning-heading-icon">📺</span>
-              <h3>
-                Videos - {selectedTopic.topic_name || "Selected Topic"}
-              </h3>
-            </div>
-
-            {lessonsLoading ? (
-              <p className="child-learning-message">
-                Loading videos...
-              </p>
-            ) : lessons.length === 0 ? (
-              <p className="child-learning-message">
-                No videos are available for this topic yet.
-              </p>
-            ) : (
-              <div className="child-learning-lesson-list">
-                {lessons.map((lesson) => (
-                  <button
-                    key={lesson.lesson_id}
-                    type="button"
-                    className={`child-learning-lesson-btn ${
-                      currentLesson?.lesson_id === lesson.lesson_id
-                        ? "active"
-                        : ""
-                    }`}
-                    onClick={() => handleLessonClick(lesson)}
-                    disabled={learningLimitReached}
-                  >
-                    ▶ {lesson.title}
-                  </button>
-                ))}
-              </div>
-            )}
-          </section>
-        )}
-                {/* VIDEO AND QUESTIONS */}
+        {/* VIDEO AND ACTIVITY */}
 
         {currentLesson && (
           <section
@@ -1258,19 +1294,19 @@ function ChildLearning() {
               )}
             </div>
 
-            {/* QUESTIONS */}
+            {/* ACTIVITY */}
 
             <aside className="child-learning-questions-section learning-panel">
               <div className="child-learning-questions-heading">
-                <span>✏️</span>
-                <h3>Questions</h3>
+                <span>🌸</span>
+                <h3>Activity</h3>
               </div>
 
               {!videoCompleted && (
                 <div className="child-learning-empty-questions">
                   <span>📋</span>
                   <p>
-                    Watch the complete video to see your questions!
+                    Watch the complete video to see your activity!
                   </p>
                 </div>
               )}
@@ -1278,7 +1314,7 @@ function ChildLearning() {
               {videoCompleted && questionsLoading && (
                 <div className="child-learning-empty-questions">
                   <span>⏳</span>
-                  <p>Loading your questions...</p>
+                  <p>Loading your activity...</p>
                 </div>
               )}
 
@@ -1314,6 +1350,7 @@ function ChildLearning() {
                         answerResults?.results?.find(
                           (result) =>
                             result.question_id === question.question_id
+
                         );
 
                       const correctAnswer =
@@ -1527,49 +1564,6 @@ function ChildLearning() {
                         <p>Checking your answers...</p>
                       </div>
                     )}
-                                        {answerResults && (() => {
-                      const earnedStars = Math.max(
-                        0,
-                        Math.min(
-                          Number(answerResults.score) || 0,
-                          Number(answerResults.total_questions) || 0
-                        )
-                      );
-
-                      const totalQuestions =
-                        Number(answerResults.total_questions) || 0;
-
-                      return (
-                        <div className="child-learning-result">
-                          <h3>🌟 Great Learning!</h3>
-
-                          <div
-                            className="child-learning-earned-stars"
-                            aria-label={`${earnedStars} stars earned`}
-                          >
-                            {Array.from(
-                              { length: earnedStars },
-                              (_, index) => (
-                                <span key={index}>⭐</span>
-                              )
-                            )}
-                          </div>
-
-                          <h2>
-                            {earnedStars} / {totalQuestions} Stars
-                          </h2>
-
-                          <p>
-                            {earnedStars} correct answers = {earnedStars} earned stars
-                          </p>
-
-                          <p>
-                            You got <strong>{earnedStars}</strong> out of{" "}
-                            <strong>{totalQuestions}</strong> correct answers.
-                          </p>
-                        </div>
-                      );
-                    })()}
                   </div>
                 )}
             </aside>
@@ -1673,9 +1667,127 @@ function ChildLearning() {
             </div>
           </div>
         )}
+
+        {/* ACTIVITY COMPLETED - REWARD POPUP */}
+
+        {showRewardsPopup && answerResults && (
+          <div
+            className="child-activity-rewards-overlay"
+            role="presentation"
+          >
+            <div
+              className="child-activity-rewards-popup"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="child-activity-rewards-title"
+            >
+              {/* CLOSE BUTTON */}
+              <button
+                type="button"
+                className="child-activity-rewards-close"
+                aria-label="Close rewards"
+                onClick={() => setShowRewardsPopup(false)}
+              >
+                ×
+              </button>
+
+              {/* DECORATIVE STARS */}
+              <span className="reward-decoration reward-decoration-one">
+                ✨
+              </span>
+
+              <span className="reward-decoration reward-decoration-two">
+                ⭐
+              </span>
+
+              <span className="reward-decoration reward-decoration-three">
+                ⭐
+              </span>
+
+              {/* CELEBRATION GIRL - LEFT SIDE */}
+              <div className="child-activity-rewards-image">
+                <img
+                  src={activityRewardGirl}
+                  alt="Happy girl celebrating your achievement"
+                  className="child-activity-rewards-girl"
+                />
+              </div>
+
+              {/* REWARD CONTENT - RIGHT SIDE */}
+              <div className="child-activity-rewards-content">
+
+                <h2 id="child-activity-rewards-title">
+                  Activity Completed!
+                </h2>
+
+                <h3>
+                  Great Job, {childName}!
+                </h3>
+
+                {/* EARNED STARS */}
+                <div
+                  className="child-activity-rewards-score"
+                  aria-label={`${Math.max(
+                    0,
+                    Math.min(
+                      Number(answerResults.score) || 0,
+                      Number(answerResults.total_questions) || 0
+                    )
+                  )} stars earned`}
+                >
+                  {Array.from(
+                    {
+                      length: Math.max(
+                        0,
+                        Math.min(
+                          Number(answerResults.score) || 0,
+                          Number(answerResults.total_questions) || 0
+                        )
+                      ),
+                    },
+                    (_, index) => (
+                      <span
+                        key={index}
+                        className="child-activity-rewards-star"
+                        style={{ animationDelay: `${index * 0.12}s` }}
+                      >
+                        ⭐
+                      </span>
+                    )
+                  )}
+                </div>
+
+                <p className="child-activity-rewards-encouragement">
+                  You did an amazing job! Keep learning and shining!
+                </p>
+
+                {/* NEXT ACTIVITY */}
+                <button
+                  type="button"
+                  className="child-activity-rewards-next-btn"
+                  onClick={handleNextActivity}
+                >
+                  {lessons.findIndex(
+                    (lesson) =>
+                      lesson.lesson_id === currentLesson?.lesson_id
+                  ) < lessons.length - 1
+                    ? "Continue Activity →"
+                    : currentTopicIndex < topicLessonGroups.length - 1
+                    ? "Continue to Next Topic →"
+                    : "Finish Learning"}
+                </button>
+
+              </div>
+
+              {/* BOTTOM PINK WAVE */}
+              <div className="child-activity-rewards-wave"></div>
+
+            </div>
+          </div>
+        )}
+
       </div>
     </main>
   );
 }
-
 export default ChildLearning;

@@ -1,118 +1,314 @@
 
 /* ========================================
-   REWARDS PAGE DESIGN
+   REWARDS PAGE
 ======================================== */
 
 .rewards-page {
   width: 100%;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 16px;
+  box-sizing: border-box;
 }
 
 /* ========================================
    HEADER
 ======================================== */
 
+.rewards-header {
+  flex-shrink: 0;
+}
+
 .rewards-header h1 {
-  margin: 0 0 10px;
-  color: #35246f;
-  font-size: clamp(25px, 3vw, 34px);
+  margin: 0 0 8px;
+  color: #5516c5;
+  font-size: clamp(27px, 3vw, 38px);
   font-weight: 800;
+}
+
+.rewards-title-star {
+  color: #ffc928;
+  margin-left: 5px;
 }
 
 .rewards-header p {
   margin: 0;
-  color: #817691;
+  color: #4b2b91;
   font-size: 15px;
 }
 
 /* ========================================
-   CHILD SELECTOR
+   COMMON CARD
 ======================================== */
 
-.rewards-child-selector label {
-  display: block;
-  margin-bottom: 12px;
-  color: #35246f;
-  font-weight: 800;
-}
-
-.rewards-child-selector select {
-  width: 100%;
-  max-width: 400px;
-  padding: 12px 15px;
-  border: 1px solid #e8dff3;
-  border-radius: 10px;
-  background: #fffaf7;
-  color: #35246f;
-  font-family: inherit;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-.rewards-child-selector select:focus-visible {
-  outline: 3px solid #c9b8ed;
-  outline-offset: 3px;
+.rewards-page .dashboard-panel {
+  box-sizing: border-box;
+  min-width: 0;
 }
 
 /* ========================================
-   TOTAL STARS
+   CHILD SELECTOR CARD
 ======================================== */
 
-.rewards-summary {
-  text-align: center;
-}
-
-.rewards-summary h2 {
-  margin: 0;
-  color: #35246f;
-}
-
-.rewards-total-stars {
-  margin-top: 20px;
-  padding: 22px;
-  background: #fff3cf;
-  border-radius: 15px;
-}
-
-/* ========================================
-   TROPHY VECTOR ICON
-======================================== */
-
-.rewards-total-stars .rewards-trophy-icon {
-  display: block;
-  width: 110px;
-  height: 110px;
-  margin: 0 auto;
-  object-fit: contain;
+.rewards-page .rewards-child-selector {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  min-height: 88px;
+  padding: 14px 22px;
+  border: 7px solid #fff;
+  border-radius: 28px;
+  background: linear-gradient(110deg, #fff, #f9eaff);
+  box-shadow: 0 8px 20px rgba(126, 54, 190, 0.10);
   flex-shrink: 0;
 }
 
-/* Total Stars Number */
-
-.rewards-total-stars strong {
-  display: block;
-  margin-top: 5px;
-  color: #956500;
-  font-size: 35px;
-  font-weight: 800;
+.rewards-selector-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
 }
 
-.rewards-total-stars p {
-  margin: 5px 0 0;
-  color: #817691;
-  font-weight: 700;
+.rewards-selector-icon {
+  font-size: 30px;
+}
+
+.rewards-child-selector label {
+  color: #5516c5;
+  font-size: 19px;
+  font-weight: 800;
+  white-space: nowrap;
+  margin: 0;
+}
+
+.rewards-child-selector select {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  height: 50px;
+  padding: 10px 18px;
+  border: 2px solid #e5c4ff;
+  border-radius: 30px;
+  background: #fffaff;
+  color: #35246f;
+  font-family: inherit;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.rewards-child-selector select:focus {
+  outline: none;
+  border-color: #b64bea;
+  box-shadow: 0 0 0 3px rgba(182, 75, 234, 0.12);
 }
 
 /* ========================================
-   TOPIC CARD
+   REWARDS CONTENT
 ======================================== */
 
-.rewards-topic-card h2 {
-  margin: 0 0 18px;
-  color: #35246f;
-  font-size: 20px;
+.rewards-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* ========================================
+   TOTAL STARS CARD
+======================================== */
+
+.rewards-page .rewards-summary {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+
+  width: 100%;
+  height: 190px;
+  min-height: 190px;
+  padding: 16px 30px;
+
+  overflow: hidden;
+  border: 7px solid #fff;
+  border-radius: 30px;
+
+  background: linear-gradient(110deg, #fff9e7, #fff1c8);
+  box-shadow: 0 8px 20px rgba(126, 54, 190, 0.10);
+
+  flex-shrink: 0;
+}
+
+/* Trophy */
+
+.rewards-trophy-area {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 25%;
+  min-width: 100px;
+  height: 100%;
+  flex-shrink: 0;
+}
+
+.rewards-trophy-icon {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Summary details */
+
+.rewards-summary-details {
+  flex: 1;
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+}
+
+.rewards-summary-details h2 {
+  margin: 0 0 10px;
+  color: #5516c5;
+  font-size: clamp(20px, 2.2vw, 30px);
+  font-weight: 800;
+}
+
+.rewards-total-stars {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+
+  min-width: 125px;
+  padding: 7px 22px;
+
+  border-radius: 35px;
+  background: #ffedbd;
+}
+
+.rewards-total-stars strong {
+  color: #946000;
+  font-size: 34px;
+  font-weight: 800;
+}
+
+.rewards-summary-details p {
+  margin: 8px 0 0;
+  padding: 7px 24px;
+
+  border-radius: 10px;
+  background: #efa0f2;
+
+  color: #5716b9;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+/* ========================================
+   LEARNING ACHIEVEMENTS CARD
+======================================== */
+
+.rewards-page .rewards-achievements-panel {
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+  height: 310px;
+  min-height: 310px;
+
+  padding: 17px 20px;
+  overflow: hidden;
+
+  border: 7px solid #fff;
+  border-radius: 28px;
+
+  background: #fff;
+  box-shadow: 0 8px 20px rgba(126, 54, 190, 0.10);
+
+  flex-shrink: 0;
+}
+
+/* Fixed heading */
+
+.rewards-achievements-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  margin: 0 0 12px;
+  min-height: 38px;
+
+  color: #5516c5;
+  font-size: clamp(19px, 2vw, 27px);
+  font-weight: 800;
+
+  flex-shrink: 0;
+}
+
+/* ========================================
+   INTERNAL SCROLL AREA
+======================================== */
+
+.rewards-achievements-scroll {
+  flex: 1 1 auto;
+
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  height: 0;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  padding: 3px 7px 8px 0;
+
+  scrollbar-width: thin;
+  scrollbar-color: #d99af0 #f8eafa;
+}
+
+.rewards-achievements-scroll::-webkit-scrollbar {
+  width: 7px;
+}
+
+.rewards-achievements-scroll::-webkit-scrollbar-track {
+  background: #f8eafa;
+  border-radius: 10px;
+}
+
+.rewards-achievements-scroll::-webkit-scrollbar-thumb {
+  background: #d99af0;
+  border-radius: 10px;
+}
+
+.rewards-achievements-scroll::-webkit-scrollbar-thumb:hover {
+  background: #b968dc;
+}
+
+/* ========================================
+   TOPIC GROUPS
+======================================== */
+
+.rewards-topic-group {
+  margin-bottom: 15px;
+}
+
+.rewards-topic-group:last-child {
+  margin-bottom: 0;
+}
+
+.rewards-topic-group h3 {
+  margin: 5px 0 9px;
+  color: #5516a8;
+  font-size: 16px;
+  font-weight: 800;
 }
 
 /* ========================================
@@ -122,35 +318,55 @@
 .rewards-lesson-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 9px;
 }
 
 .rewards-lesson-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 15px;
-  padding: 16px;
-  background: #fffaf5;
-  border: 1px solid #f5eee5;
-  border-radius: 13px;
+  gap: 14px;
+
+  width: 100%;
+  min-height: 76px;
+  padding: 10px 15px;
+
+  box-sizing: border-box;
+  border-radius: 20px;
+
+  background: linear-gradient(100deg, #f3e9ff, #f9edff);
 }
 
+.rewards-topic-group:nth-child(even) .rewards-lesson-card {
+  background: linear-gradient(100deg, #fff0e6, #ffe8df);
+}
+
+/* Lesson details */
+
 .rewards-lesson-details {
+  flex: 1;
   min-width: 0;
 }
 
-.rewards-lesson-details h3 {
-  margin: 0 0 6px;
-  color: #35246f;
-  font-size: 15px;
+.rewards-lesson-details h4 {
+  margin: 0 0 7px;
+  color: #4c13aa;
+  font-size: 16px;
+  font-weight: 800;
   overflow-wrap: anywhere;
 }
 
 .rewards-lesson-details p {
+  display: inline-block;
   margin: 0;
-  color: #817691;
-  font-size: 12px;
+  padding: 4px 12px;
+
+  border-radius: 20px;
+  background: #c9ffc1;
+  color: #16852b;
+
+  font-size: 11px;
+  font-weight: 800;
 }
 
 /* ========================================
@@ -160,67 +376,331 @@
 .rewards-lesson-stars {
   display: flex;
   align-items: center;
-  gap: 5px;
+  justify-content: center;
+  gap: 6px;
+
   flex-shrink: 0;
-  padding: 9px 12px;
-  background: #fff3cf;
-  border-radius: 10px;
-  color: #956500;
+  min-width: 105px;
+  padding: 10px 13px;
+
+  border-radius: 30px;
+  background: #fff3ca;
+  color: #5516a8;
 }
 
 .rewards-lesson-stars svg {
   display: block;
-  width: 22px;
-  height: 22px;
   flex-shrink: 0;
 }
 
 .rewards-lesson-stars strong {
-  font-size: 16px;
+  font-size: 17px;
+  font-weight: 800;
 }
 
 .rewards-lesson-stars small {
   font-size: 12px;
+  font-weight: 700;
 }
 
 /* ========================================
-   LOADING AND ERROR
+   EMPTY / ERROR / LOADING
 ======================================== */
 
 .rewards-page .children-empty-message,
 .rewards-page .children-error-message {
   margin: 0;
-  padding: 12px 0;
+  padding: 12px;
+  text-align: center;
+}
+
+.rewards-page .children-error-message {
+  color: #d94343;
 }
 
 /* ========================================
-   RESPONSIVE DESIGN
+   RESPONSIVE
 ======================================== */
+
+@media (max-width: 768px) {
+  .rewards-page .rewards-child-selector {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .rewards-child-selector select {
+    flex-basis: 100%;
+  }
+
+  .rewards-page .rewards-summary {
+    height: 165px;
+    min-height: 165px;
+    padding: 12px;
+  }
+
+  .rewards-trophy-area {
+    width: 22%;
+    min-width: 75px;
+  }
+
+  .rewards-trophy-area .rewards-trophy-icon {
+    width: 75px;
+    height: 75px;
+  }
+
+  .rewards-page .rewards-achievements-panel {
+    height: 300px;
+    min-height: 300px;
+  }
+}
 
 @media (max-width: 480px) {
   .rewards-page {
-    gap: 18px;
+    gap: 12px;
+  }
+
+  .rewards-header h1 {
+    font-size: 26px;
+  }
+
+  .rewards-header p {
+    font-size: 13px;
+  }
+
+  .rewards-page .rewards-child-selector {
+    padding: 12px;
+    border-width: 5px;
+  }
+
+  .rewards-selector-icon {
+    font-size: 24px;
+  }
+
+  .rewards-child-selector label {
+    font-size: 16px;
+  }
+
+  .rewards-page .rewards-summary {
+    height: 150px;
+    min-height: 150px;
+    gap: 8px;
+    padding: 10px 8px;
+    border-width: 5px;
+  }
+
+  .rewards-trophy-area {
+    min-width: 65px;
+  }
+
+  .rewards-trophy-area .rewards-trophy-icon {
+    width: 65px;
+    height: 65px;
+  }
+
+  .rewards-summary-details h2 {
+    font-size: 17px;
+  }
+
+  .rewards-total-stars {
+    gap: 7px;
+    padding: 5px 12px;
+  }
+
+  .rewards-total-stars svg {
+    width: 27px;
+    height: 27px;
+  }
+
+  .rewards-total-stars strong {
+    font-size: 25px;
+  }
+
+  .rewards-summary-details p {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+
+  .rewards-page .rewards-achievements-panel {
+    height: 280px;
+    min-height: 280px;
+    padding: 12px;
+    border-width: 5px;
+  }
+
+  .rewards-achievements-heading {
+    font-size: 18px;
   }
 
   .rewards-lesson-card {
-    padding: 12px;
     gap: 8px;
+    padding: 9px;
   }
 
-  .rewards-lesson-details h3 {
+  .rewards-lesson-details h4 {
     font-size: 13px;
   }
 
   .rewards-lesson-stars {
+    min-width: auto;
+    gap: 4px;
     padding: 8px;
   }
 
-  .rewards-topic-card h2 {
-    font-size: 18px;
+  .rewards-lesson-stars svg {
+    width: 19px;
+    height: 19px;
   }
 
-  .rewards-total-stars .rewards-trophy-icon {
-    width: 90px;
-    height: 90px;
+  .rewards-lesson-stars strong {
+    font-size: 14px;
+  }
+}
+
+
+/* ========================================
+   REWARDS - FINAL SIZE ADJUSTMENTS
+======================================== */
+
+/* Select Child - small card */
+.rewards-page .rewards-child-selector {
+  height: 88px !important;
+  min-height: 88px !important;
+  max-height: 88px !important;
+
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+
+  padding: 12px 22px !important;
+  gap: 22px;
+  overflow: hidden;
+}
+
+/* Select dropdown - normal height */
+.rewards-page .rewards-child-selector select {
+  height: 50px !important;
+  min-height: 50px !important;
+  max-height: 50px !important;
+  flex: 1;
+  width: 100%;
+  padding: 8px 18px !important;
+}
+
+/* ========================================
+   TOTAL STARS CARD
+   Keep original card dimensions
+======================================== */
+
+.rewards-page .rewards-summary {
+  height: 190px !important;
+  min-height: 190px !important;
+  max-height: 190px !important;
+
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+
+  padding: 14px 30px !important;
+}
+
+/* Smaller trophy */
+.rewards-page .rewards-trophy-area {
+  width: 22% !important;
+  min-width: 80px !important;
+  height: 100%;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.rewards-page .rewards-trophy-area .rewards-trophy-icon {
+  width: 65px !important;
+  height: 65px !important;
+}
+
+/* Child name and reward details */
+.rewards-page .rewards-summary-details {
+  flex: 1;
+  min-width: 0;
+
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  text-align: center;
+}
+
+.rewards-page .rewards-summary-details h2 {
+  margin: 0 0 7px !important;
+  font-size: 23px !important;
+  line-height: 1.2;
+}
+
+/* Total stars */
+.rewards-page .rewards-total-stars {
+  min-width: 110px;
+  padding: 5px 17px !important;
+  gap: 8px;
+}
+
+.rewards-page .rewards-total-stars svg {
+  width: 30px !important;
+  height: 30px !important;
+}
+
+.rewards-page .rewards-total-stars strong {
+  font-size: 27px !important;
+}
+
+/* Total Stars Earned label */
+.rewards-page .rewards-summary-details p {
+  margin: 7px 0 0 !important;
+  padding: 6px 20px !important;
+  font-size: 12px !important;
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .rewards-page .rewards-child-selector {
+    height: auto !important;
+    min-height: 75px !important;
+    max-height: none !important;
+    flex-wrap: wrap;
+  }
+
+  .rewards-page .rewards-child-selector select {
+    flex-basis: 100%;
+  }
+
+  .rewards-page .rewards-summary {
+    height: 150px !important;
+    min-height: 150px !important;
+    max-height: 150px !important;
+    padding: 10px !important;
+  }
+
+  .rewards-page .rewards-trophy-area {
+    min-width: 60px !important;
+  }
+
+  .rewards-page .rewards-trophy-area .rewards-trophy-icon {
+    width: 55px !important;
+    height: 55px !important;
+  }
+
+  .rewards-page .rewards-summary-details h2 {
+    font-size: 17px !important;
+  }
+
+  .rewards-page .rewards-total-stars strong {
+    font-size: 23px !important;
+  }
+
+  .rewards-page .rewards-summary-details p {
+    font-size: 10px !important;
+    padding: 5px 10px !important;
   }
 }

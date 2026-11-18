@@ -8,7 +8,7 @@ import "../../styles/parent-dashboard/rewards.css";
 // TROPHY VECTOR ICON
 // ========================================
 
-function TrophyIcon({ size = 110 }) {
+function TrophyIcon({ size = 90 }) {
   return (
     <svg
       className="rewards-trophy-icon"
@@ -32,7 +32,6 @@ function TrophyIcon({ size = 110 }) {
         stroke="#E6A500"
         strokeWidth="7"
         strokeLinecap="round"
-        fill="none"
       />
 
       <path
@@ -40,7 +39,6 @@ function TrophyIcon({ size = 110 }) {
         stroke="#E6A500"
         strokeWidth="7"
         strokeLinecap="round"
-        fill="none"
       />
 
       <path
@@ -48,15 +46,8 @@ function TrophyIcon({ size = 110 }) {
         fill="#FFF9E8"
       />
 
-      <path
-        d="M44 72H56V84H44V72Z"
-        fill="#E6A500"
-      />
-
-      <path
-        d="M34 84H66V91H34V84Z"
-        fill="#7542C8"
-      />
+      <path d="M44 72H56V84H44V72Z" fill="#E6A500" />
+      <path d="M34 84H66V91H34V84Z" fill="#7542C8" />
 
       <path
         d="M50 8V14M31 12L35 18M69 12L65 18"
@@ -72,7 +63,7 @@ function TrophyIcon({ size = 110 }) {
 // STAR VECTOR ICON
 // ========================================
 
-function StarIcon({ size = 22 }) {
+function StarIcon({ size = 24 }) {
   return (
     <svg
       width={size}
@@ -151,14 +142,17 @@ function Rewards({ children = [] }) {
 
       {/* HEADER */}
       <section className="rewards-header">
-        <h1>Rewards</h1>
+        <h1>
+          Rewards <span className="rewards-title-star">✦</span>
+        </h1>
+
         <p>
           Celebrate your child's learning achievements.
         </p>
       </section>
 
       {children.length === 0 ? (
-        <div className="dashboard-panel">
+        <div className="dashboard-panel rewards-empty-panel">
           <p className="children-empty-message">
             No children added yet.
           </p>
@@ -167,9 +161,16 @@ function Rewards({ children = [] }) {
         <>
           {/* CHILD SELECTOR */}
           <section className="dashboard-panel rewards-child-selector">
-            <label htmlFor="rewards-child-select">
-              Select Child
-            </label>
+
+            <div className="rewards-selector-label">
+              <span className="rewards-selector-icon">
+                👨‍👧
+              </span>
+
+              <label htmlFor="rewards-child-select">
+                Select Child
+              </label>
+            </div>
 
             <select
               id="rewards-child-select"
@@ -179,21 +180,19 @@ function Rewards({ children = [] }) {
               }
             >
               {children.map((child) => {
-                const childId =
-                  child.child_id || child.id;
+                const childId = child.child_id || child.id;
 
                 return (
                   <option
                     key={childId}
                     value={String(childId)}
                   >
-                    {child.child_name ||
-                      child.name ||
-                      "Child"}
+                    {child.child_name || child.name || "Child"}
                   </option>
                 );
               })}
             </select>
+
           </section>
 
           {/* LOADING */}
@@ -217,78 +216,128 @@ function Rewards({ children = [] }) {
           {!loading && !error && rewardData && (
             <div className="rewards-content">
 
-              {/* TOTAL STARS */}
+              {/* TOTAL REWARDS CARD */}
               <section className="dashboard-panel rewards-summary">
-                <h2>
-                  {rewardData.child_name}'s Rewards
-                </h2>
 
-                <div className="rewards-total-stars">
-                  <TrophyIcon size={110} />
-
-                  <strong>
-                    {rewardData.total_stars || 0}
-                  </strong>
-
-                  <p>Total Stars Earned</p>
+                <div className="rewards-summary-trophy">
+                  <TrophyIcon size={85} />
                 </div>
+
+                <div className="rewards-summary-details">
+
+                  <h2>
+                    {rewardData.child_name}'s Rewards
+                  </h2>
+
+                  <div className="rewards-total-stars">
+                    <StarIcon size={34} />
+
+                    <strong>
+                      {rewardData.total_stars || 0}
+                    </strong>
+                  </div>
+
+                  <p className="rewards-total-label">
+                    Total Stars Earned
+                  </p>
+
+                </div>
+
+                <div className="rewards-summary-decoration">
+                  ✨
+                </div>
+
               </section>
 
-              {/* TOPICS AND LESSONS */}
-              {rewardData.topics?.length > 0 ? (
-                rewardData.topics.map((topic) => (
-                  <section
-                    className="dashboard-panel rewards-topic-card"
-                    key={topic.topic_id}
-                  >
-                    <h2>{topic.topic_name}</h2>
+              {/* LEARNING ACHIEVEMENTS CARD */}
+              <section className="dashboard-panel rewards-achievements-panel">
 
-                    <div className="rewards-lesson-list">
-                      {topic.lessons?.map((lesson) => (
-                        <div
-                          className="rewards-lesson-card"
-                          key={lesson.lesson_id}
-                        >
-                          <div className="rewards-lesson-details">
-                            <h3>
-                              {lesson.lesson_title}
-                            </h3>
+                <h2 className="rewards-achievements-heading">
+                  <span>🏅</span>
+                  Learning Achievements
+                  <span className="rewards-heading-sparkle">✦</span>
+                </h2>
 
-                            <p>
-                              {lesson.completed
-                                ? "Completed"
-                                : "Not completed yet"}
-                            </p>
-                          </div>
+                {/* ONLY THIS AREA SCROLLS */}
+                <div className="rewards-achievements-scroll">
 
-                          <div className="rewards-lesson-stars">
-                            <StarIcon size={22} />
+                  {rewardData.topics?.length > 0 ? (
 
-                            <strong>
-                              {lesson.stars_earned || 0}
-                            </strong>
+                    rewardData.topics.map((topic) => (
+                      <div
+                        className="rewards-topic-group"
+                        key={topic.topic_id}
+                      >
 
-                            <small>
-                              / {lesson.total_questions || 0}
-                            </small>
-                          </div>
+                        <h3 className="rewards-topic-title">
+                          {topic.topic_name}
+                        </h3>
+
+                        <div className="rewards-lesson-list">
+
+                          {topic.lessons?.map((lesson) => (
+                            <div
+                              className="rewards-lesson-card"
+                              key={lesson.lesson_id}
+                            >
+
+                              <div className="rewards-lesson-details">
+
+                                <h4>
+                                  {lesson.lesson_title}
+                                </h4>
+
+                                <p
+                                  className={
+                                    lesson.completed
+                                      ? "rewards-completed"
+                                      : "rewards-not-completed"
+                                  }
+                                >
+                                  {lesson.completed
+                                    ? "✓ Completed"
+                                    : "Not completed yet"}
+                                </p>
+
+                              </div>
+
+                              <div className="rewards-lesson-stars">
+
+                                <StarIcon size={22} />
+
+                                <strong>
+                                  {lesson.stars_earned || 0}
+                                </strong>
+
+                                <small>
+                                  / {lesson.total_questions || 0}
+                                </small>
+
+                              </div>
+
+                            </div>
+                          ))}
+
                         </div>
-                      ))}
-                    </div>
-                  </section>
-                ))
-              ) : (
-                <div className="dashboard-panel">
-                  <p className="children-empty-message">
-                    No topic rewards available yet.
-                  </p>
+
+                      </div>
+                    ))
+
+                  ) : (
+                    <p className="children-empty-message">
+                      No topic rewards available yet.
+                    </p>
+                  )}
+
                 </div>
-              )}
+
+              </section>
 
             </div>
           )}
         </>
       )}
+
     </div>
   );
 }

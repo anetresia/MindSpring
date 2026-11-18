@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -504,11 +505,14 @@ function MyChildren({
             </div>
           )}
 
-          {error && !showForm && (
-            <div className="children-error-message" role="alert">
-              {error}
-            </div>
-          )}
+          {/* SHOW OTHER ERRORS AS NORMAL */}
+          {error &&
+            !showForm &&
+            error !== "You cannot add more than 2 child profiles." && (
+              <div className="children-error-message" role="alert">
+                {error}
+              </div>
+            )}
 
           {!loading && childrenError && (
             <div className="children-error-message" role="alert">
@@ -518,251 +522,309 @@ function MyChildren({
         </>
       )}
 
-      {/* SHOW VALIDATION MESSAGE IN DASHBOARD MODE */}
-      {dashboardMode && error && !showForm && (
-        <div className="children-error-message" role="alert">
-          {error}
-        </div>
-      )}
+      {/* SHOW OTHER VALIDATION MESSAGES IN DASHBOARD MODE */}
+      {dashboardMode &&
+        error &&
+        !showForm &&
+        error !== "You cannot add more than 2 child profiles." && (
+          <div className="children-error-message" role="alert">
+            {error}
+          </div>
+        )}
 
-      {/* THREE STEP ADD / EDIT WIZARD */}
+      {/* CHILD LIMIT POPUP - ABOVE SIDEBAR, TOPBAR AND PAGE */}
 
-      {showForm && (
-        <div className="children-wizard-overlay">
-          <section
-            className="children-wizard-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="children-wizard-title"
-          >
-            <div className="children-wizard-heading">
-              <div>
-                <span className="children-wizard-kicker">
-                  {editingChildId !== null
-                    ? "UPDATE PROFILE"
-                    : "LET'S GET STARTED"}
-                </span>
-
-                <h2 id="children-wizard-title">
-                  {editingChildId !== null
-                    ? "Edit Child Profile"
-                    : "Add New Child"}
-                </h2>
-
-                <p>
-                  Let's set up a happy learning journey, one step
-                  at a time.
-                </p>
-              </div>
-
+      {error === "You cannot add more than 2 child profiles." &&
+        !showForm &&
+        createPortal(
+          <div className="child-limit-overlay">
+            <section
+              className="child-limit-popup"
+              role="alertdialog"
+              aria-modal="true"
+              aria-labelledby="child-limit-title"
+              aria-describedby="child-limit-description"
+            >
               <button
                 type="button"
-                className="children-close-btn"
-                onClick={handleCancel}
-                disabled={saving}
-                aria-label="Close form"
+                className="child-limit-close"
+                onClick={() => setError("")}
+                aria-label="Close message"
               >
                 ×
               </button>
-            </div>
 
-            {/* PROGRESS */}
-
-            <div
-              className="children-wizard-progress"
-              aria-label={`Step ${wizardStep} of 3`}
-            >
-              {[
-                "Child Details",
-                "Learning Preferences",
-                "Life Skill Topics",
-              ].map((label, index) => (
-                <div
-                  className={`children-wizard-progress-step ${
-                    wizardStep >= index + 1 ? "active" : ""
-                  }`}
-                  key={label}
-                >
-                  <span>{index + 1}</span>
-                  <small>{label}</small>
-                </div>
-              ))}
-            </div>
-
-            {error && (
-              <div className="children-error-message" role="alert">
-                {error}
+              <div className="child-limit-icon" aria-hidden="true">
+                👨‍👩‍👧‍👦
               </div>
-            )}
 
-            <form
-              onSubmit={(event) => {
-                event.preventDefault();
-              }}
+              <h2 id="child-limit-title">
+                Child Limit Reached!
+              </h2>
+
+              <p id="child-limit-description">
+                You cannot add more than 2 child profiles.
+              </p>
+
+              <span className="child-limit-note">
+                You can manage your existing child profiles from here.
+              </span>
+
+              <button
+                type="button"
+                className="child-limit-ok-btn"
+                onClick={() => setError("")}
+              >
+                Okay, Got it!
+              </button>
+            </section>
+          </div>,
+          document.body
+        )}
+
+      {/* THREE STEP ADD / EDIT WIZARD */}
+
+      {showForm &&
+        createPortal(
+          <div className="children-wizard-overlay">
+            <section
+              className="children-wizard-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="children-wizard-title"
             >
-              {/* STEP 1 */}
+              <div className="children-wizard-heading">
+                <div>
+                  <span className="children-wizard-kicker">
+                    {editingChildId !== null
+                      ? "UPDATE PROFILE"
+                      : "LET'S GET STARTED"}
+                  </span>
 
-              {wizardStep === 1 && (
-                <div className="children-wizard-step">
-                  <div className="children-wizard-step-intro">
-                    <span>👋</span>
+                  <h2 id="children-wizard-title">
+                    {editingChildId !== null
+                      ? "Edit Child Profile"
+                      : "Add New Child"}
+                  </h2>
 
-                    <div>
-                      <h3>Child Profile Details</h3>
-                      <p>
-                        First, tell us a little about your child.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="children-form-grid">
-                    <div className="children-form-group">
-                      <label htmlFor="child_name">
-                        Child's Name
-                      </label>
-
-                      <input
-                        id="child_name"
-                        type="text"
-                        name="child_name"
-                        value={formData.child_name}
-                        onChange={handleChange}
-                        placeholder="Enter child's name"
-                        maxLength={100}
-                        required
-                      />
-                    </div>
-
-                    <div className="children-form-group">
-                      <label htmlFor="date_of_birth">
-                        Date of Birth
-                      </label>
-
-                      <input
-                        id="date_of_birth"
-                        type="date"
-                        name="date_of_birth"
-                        value={formData.date_of_birth}
-                        onChange={handleChange}
-                        max={getTodayString()}
-                        required
-                      />
-                    </div>
-
-                    {/* DAILY LEARNING TIME LIMIT */}
-                    <div className="children-form-group">
-                      <label htmlFor="daily_learning_limit">
-                        Daily Learning Time Limit
-                      </label>
-
-                      <select
-                        id="daily_learning_limit"
-                        name="daily_learning_limit"
-                        value={formData.daily_learning_limit}
-                        onChange={handleChange}
-                        required
-                      >
-                        <option value="">
-                          Select daily time limit
-                        </option>
-                        <option value="5">5 minutes</option>
-                        <option value="10">10 minutes</option>
-                        <option value="15">15 minutes</option>
-                        <option value="20">20 minutes</option>
-                        <option value="25">25 minutes</option>
-                        <option value="30">30 minutes</option>
-                      </select>
-                    </div>
-                  </div>
+                  <p>
+                    Let's set up a happy learning journey, one step
+                    at a time.
+                  </p>
                 </div>
-              )}
 
-              {/* STEP 2 */}
-
-              {wizardStep === 2 && (
-                <div className="children-wizard-step">
-                  <LearningPreferences
-                    value={formData}
-                    onChange={(updatedPreferences) =>
-                      setFormData((previous) => ({
-                        ...previous,
-                        ...updatedPreferences,
-                      }))
-                    }
-                  />
-                </div>
-              )}
-
-              {/* STEP 3 */}
-
-              {wizardStep === 3 && (
-                <div className="children-wizard-step">
-                  {loadingSelectedTopics && (
-                    <p className="topic-selection-message">
-                      Loading previously selected topics...
-                    </p>
-                  )}
-
-                  <TopicSelection
-                    selectedTopics={selectedTopics}
-                    onChange={setSelectedTopics}
-                  />
-                </div>
-              )}
-
-              {/* FOOTER BUTTONS */}
-
-              <div className="children-wizard-actions">
                 <button
                   type="button"
-                  className="children-cancel-btn"
-                  onClick={
-                    wizardStep === 1
-                      ? handleCancel
-                      : handlePreviousStep
-                  }
+                  className="children-close-btn"
+                  onClick={handleCancel}
                   disabled={saving}
+                  aria-label="Close form"
                 >
-                  {wizardStep === 1 ? "Cancel" : "← Back"}
+                  ×
                 </button>
-
-                {wizardStep < 3 ? (
-                  <button
-                    type="button"
-                    className="children-save-btn"
-                    onClick={handleNextStep}
-                    disabled={
-                      saving ||
-                      (editingChildId !== null &&
-                        loadingSelectedTopics)
-                    }
-                  >
-                    Next Step →
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    className="children-save-btn"
-                    onClick={handleSubmit}
-                    disabled={
-                      saving ||
-                      loadingSelectedTopics ||
-                      (editingChildId !== null &&
-                        selectedTopicsLoadError)
-                    }
-                  >
-                    {saving
-                      ? "Saving..."
-                      : editingChildId !== null
-                      ? "Update Child"
-                      : "Finish"}
-                  </button>
-                )}
               </div>
-            </form>
-          </section>
-        </div>
-      )}
+
+              {/* PROGRESS */}
+
+              <div
+                className="children-wizard-progress"
+                aria-label={`Step ${wizardStep} of 3`}
+              >
+                {[
+                  "Child Details",
+                  "Learning Preferences",
+                  "Life Skill Topics",
+                ].map((label, index) => (
+                  <div
+                    className={`children-wizard-progress-step ${
+                      wizardStep >= index + 1 ? "active" : ""
+                    }`}
+                    key={label}
+                  >
+                    <span>{index + 1}</span>
+                    <small>{label}</small>
+                  </div>
+                ))}
+              </div>
+
+              {error && (
+                <div className="children-error-message" role="alert">
+                  {error}
+                </div>
+              )}
+
+              <form
+                onSubmit={(event) => {
+                  event.preventDefault();
+                }}
+              >
+                {/* STEP 1 */}
+
+                {wizardStep === 1 && (
+                  <div className="children-wizard-step">
+                    <div className="children-wizard-step-intro">
+                      <span>👋</span>
+
+                      <div>
+                        <h3>Child Profile Details</h3>
+                        <p>
+                          First, tell us a little about your child.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="children-form-grid">
+                      <div className="children-form-group">
+                        <label htmlFor="child_name">
+                          Child's Name
+                        </label>
+
+                        <input
+                          id="child_name"
+                          type="text"
+                          name="child_name"
+                          value={formData.child_name}
+                          onChange={handleChange}
+                          placeholder="Enter child's name"
+                          maxLength={100}
+                          required
+                        />
+                      </div>
+
+                      <div className="children-form-group">
+                        <label htmlFor="date_of_birth">
+                          Date of Birth
+                        </label>
+
+                        <input
+                          id="date_of_birth"
+                          type="date"
+                          name="date_of_birth"
+                          value={formData.date_of_birth}
+                          onChange={handleChange}
+                          max={getTodayString()}
+                          required
+                        />
+                      </div>
+
+                      {/* DAILY LEARNING TIME LIMIT */}
+
+                      <div className="children-form-group">
+                        <label htmlFor="daily_learning_limit">
+                          Daily Learning Time Limit
+                        </label>
+
+                        <select
+                          id="daily_learning_limit"
+                          name="daily_learning_limit"
+                          value={formData.daily_learning_limit}
+                          onChange={handleChange}
+                          required
+                        >
+                          <option value="">
+                            Select daily time limit
+                          </option>
+
+                          <option value="5">5 minutes</option>
+                          <option value="10">10 minutes</option>
+                          <option value="15">15 minutes</option>
+                          <option value="20">20 minutes</option>
+                          <option value="25">25 minutes</option>
+                          <option value="30">30 minutes</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* STEP 2 */}
+
+                {wizardStep === 2 && (
+                  <div className="children-wizard-step">
+                    <LearningPreferences
+                      value={formData}
+                      onChange={(updatedPreferences) =>
+                        setFormData((previous) => ({
+                          ...previous,
+                          ...updatedPreferences,
+                        }))
+                      }
+                    />
+                  </div>
+                )}
+
+                {/* STEP 3 */}
+
+                {wizardStep === 3 && (
+                  <div className="children-wizard-step">
+                    {loadingSelectedTopics && (
+                      <p className="topic-selection-message">
+                        Loading previously selected topics...
+                      </p>
+                    )}
+
+                    <TopicSelection
+                      selectedTopics={selectedTopics}
+                      onChange={setSelectedTopics}
+                    />
+                  </div>
+                )}
+
+                {/* FOOTER BUTTONS */}
+
+                <div className="children-wizard-actions">
+                  <button
+                    type="button"
+                    className="children-cancel-btn"
+                    onClick={
+                      wizardStep === 1
+                        ? handleCancel
+                        : handlePreviousStep
+                    }
+                    disabled={saving}
+                  >
+                    {wizardStep === 1 ? "Cancel" : "← Back"}
+                  </button>
+
+                  {wizardStep < 3 ? (
+                    <button
+                      type="button"
+                      className="children-save-btn"
+                      onClick={handleNextStep}
+                      disabled={
+                        saving ||
+                        (editingChildId !== null &&
+                          loadingSelectedTopics)
+                      }
+                    >
+                      Next Step →
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className="children-save-btn"
+                      onClick={handleSubmit}
+                      disabled={
+                        saving ||
+                        loadingSelectedTopics ||
+                        (editingChildId !== null &&
+                          selectedTopicsLoadError)
+                      }
+                    >
+                      {saving
+                        ? "Saving..."
+                        : editingChildId !== null
+                        ? "Update Child"
+                        : "Finish"}
+                    </button>
+                  )}
+                </div>
+              </form>
+            </section>
+          </div>,
+          document.body
+        )}
+        
 
       {/* CHILDREN LIST - ONLY ON MY CHILDREN PAGE */}
 
@@ -903,54 +965,56 @@ function MyChildren({
             )}
           </section>
 
-          {/* DELETE CONFIRMATION */}
+          {/* DELETE CONFIRMATION POPUP */}
 
-          {childToDelete && (
-            <div className="children-modal-overlay">
-              <div
-                className="children-delete-modal"
-                role="alertdialog"
-                aria-modal="true"
-                aria-labelledby="delete-modal-title"
-                aria-describedby="delete-modal-description"
-              >
-                <div className="delete-modal-icon">🗑️</div>
+{childToDelete &&
+  createPortal(
+    <div className="children-modal-overlay">
+      <div
+        className="children-delete-modal"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="delete-modal-title"
+        aria-describedby="delete-modal-description"
+      >
+        <div className="delete-modal-icon">🗑️</div>
 
-                <h2 id="delete-modal-title">
-                  Delete Child Profile?
-                </h2>
+        <h2 id="delete-modal-title">
+          Delete Child Profile?
+        </h2>
 
-                <p id="delete-modal-description">
-                  Are you sure you want to delete{" "}
-                  <strong>{childToDelete.child_name}</strong>'s profile?
-                </p>
+        <p id="delete-modal-description">
+          Are you sure you want to delete{" "}
+          <strong>{childToDelete.child_name}</strong>'s profile?
+        </p>
 
-                <p className="delete-modal-warning">
-                  This action cannot be undone.
-                </p>
+        <p className="delete-modal-warning">
+          This action cannot be undone.
+        </p>
 
-                <div className="delete-modal-actions">
-                  <button
-                    type="button"
-                    className="delete-cancel-btn"
-                    onClick={() => setChildToDelete(null)}
-                    disabled={deleting}
-                  >
-                    Cancel
-                  </button>
+        <div className="delete-modal-actions">
+          <button
+            type="button"
+            className="delete-cancel-btn"
+            onClick={() => setChildToDelete(null)}
+            disabled={deleting}
+          >
+            Cancel
+          </button>
 
-                  <button
-                    type="button"
-                    className="delete-confirm-btn"
-                    onClick={confirmDeleteChild}
-                    disabled={deleting}
-                  >
-                    {deleting ? "Deleting..." : "Yes, Delete"}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+          <button
+            type="button"
+            className="delete-confirm-btn"
+            onClick={confirmDeleteChild}
+            disabled={deleting}
+          >
+            {deleting ? "Deleting..." : "Yes, Delete"}
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body
+  )}
         </>
       )}
     </div>

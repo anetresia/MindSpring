@@ -54,13 +54,15 @@ def get_parent_child(
 
 
 # ==========================================
-# GET ACTIVE SUBSCRIPTION AND CHILD LIMIT
+# GET ACTIVE SUBSCRIPTION
 # ==========================================
 
-def get_parent_child_limit(
+def get_parent_active_subscription(
     db: Session,
     parent: User,
 ):
+    current_time = datetime.now(timezone.utc).replace(tzinfo=None)
+
     subscription = (
         db.query(ParentSubscription)
         .join(
@@ -72,28 +74,89 @@ def get_parent_child_limit(
             ParentSubscription.status == "ACTIVE",
             SubscriptionPlan.is_active == True,
         )
+        .order_by(
+            ParentSubscription.subscription_id.desc()
+        )
         .first()
     )
 
     if not subscription:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You do not have an active subscription. Please subscribe to a plan.",
+            detail=(
+                "You do not have an active subscription. "
+                "Please subscribe to a plan."
+            ),
         )
 
     # Check subscription expiry
-    current_time = datetime.now(timezone.utc).replace(tzinfo=None)
-
     if (
         subscription.expires_at is not None
         and subscription.expires_at <= current_time
     ):
+        subscription.status = "EXPIRED"
+        db.flush()
+
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Your subscription has expired. Please renew your subscription.",
+            detail=(
+                "Your subscription has expired. "
+                "Please purchase a new plan."
+            ),
         )
 
+    return subscription
+
+
+# ==========================================
+# GET PARENT CHILD LIMIT
+# ==========================================
+
+def get_parent_child_limit(
+    db: Session,
+    parent: User,
+):
+    subscription = get_parent_active_subscription(
+        db=db,
+        parent=parent,
+    )
+
     return subscription.plan.max_children
+
+
+# ==========================================
+# CHECK PENDING PAID SUBSCRIPTION
+# ==========================================
+
+def check_pending_subscription(
+    db: Session,
+    parent: User,
+):
+    """
+    Check whether the parent has a pending paid subscription.
+
+    Child count must not change while Stripe checkout
+    is waiting for payment confirmation.
+    """
+
+    pending_subscription = (
+        db.query(ParentSubscription)
+        .join(
+            SubscriptionPlan,
+            ParentSubscription.plan_id == SubscriptionPlan.plan_id,
+        )
+        .filter(
+            ParentSubscription.parent_id == parent.user_id,
+            ParentSubscription.status == "PENDING",
+            SubscriptionPlan.plan_type != "FREE",
+        )
+        .order_by(
+            ParentSubscription.subscription_id.desc()
+        )
+        .first()
+    )
+
+    return pending_subscription
 
 
 # ==========================================
@@ -106,46 +169,97 @@ def create_child(
     parent: User,
     child_data: ChildCreate,
 ):
-    # Get maximum children allowed by the parent's plan
-    max_children = get_parent_child_limit(db, parent)
-
-    # Count existing children
-    child_count = (
-        db.query(Child)
-        .filter(Child.parent_id == parent.user_id)
-        .count()
-    )
-
-    # Check subscription child limit
-    if child_count >= max_children:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=(
-                f"Your current subscription allows a maximum of "
-                f"{max_children} child profile(s). Please upgrade "
-                f"your subscription to add more children."
-            ),
+    try:
+        # Lock parent row to reduce concurrent child creation.
+        locked_parent = (
+            db.query(User)
+            .filter(User.user_id == parent.user_id)
+            .with_for_update()
+            .first()
         )
 
-    new_child = Child(
-        parent_id=parent.user_id,
-        child_name=child_data.child_name,
-        date_of_birth=child_data.date_of_birth,
-        communication_method=child_data.communication_method,
-        preferred_learning_mode=child_data.preferred_learning_mode,
-        daily_learning_limit=child_data.daily_learning_limit,
-    )
+        if not locked_parent:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Parent account not found.",
+            )
 
-    try:
+        # Check pending Stripe checkout.
+        pending_subscription = check_pending_subscription(
+            db=db,
+            parent=parent,
+        )
+
+        if pending_subscription:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=(
+                    "Your subscription payment is currently pending. "
+                    "Please complete or cancel the payment before "
+                    "changing your child profiles."
+                ),
+            )
+
+        # Get current active subscription.
+        subscription = get_parent_active_subscription(
+            db=db,
+            parent=parent,
+        )
+
+        max_children = subscription.plan.max_children
+
+        # Count existing children.
+        child_count = (
+            db.query(Child)
+            .filter(
+                Child.parent_id == parent.user_id
+            )
+            .count()
+        )
+
+        # Global maximum: 2 children per parent.
+        if child_count >= 2:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    "A parent account can have a maximum "
+                    "of 2 child profiles."
+                ),
+            )
+
+        # Subscription-based child limit.
+        if child_count >= max_children:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    f"Your current {subscription.plan.plan_name} plan "
+                    f"allows a maximum of {max_children} child profile(s). "
+                    "Please upgrade your subscription to add more children."
+                ),
+            )
+
+        new_child = Child(
+            parent_id=parent.user_id,
+            child_name=child_data.child_name,
+            date_of_birth=child_data.date_of_birth,
+            communication_method=child_data.communication_method,
+            preferred_learning_mode=child_data.preferred_learning_mode,
+            daily_learning_limit=child_data.daily_learning_limit,
+        )
+
         db.add(new_child)
         db.commit()
         db.refresh(new_child)
 
-    except SQLAlchemyError:
+        return new_child
+
+    except HTTPException:
         db.rollback()
         raise
 
-    return new_child
+    except SQLAlchemyError:
+        db.rollback()
+        raise
 
 
 # ==========================================
@@ -159,19 +273,25 @@ def update_child(
     child_id: int,
     child_data: ChildUpdate,
 ):
-    child = get_parent_child(db, parent, child_id)
+    child = get_parent_child(
+        db=db,
+        parent=parent,
+        child_id=child_id,
+    )
 
     if not child:
         return None
 
-    update_data = child_data.model_dump(exclude_unset=True)
+    update_data = child_data.model_dump(
+        exclude_unset=True
+    )
 
     try:
-        # Update child profile fields
+        # Update child profile fields.
         for field, value in update_data.items():
             setattr(child, field, value)
 
-        # Create notification only when profile data is updated
+        # Create notification only when profile data is updated.
         if update_data:
             notification = Notification(
                 parent_id=parent.user_id,
@@ -188,7 +308,7 @@ def update_child(
 
             db.add(notification)
 
-        # Save profile update and notification together
+        # Save profile update and notification together.
         db.commit()
         db.refresh(child)
 
@@ -208,13 +328,17 @@ def delete_child(
     parent: User,
     child_id: int,
 ):
-    child = get_parent_child(db, parent, child_id)
+    child = get_parent_child(
+        db=db,
+        parent=parent,
+        child_id=child_id,
+    )
 
     if not child:
         return False
 
     try:
-        # 1. Delete activity responses
+        # 1. Delete activity responses.
         db.execute(
             text(
                 """
@@ -225,15 +349,15 @@ def delete_child(
             {"child_id": child_id},
         )
 
-        # 2. Delete lesson attempts
+        # 2. Delete lesson attempts.
         db.query(LessonAttempt).filter(
             LessonAttempt.child_id == child_id
         ).delete(synchronize_session=False)
 
-        # 3. Delete child profile
+        # 3. Delete child profile.
         db.delete(child)
 
-        # 4. Commit all deletions together
+        # 4. Commit all deletions together.
         db.commit()
 
         return True

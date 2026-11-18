@@ -127,6 +127,7 @@
   justify-content: center;
   gap: 8px;
 
+
   min-height: 44px;
   padding: 6px 14px;
 
@@ -592,5 +593,328 @@
 @media (max-width: 600px) {
   .dashboard-card-icon {
     font-size: 44px;
+  }
+}
+
+
+
+
+/* ========================================
+   CHILD REWARDS POPUP
+======================================== */
+
+.child-rewards-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+
+  background: rgba(35, 22, 75, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+
+  animation: rewardsOverlayFade 0.25s ease;
+}
+
+.child-rewards-modal {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 25px;
+
+  width: 100%;
+  max-width: 650px;
+  min-height: 340px;
+
+  padding: 35px 40px;
+
+  border: 5px solid #ffffff;
+  border-radius: 32px;
+
+  /* PINK + PURPLE PASTEL BACKGROUND */
+  background: linear-gradient(
+    135deg,
+    #fff0f8 0%,
+    #f6e8ff 50%,
+    #ffeaf3 100%
+  );
+
+  box-shadow: 0 20px 55px rgba(174, 76, 160, 0.22);
+
+  animation: rewardsPopupShow 0.35s ease;
+}
+
+/* CLOSE BUTTON */
+
+.child-rewards-close-button {
+  position: absolute;
+  top: 15px;
+  right: 17px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 35px;
+  height: 35px;
+
+  border: none;
+  border-radius: 50%;
+
+  background: #ffe1f1;
+  color: #a32b80;
+
+  font-size: 23px;
+  font-weight: 700;
+
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.child-rewards-close-button:hover {
+  background: #ffc5e4;
+  transform: rotate(90deg);
+}
+
+/* GIRL ILLUSTRATION */
+
+.child-rewards-girl {
+  display: block;
+
+  width: 45%;
+  max-width: 235px;
+  height: auto;
+
+  object-fit: contain;
+  flex-shrink: 0;
+
+  filter: drop-shadow(0 8px 10px rgba(100, 60, 130, 0.12));
+}
+
+/* REWARDS DETAILS */
+
+.child-rewards-details {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  flex: 1;
+  text-align: center;
+}
+
+.child-rewards-welcome {
+  margin: 0 0 10px;
+
+  color: #6826b5;
+  font-size: 25px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.child-rewards-message {
+  margin: 0 0 18px;
+
+  color: #62527e;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+/* TOTAL STARS */
+
+.child-rewards-total {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  width: 100%;
+  max-width: 220px;
+
+  padding: 13px 18px;
+  margin-bottom: 15px;
+
+  /* SOFT GOLD + PEACH */
+  border: 2px solid #ffd979;
+  border-radius: 20px;
+
+  background: linear-gradient(
+    135deg,
+    #fff4d0,
+    #ffe9b0,
+    #fff0d9
+  );
+
+  box-shadow: 0 5px 14px rgba(226, 170, 50, 0.15);
+}
+
+/* GOLD STAR EMOJI */
+
+.child-rewards-star {
+  font-size: 35px;
+  line-height: 1;
+}
+
+.child-rewards-total-label {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+
+  color: #8c5a00;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.child-rewards-total-label strong {
+  color: #7540b7;
+  font-size: 27px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+/* ENCOURAGEMENT */
+
+.child-rewards-encouragement {
+  margin: 0 0 20px;
+
+  color: #a33b91;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+/* CONTINUE BUTTON */
+
+.child-rewards-done-button {
+  padding: 11px 25px;
+
+  border: none;
+  border-radius: 25px;
+
+  background: linear-gradient(135deg, #c02eb5, #7138c7);
+  color: #ffffff;
+
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  box-shadow: 0 5px 13px rgba(160, 56, 175, 0.22);
+  transition: 0.25s ease;
+}
+
+.child-rewards-done-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 17px rgba(160, 56, 175, 0.3);
+}
+
+/* POPUP ANIMATIONS */
+
+@keyframes rewardsOverlayFade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes rewardsPopupShow {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.94);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* TABLET */
+
+@media (max-width: 700px) {
+  .child-rewards-modal {
+    max-width: 520px;
+    gap: 15px;
+    padding: 35px 25px;
+  }
+
+  .child-rewards-girl {
+    width: 40%;
+    max-width: 190px;
+  }
+
+  .child-rewards-welcome {
+    font-size: 22px;
+  }
+}
+
+/* MOBILE */
+
+@media (max-width: 480px) {
+  .child-rewards-modal-overlay {
+    padding: 15px;
+  }
+
+  .child-rewards-modal {
+    flex-direction: column;
+    gap: 8px;
+
+    max-width: 360px;
+    min-height: auto;
+
+    padding: 35px 22px 25px;
+    border-radius: 27px;
+  }
+
+  .child-rewards-girl {
+    width: 155px;
+    max-width: 70%;
+    max-height: 155px;
+  }
+
+  .child-rewards-details {
+    width: 100%;
+  }
+
+  .child-rewards-welcome {
+    font-size: 22px;
+  }
+
+  .child-rewards-message {
+    font-size: 13px;
+    margin-bottom: 13px;
+  }
+
+  .child-rewards-total {
+    padding: 10px 15px;
+  }
+
+  .child-rewards-star {
+    font-size: 30px;
+  }
+
+  .child-rewards-total-label strong {
+    font-size: 24px;
+  }
+
+  .child-rewards-encouragement {
+    font-size: 12px;
+    margin-bottom: 15px;
+  }
+
+  .child-rewards-done-button {
+    width: 100%;
+    max-width: 220px;
   }
 }

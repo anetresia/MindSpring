@@ -1,6 +1,6 @@
 
 import { useNavigate } from "react-router-dom";
-
+import "../../styles/admin/admin-header.css";
 function AdminHeader({ title = "Dashboard" }) {
   const navigate = useNavigate();
 

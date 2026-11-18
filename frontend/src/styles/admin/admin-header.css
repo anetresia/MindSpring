@@ -1,0 +1,188 @@
+
+/* =========================================
+   MINDSPRING ADMIN HEADER
+   PINK + PURPLE THEME
+========================================= */
+
+.admin-header {
+  width: 100%;
+  min-height: 100px;
+  padding: 22px 35px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  background: #ffffff;
+  border-bottom: 1px solid #f4e8f2;
+  box-shadow: 0 3px 15px rgba(100, 55, 130, 0.035);
+}
+
+/* HEADER TITLE */
+
+.admin-header h1 {
+  margin: 0;
+  color: #6336a5;
+  font-size: 27px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+}
+
+.admin-header > div:first-child p {
+  margin: 7px 0 0;
+  color: #9686a8;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* HEADER ACTIONS */
+
+.admin-header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 22px;
+}
+
+/* ADMIN USER INFO */
+
+.admin-user-info {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+/* USER AVATAR */
+
+.admin-user-avatar {
+  width: 43px;
+  height: 43px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e84393, #8754d5);
+  color: #ffffff;
+  font-size: 17px;
+  font-weight: 900;
+  box-shadow: 0 4px 12px rgba(210, 70, 160, 0.15);
+}
+
+/* USER NAME */
+
+.admin-user-info strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #50347e;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.admin-user-info span {
+  display: block;
+  color: #a18eaf;
+  font-size: 11px;
+}
+
+/* LOGOUT BUTTON */
+
+.admin-logout-btn {
+  padding: 10px 19px;
+  border: 1px solid #ffd4e7;
+  border-radius: 10px;
+  background: #fff0f7;
+  color: #d63384;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-logout-btn:hover {
+  background: #e84393;
+  border-color: #e84393;
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 12px rgba(220, 60, 140, 0.15);
+}
+
+.admin-logout-btn:active {
+  transform: translateY(0);
+}
+
+.admin-logout-btn:focus-visible {
+  outline: 3px solid rgba(232, 67, 147, 0.25);
+  outline-offset: 3px;
+}
+
+/* TABLET */
+
+@media (max-width: 900px) {
+  .admin-header {
+    padding: 20px 25px;
+  }
+
+  .admin-header h1 {
+    font-size: 24px;
+  }
+
+  .admin-header-actions {
+    gap: 15px;
+  }
+}
+
+/* MOBILE */
+
+@media (max-width: 600px) {
+  .admin-header {
+    min-height: auto;
+    padding: 18px 16px;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .admin-header h1 {
+    font-size: 22px;
+  }
+
+  .admin-header > div:first-child p {
+    font-size: 12px;
+  }
+
+  .admin-header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .admin-user-avatar {
+    width: 38px;
+    height: 38px;
+    font-size: 15px;
+  }
+
+  .admin-logout-btn {
+    padding: 9px 16px;
+  }
+}
+
+/* SMALL MOBILE */
+
+@media (max-width: 380px) {
+  .admin-header {
+    padding: 16px 12px;
+  }
+
+  .admin-header h1 {
+    font-size: 20px;
+  }
+
+  .admin-user-info strong {
+    font-size: 12px;
+  }
+
+  .admin-header-actions {
+    gap: 10px;
+  }
+}

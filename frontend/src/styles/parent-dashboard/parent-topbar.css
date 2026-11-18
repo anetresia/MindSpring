@@ -9,7 +9,6 @@
   min-height: 82px;
   padding: 0 4%;
 
-  /* Rainbow Background Image */
   background-image: url("../../assets/parent-topbar-bg.png");
   background-size: cover;
   background-position: center;
@@ -149,21 +148,15 @@
   vertical-align: middle;
 }
 
-/* Profile image alignment */
-
 .profile-btn .profile-avatar {
   flex-shrink: 0;
   align-self: center;
 }
 
-/* Profile name alignment */
-
 .profile-btn span {
   align-self: center;
   line-height: 1.2;
 }
-
-/* Dropdown arrow alignment */
 
 .profile-btn svg {
   display: block;
@@ -174,7 +167,6 @@
   margin: 0;
   padding: 0;
 
-  vertical-align: middle;
   transform: none;
 }
 
