@@ -11,121 +11,6 @@
   background: radial-gradient(ellipse at top right, #f4dbf8, transparent 55%), #fcf6fc;
 }
 
-.admin-contact-layout .admin-sidebar {
-  background: linear-gradient(155deg, #fbe9fa, #fffaff 45%, #fbe5fa);
-}
-
-.admin-contact-layout .admin-nav-link {
-  color: var(--contact-ink);
-  box-sizing: border-box;
-  min-height: 52px;
-  font-size: 14px;
-}
-
-.admin-contact-layout .admin-nav-link span {
-  color: #8246e2;
-}
-
-.admin-contact-layout .admin-nav-link.active {
-  background: #fbdcf8;
-  color: #4e13a7;
-}
-
-.admin-contact-layout .admin-nav-link.active span {
-  color: #d800a3;
-}
-
-.admin-contact-layout .admin-sidebar-bottom {
-  text-align: center;
-}
-
-.admin-contact-layout .admin-sidebar-bottom p {
-  font-size: 20px;
-  color: var(--contact-ink);
-}
-
-.admin-contact-layout .admin-sidebar-art {
-  display: block;
-  width: 100%;
-  max-height: 143px;
-  margin-bottom: 8px;
-  object-fit: contain;
-}
-
-.contact-hero {
-  position: relative;
-  isolation: isolate;
-  min-height: 205px;
-  padding: 26px clamp(18px, 3vw, 45px) 35px;
-  box-sizing: border-box;
-  background: radial-gradient(ellipse at 50% 95%, #f4cefb, transparent 65%),
-    linear-gradient(135deg, #f9e8fc, #fdf3fc 74%, #efe0fa);
-}
-
-.admin-contact-layout .contact-hero .admin-header {
-  min-height: 0;
-  padding: 0;
-  align-items: flex-start;
-  gap: 12px;
-  border: 0;
-  box-shadow: none;
-  background: transparent;
-}
-
-.contact-hero .admin-header > div:first-child {
-  padding-top: 63px;
-}
-
-.contact-hero .admin-header h1 {
-  color: var(--contact-ink);
-  font-size: clamp(25px, 2.55vw, 40px);
-  line-height: 1.12;
-  font-weight: 950;
-}
-
-.contact-hero .admin-header > div:first-child p {
-  display: none;
-}
-
-.contact-hero .admin-user-info strong {
-  color: var(--contact-ink);
-  font-size: 14px;
-}
-
-.contact-hero .admin-user-info span {
-  color: var(--contact-muted);
-  font-size: 13px;
-}
-
-.contact-hero .admin-logout-btn {
-  min-height: 43px;
-  border-color: #f9bdea;
-  border-radius: 17px;
-  color: #b00064;
-  background: #fce0f7;
-  font: inherit;
-  font-weight: 850;
-}
-
-.contact-hero-description {
-  position: relative;
-  max-width: 44%;
-  margin: 8px 0 0;
-  color: var(--contact-ink);
-  font-size: clamp(14px, 1.2vw, 18px);
-  font-weight: 700;
-}
-
-.contact-hero-art {
-  position: absolute;
-  z-index: -1;
-  inset: auto auto 0 37%;
-  width: 37%;
-  height: 97%;
-  object-fit: contain;
-  object-position: center bottom;
-}
-
 .admin-contact-page {
   max-width: 1600px;
   margin-inline: auto;
@@ -609,56 +494,12 @@
 }
 
 @media (max-width: 700px) {
-  .contact-hero-art {
-    inset-inline-start: auto;
-    inset-inline-end: 0;
-    width: 52%;
-    height: 67%;
-  }
-
-  .contact-hero .admin-header > div:first-child {
-    padding-top: 35px;
-  }
-
-  .contact-hero .admin-header-actions {
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-
   .contact-stat-card {
     display: grid;
     align-content: start;
     gap: 6px;
     font-size: 13px;
     padding: 9px;
-  }
-}
-
-@media (max-width: 600px) {
-  .admin-contact-layout .admin-sidebar {
-    min-height: 0;
-  }
-
-  .admin-contact-layout .admin-sidebar-bottom {
-    display: none;
-  }
-
-  .admin-contact-layout .admin-navigation {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .admin-contact-layout .admin-nav-link {
-    min-height: 43px;
-    font-size: 12px;
-  }
-
-  .contact-hero .admin-header > div:first-child {
-    padding-top: 0;
-  }
-
-  .contact-hero-description {
-    max-width: 52%;
   }
 }
 

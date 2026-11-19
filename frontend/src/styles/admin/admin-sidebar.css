@@ -14,11 +14,19 @@
   display: flex;
   flex-direction: column;
   padding: 28px 18px 20px;
-  background: #ffffff;
+  background: linear-gradient(#fff9fd 50%, #fce7f8);
+  color: #4f128d;
+  font-family: "MindSpring Admin Nunito", "Segoe UI", sans-serif;
   border-right: 1px solid #f3e6f2;
   box-shadow: 4px 0 20px rgba(100, 55, 130, 0.04);
   z-index: 1000;
   overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.admin-sidebar *,
+.admin-sidebar *::before,
+.admin-sidebar *::after {
   box-sizing: border-box;
 }
 
@@ -51,7 +59,7 @@
 
 .admin-sidebar-label {
   margin: 28px 10px 12px;
-  color: #b09dbb;
+  color: #6c4a87;
   font-size: 10px;
   font-weight: 900;
   letter-spacing: 1.5px;
@@ -74,7 +82,8 @@
   min-height: 46px;
   padding: 11px 13px;
   border-radius: 12px;
-  color: #766783;
+  box-sizing: border-box;
+  color: #4f128d;
   text-decoration: none;
   font-size: 13px;
   font-weight: 700;
@@ -86,38 +95,39 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #a78bc5;
+  color: #8246b3;
   font-size: 17px;
   flex-shrink: 0;
 }
 
-.admin-nav-link:hover {
-  background: #fff0f7;
-  color: #d63384;
-  transform: translateX(3px);
+.admin-nav-link svg {
+  width: 20px;
+  height: 20px;
 }
 
-.admin-nav-link:hover span {
-  color: #e84393;
+.admin-nav-link:hover {
+  background: #fff0f7;
+  transform: translateX(3px);
 }
 
 /* =========================================
    ACTIVE NAVIGATION LINK
 ========================================= */
 
+.admin-sidebar .admin-nav-link:focus-visible {
+  outline: 2px solid #793cd6;
+  outline-offset: 2px;
+}
+
 .admin-nav-link.active {
-  background: linear-gradient(
-    110deg,
-    #ffe4f0,
-    #f0e7ff
-  );
-  color: #713bb0;
+  background: linear-gradient(105deg, #fbd7f0, #fbe4fa);
+  color: #4f128d;
   font-weight: 900;
   box-shadow: 0 4px 12px rgba(150, 85, 170, 0.06);
 }
 
 .admin-nav-link.active span {
-  color: #e84393;
+  color: #d71d86;
 }
 
 /* =========================================
@@ -126,8 +136,9 @@
 
 .admin-sidebar-bottom {
   margin-top: auto;
-  padding: 20px 10px 5px;
+  padding: 20px 0 5px;
   border-top: 1px solid #f4eaf4;
+  text-align: center;
 }
 
 .admin-sidebar-bottom p {
@@ -138,8 +149,27 @@
 }
 
 .admin-sidebar-bottom span {
-  color: #a493b0;
+  color: #6c4a87;
   font-size: 11px;
+}
+
+/* The artwork occupies the bottom 235 pixels of the 261 × 735 PNG. */
+.admin-sidebar-art-frame {
+  position: relative;
+  aspect-ratio: 261 / 235;
+  overflow: hidden;
+  margin-bottom: 10px;
+  border-radius: 20px;
+}
+
+.admin-sidebar-art {
+  position: absolute;
+  inset: auto 0 0;
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  object-position: center bottom;
 }
 
 /* =========================================
@@ -185,56 +215,84 @@
    MOBILE RESPONSIVE
 ========================================= */
 
-@media (max-width: 600px) {
+.admin-menu-toggle {
+  display: none;
+}
+
+@media (max-width: 760px) {
   .admin-sidebar {
+    position: sticky;
+    top: 0;
     width: 100%;
     min-width: 0;
-    height: auto;
-    min-height: 100vh;
-    position: relative;
-    padding: 18px;
-    border-right: none;
+    height: 62px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px 4%;
+    border-right: 0;
     border-bottom: 1px solid #f3e6f2;
+    overflow: visible;
   }
 
   .admin-brand {
-    min-height: 75px;
-    padding: 5px 8px 18px;
+    width: auto;
+    min-height: 0;
+    padding: 0;
+    border: 0;
   }
 
   .admin-brand-logo {
-    width: 180px;
-    height: 65px;
+    width: 125px;
+    height: 46px;
   }
 
-  .admin-sidebar-label {
-    margin-top: 18px;
+  .admin-menu-toggle {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 1px solid #efd9ff;
+    border-radius: 12px;
+    background: #fff;
+    color: #4f128d;
+    cursor: pointer;
   }
 
+  .admin-menu-toggle:focus-visible {
+    outline: 2px solid #793cd6;
+    outline-offset: 2px;
+  }
+
+  .admin-sidebar-label,
+  .admin-sidebar-bottom,
   .admin-navigation {
-    gap: 5px;
+    display: none;
   }
 
-  .admin-sidebar-bottom {
-    margin-top: 25px;
-  }
-}
-
-/* =========================================
-   SMALL MOBILE
-========================================= */
-
-@media (max-width: 380px) {
-  .admin-sidebar {
-    padding: 15px;
-  }
-
-  .admin-brand-logo {
-    width: 160px;
-    height: 60px;
+  .admin-sidebar.is-open .admin-navigation {
+    position: absolute;
+    inset: calc(100% + 4px) 4% auto;
+    display: flex;
+    gap: 4px;
+    max-height: calc(100dvh - 76px);
+    padding: 12px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border: 1px solid #f3e2ff;
+    border-radius: 20px;
+    background: #fff;
+    box-shadow: 0 14px 30px #42147d20;
   }
 
-  .admin-nav-link {
-    font-size: 12px;
+  .admin-sidebar .admin-nav-link {
+    flex-shrink: 0;
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+
+  html:has(.admin-sidebar.is-open) {
+    overflow: hidden;
   }
 }

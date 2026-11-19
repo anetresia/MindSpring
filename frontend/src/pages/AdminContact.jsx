@@ -4,7 +4,6 @@ import { CalendarDays, Check, Clock, Mail, MailOpen, RefreshCw, Search, Send } f
 import AdminSidebar from "../components/admin/AdminSidebar";
 import AdminHeader from "../components/admin/AdminHeader";
 import { API_URL, getAuthHeaders } from "../api";
-import welcomeArt from "../assets/contact-welcome.png";
 import "../styles/admin/admin-contact.css";
 
 function AdminContact() {
@@ -163,14 +162,10 @@ function AdminContact() {
       <AdminSidebar illustrated />
 
       <main className="admin-main">
-        <div className="contact-hero">
-          <img src={welcomeArt} alt="" className="contact-hero-art" />
-          <AdminHeader title="Contact Messages" />
-          <p className="contact-hero-description">
-            View and manage messages from parents and users.
-          </p>
-        </div>
-
+        <AdminHeader
+          title="Contact Messages"
+          subtitle="View and manage messages from parents and users."
+        />
         <div className="admin-contact-page">
           <div className="contact-stats">
             <div className="contact-stat-card">

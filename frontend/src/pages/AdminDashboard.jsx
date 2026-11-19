@@ -66,7 +66,7 @@ function AdminDashboard() {
       <AdminSidebar illustrated />
 
       <main className="admin-main">
-        <AdminHeader title="Dashboard" confirmLogout />
+        <AdminHeader title="Dashboard" />
 
         <div className="admin-dashboard-content">
 

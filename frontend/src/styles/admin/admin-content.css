@@ -1467,10 +1467,6 @@
   --content-action: linear-gradient(110deg, #d82080, #bd086f);
 }
 
-.admin-content-layout .admin-header h1 {
-  font-size: clamp(26px, 2.8vw, 39px);
-}
-
 .admin-content-layout .admin-content-page {
   padding: 6px var(--admin-inset) 44px;
   color: var(--content-ink);

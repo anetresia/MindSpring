@@ -12,78 +12,6 @@
   background: radial-gradient(ellipse at bottom right, #fbe6fa, #fbf5fc 72%);
 }
 
-.admin-subscription-layout .admin-header {
-  max-width: 1640px;
-  margin-inline: auto;
-  padding-inline: clamp(14px, 2vw, 30px);
-  background: transparent;
-  border: 0;
-  box-shadow: none;
-}
-
-.admin-subscription-layout .admin-header h1 {
-  color: var(--sub-ink);
-  font-size: clamp(24px, 2.1vw, 36px);
-  font-weight: 950;
-}
-
-.admin-subscription-layout .admin-header > div:first-child p,
-.admin-subscription-layout .admin-user-info span,
-.admin-subscription-layout .admin-sidebar-bottom span {
-  color: var(--sub-muted);
-  font-size: 14px;
-}
-
-.admin-subscription-layout .admin-user-info strong,
-.admin-subscription-layout .admin-nav-link,
-.admin-subscription-layout .admin-sidebar-bottom p {
-  color: var(--sub-ink);
-  font-size: 15px;
-  font-weight: 850;
-}
-
-.admin-subscription-layout .admin-logout-btn {
-  min-height: 44px;
-  border-color: #f45aa5;
-  border-radius: 20px;
-  color: #b60053;
-  font: inherit;
-  font-weight: 850;
-}
-
-.admin-subscription-layout .admin-sidebar {
-  background: linear-gradient(160deg, #fbe6fa, #fff4ff 45%, #fae0f8);
-}
-
-.admin-subscription-layout .admin-nav-link {
-  box-sizing: border-box;
-  min-height: 53px;
-}
-
-.admin-subscription-layout .admin-nav-link span {
-  color: var(--sub-ink);
-}
-
-.admin-subscription-layout .admin-nav-link.active {
-  background: #fbd0ef;
-}
-
-.admin-subscription-layout .admin-nav-link.active span {
-  color: var(--sub-pink);
-}
-
-.admin-subscription-layout .admin-sidebar-bottom {
-  text-align: center;
-}
-
-.admin-subscription-layout .admin-sidebar-art {
-  display: block;
-  width: 100%;
-  max-height: 135px;
-  margin-bottom: 8px;
-  object-fit: contain;
-}
-
 .admin-subscription-content {
   box-sizing: border-box;
   max-width: 1640px;
@@ -879,25 +807,5 @@
 
   .admin-sub-modal {
     padding: 20px;
-  }
-}
-
-@media (max-width: 600px) {
-  .admin-subscription-layout .admin-sidebar {
-    min-height: 0;
-  }
-
-  .admin-subscription-layout .admin-sidebar-bottom {
-    display: none;
-  }
-
-  .admin-subscription-layout .admin-navigation {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .admin-subscription-layout .admin-nav-link {
-    min-height: 44px;
-    font-size: 12px;
   }
 }
