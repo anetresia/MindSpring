@@ -1,8 +1,10 @@
 
 import { useEffect, useState } from "react";
+import { CalendarDays, Check, Clock, Mail, MailOpen, RefreshCw, Search, Send } from "lucide-react";
 import AdminSidebar from "../components/admin/AdminSidebar";
 import AdminHeader from "../components/admin/AdminHeader";
 import { API_URL, getAuthHeaders } from "../api";
+import welcomeArt from "../assets/contact-welcome.png";
 import "../styles/admin/admin-contact.css";
 
 function AdminContact() {
@@ -157,249 +159,239 @@ function AdminContact() {
   }
 
   return (
-    <div className="admin-layout">
-      <AdminSidebar />
+    <div className="admin-layout admin-contact-layout">
+      <AdminSidebar illustrated />
 
       <main className="admin-main">
-        <AdminHeader title="Contact Messages" />
+        <div className="contact-hero">
+          <img src={welcomeArt} alt="" className="contact-hero-art" />
+          <AdminHeader title="Contact Messages" />
+          <p className="contact-hero-description">
+            View and manage messages from parents and users.
+          </p>
+        </div>
 
         <div className="admin-contact-page">
-          <div className="admin-contact-heading">
-            <div>
-              <h2>Contact Us Messages</h2>
-              <p>
-                View messages submitted through the MindSpring website
-                and reply to parents.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              className="contact-refresh-btn"
-              onClick={loadMessages}
-              disabled={loading}
-            >
-              ↻ Refresh
-            </button>
-          </div>
-
           <div className="contact-stats">
             <div className="contact-stat-card">
-              <span>Total Messages</span>
-              <strong>{messages.length}</strong>
+              <span className="contact-stat-icon"><Mail aria-hidden="true" /></span>
+              <div>Total Messages<strong>{messages.length}</strong></div>
             </div>
 
             <div className="contact-stat-card">
-              <span>Awaiting Reply</span>
-              <strong>{unreadCount}</strong>
+              <span className="contact-stat-icon"><Clock aria-hidden="true" /></span>
+              <div>Pending<strong>{unreadCount}</strong></div>
             </div>
 
             <div className="contact-stat-card">
-              <span>Replied</span>
-              <strong>{repliedCount}</strong>
+              <span className="contact-stat-icon"><Check aria-hidden="true" /></span>
+              <div>Replied<strong>{repliedCount}</strong></div>
             </div>
           </div>
 
           {error && (
-            <div className="contact-alert contact-alert-error">
+            <div className="contact-alert contact-alert-error" role="alert">
               {error}
             </div>
           )}
 
           {success && (
-            <div className="contact-alert contact-alert-success">
+            <div className="contact-alert contact-alert-success" role="status">
               {success}
             </div>
           )}
 
-          <div className="contact-toolbar">
-            <input
-              type="text"
-              placeholder="Search name, email or subject..."
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-            />
+          <section className="contact-workspace" aria-labelledby="contact-messages-heading">
+            <div className="contact-workspace-header">
+              <div>
+                <h2 id="contact-messages-heading">Messages</h2>
+                <p>View and reply to messages from parents.</p>
+              </div>
+              <div className="contact-toolbar">
+                <label className="contact-search">
+                  <Search aria-hidden="true" />
+                  <input
+                    type="text"
+                    aria-label="Search messages"
+                    placeholder="Search by name, email or subject..."
+                    value={search}
+                    onChange={(event) => setSearch(event.target.value)}
+                  />
+                </label>
 
-            <select
-              value={filter}
-              onChange={(event) => setFilter(event.target.value)}
-            >
-              <option value="All">All Messages</option>
-              <option value="Unread">Awaiting Reply</option>
-              <option value="Replied">Replied</option>
-            </select>
-          </div>
-
-          {loading ? (
-            <div className="contact-empty">
-              Loading contact messages...
+                <select
+                  aria-label="Filter messages by status"
+                  value={filter}
+                  onChange={(event) => setFilter(event.target.value)}
+                >
+                  <option value="All">All Messages</option>
+                  <option value="Unread">Awaiting Reply</option>
+                  <option value="Replied">Replied</option>
+                </select>
+                <button
+                  type="button"
+                  className="contact-refresh-btn"
+                  onClick={loadMessages}
+                  disabled={loading}
+                >
+                  <RefreshCw aria-hidden="true" /> Refresh
+                </button>
+              </div>
             </div>
-          ) : filteredMessages.length === 0 ? (
-            <div className="contact-empty">
-              <span>✉️</span>
-              <h3>No contact messages found</h3>
-              <p>
-                Messages submitted through the Contact Us form
-                will appear here.
-              </p>
-            </div>
-          ) : (
-            <div className="contact-content">
-              <section className="contact-message-list">
-                <div className="contact-section-heading">
-                  <h3>Messages</h3>
-                  <span>{filteredMessages.length} messages</span>
-                </div>
 
-                {filteredMessages.map((message) => (
-                  <button
-                    type="button"
-                    key={message.id}
-                    className={`contact-message-item ${
-                      selectedMessage?.id === message.id
-                        ? "selected"
-                        : ""
-                    }`}
-                    onClick={() => openMessage(message)}
-                  >
-                    <div className="contact-message-top">
-                      <strong>{message.name}</strong>
-
-                      <span
-                        className={`contact-status ${
-                          message.status === "Replied"
-                            ? "replied"
-                            : "unread"
-                        }`}
-                      >
-                        {message.status || "Unread"}
+            {loading ? (
+              <div className="contact-empty">
+                Loading contact messages...
+              </div>
+            ) : filteredMessages.length === 0 ? (
+              <div className="contact-empty">
+                <Mail aria-hidden="true" />
+                <h3>No contact messages found</h3>
+                <p>
+                  Messages submitted through the Contact Us form
+                  will appear here.
+                </p>
+              </div>
+            ) : (
+              <div className="contact-content">
+                <section className="contact-message-list" aria-label={`${filteredMessages.length} messages`}>
+                  {filteredMessages.map((message) => (
+                    <button
+                      type="button"
+                      key={message.id}
+                      className={`contact-message-item ${
+                        selectedMessage?.id === message.id
+                          ? "selected"
+                          : ""
+                      }`}
+                      aria-pressed={selectedMessage?.id === message.id}
+                      onClick={() => openMessage(message)}
+                    >
+                      <span className="contact-avatar" aria-hidden="true">
+                        {(message.name || "?").charAt(0).toUpperCase()}
                       </span>
+                      <span className="contact-message-summary">
+                        <strong>{message.name}</strong>
+                        <span className="contact-message-subject">
+                          {message.subject || message.message}
+                        </span>
+                        <span className="contact-message-email">{message.email}</span>
+                      </span>
+                      <span className="contact-message-meta">
+                        <small>{formatDate(message.created_at)}</small>
+                        <span
+                          className={`contact-status ${
+                            message.status === "Replied"
+                              ? "replied"
+                              : "unread"
+                          }`}
+                        >
+                          {message.status || "Unread"}
+                        </span>
+                      </span>
+                    </button>
+                  ))}
+                </section>
+
+                <section className="contact-detail-panel">
+                  {!selectedMessage ? (
+                    <div className="contact-select-message">
+                      <MailOpen aria-hidden="true" />
+                      <h3>Select a message</h3>
+                      <p>
+                        Select a message from the list to view its
+                        details and send a reply.
+                      </p>
                     </div>
+                  ) : (
+                    <>
+                      <div className="contact-detail-heading">
+                        <div className="contact-sender-details">
+                          <div className="contact-avatar">
+                            {(selectedMessage.name || "?")
+                              .charAt(0)
+                              .toUpperCase()}
+                          </div>
 
-                    <span className="contact-message-email">
-                      {message.email}
-                    </span>
-
-                    <strong className="contact-message-subject">
-                      {message.subject}
-                    </strong>
-
-                    <p>{message.message}</p>
-
-                    <small>{formatDate(message.created_at)}</small>
-                  </button>
-                ))}
-              </section>
-
-              <section className="contact-detail-panel">
-                {!selectedMessage ? (
-                  <div className="contact-select-message">
-                    <span>📩</span>
-                    <h3>Select a message</h3>
-                    <p>
-                      Select a message from the list to view its
-                      details and send a reply.
-                    </p>
-                  </div>
-                ) : (
-                  <>
-                    <div className="contact-detail-heading">
-                      <div>
-                        <span>CONTACT MESSAGE</span>
-                        <h2>{selectedMessage.subject}</h2>
+                          <div>
+                            <strong>{selectedMessage.name}</strong>
+                            <a href={`mailto:${selectedMessage.email}`}>
+                              {selectedMessage.email}
+                            </a>
+                          <small>
+                            <CalendarDays aria-hidden="true" />
+                            {formatDate(selectedMessage.created_at)}
+                          </small>
+                          </div>
                       </div>
-
-                      <span
-                        className={`contact-status ${
-                          selectedMessage.status === "Replied"
-                            ? "replied"
-                            : "unread"
-                        }`}
-                      >
+                      <span className={`contact-status ${selectedMessage.status === "Replied" ? "replied" : "unread"}`}>
                         {selectedMessage.status || "Unread"}
                       </span>
-                    </div>
-
-                    <div className="contact-sender-details">
-                      <div className="contact-avatar">
-                        {(selectedMessage.name || "?")
-                          .charAt(0)
-                          .toUpperCase()}
                       </div>
 
-                      <div>
-                        <strong>{selectedMessage.name}</strong>
-                        <a href={`mailto:${selectedMessage.email}`}>
-                          {selectedMessage.email}
-                        </a>
-                      </div>
-                    </div>
-
-                    <div className="contact-original-message">
-                      <div className="contact-original-heading">
-                        <strong>Original Message</strong>
-                        <small>
-                          {formatDate(selectedMessage.created_at)}
-                        </small>
+                      <div className="contact-original-message">
+                        {selectedMessage.subject && <h3>{selectedMessage.subject}</h3>}
+                        <p>{selectedMessage.message}</p>
                       </div>
 
-                      <p>{selectedMessage.message}</p>
-                    </div>
+                      {selectedMessage.admin_reply && (
+                        <div className="contact-previous-reply">
+                          <strong>Previous Admin Reply</strong>
+                          <p>{selectedMessage.admin_reply}</p>
 
-                    {selectedMessage.admin_reply && (
-                      <div className="contact-previous-reply">
-                        <strong>Previous Admin Reply</strong>
-                        <p>{selectedMessage.admin_reply}</p>
+                          {selectedMessage.replied_at && (
+                            <small>
+                              Replied on:{" "}
+                              {formatDate(selectedMessage.replied_at)}
+                            </small>
+                          )}
+                        </div>
+                      )}
 
-                        {selectedMessage.replied_at && (
-                          <small>
-                            Replied on:{" "}
-                            {formatDate(selectedMessage.replied_at)}
-                          </small>
-                        )}
-                      </div>
-                    )}
-
-                    <form
-                      className="contact-reply-form"
-                      onSubmit={handleReplySubmit}
-                    >
-                      <label htmlFor="admin-contact-reply">
-                        {selectedMessage.admin_reply
-                          ? "Update Reply"
-                          : "Write Your Reply"}
-                      </label>
-
-                      <textarea
-                        id="admin-contact-reply"
-                        value={reply}
-                        onChange={(event) =>
-                          setReply(event.target.value)
-                        }
-                        placeholder="Type your reply here..."
-                        rows={6}
-                        maxLength={5000}
-                        required
-                      />
-
-                      <small>{reply.length}/5000 characters</small>
-
-                      <button
-                        type="submit"
-                        disabled={saving || !reply.trim()}
+                      <form
+                        className="contact-reply-form"
+                        onSubmit={handleReplySubmit}
                       >
-                        {saving
-                          ? "Sending..."
-                          : selectedMessage.admin_reply
-                          ? "Update Reply"
-                          : "Send Reply"}
-                      </button>
-                    </form>
-                  </>
-                )}
-              </section>
-            </div>
-          )}
+                        <label htmlFor="admin-contact-reply">
+                          {selectedMessage.admin_reply
+                            ? "Update Reply"
+                            : "Your Reply"}
+                        </label>
+
+                        <textarea
+                          id="admin-contact-reply"
+                          value={reply}
+                          onChange={(event) =>
+                            setReply(event.target.value)
+                          }
+                          placeholder="Type your reply here..."
+                          rows={3}
+                          maxLength={5000}
+                          required
+                        />
+
+                        <div className="contact-reply-actions">
+                          <small>{reply.length}/5000 characters</small>
+
+                          <button
+                            type="submit"
+                            disabled={saving || !reply.trim()}
+                          >
+                            <Send aria-hidden="true" />
+                            {saving
+                              ? "Sending..."
+                              : selectedMessage.admin_reply
+                              ? "Update Reply"
+                              : "Send Reply"}
+                          </button>
+                        </div>
+                      </form>
+                    </>
+                  )}
+                </section>
+              </div>
+            )}
+          </section>
         </div>
       </main>
     </div>
