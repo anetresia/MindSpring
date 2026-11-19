@@ -1,10 +1,12 @@
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 import {
   getSubscriptionPlans,
   getMySubscription,
   createStripeCheckout,
+  cancelStripeCheckout,
 } from "../../api";
 
 import "../../styles/parent-dashboard/subscription.css";
@@ -77,6 +79,7 @@ function Subscription() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const stripeStatus = params.get("stripe");
+    const sessionId = params.get("session_id");
 
     if (stripeStatus === "success") {
       setPaymentNotice(
@@ -87,11 +90,7 @@ function Subscription() {
     }
 
     if (stripeStatus === "cancelled") {
-      setPaymentNotice(
-        "Payment was cancelled. No credits have been added to your account."
-      );
-
-      sessionStorage.removeItem("mindspring_pending_plan_id");
+      handleStripeCancellation(sessionId);
     }
 
     if (stripeStatus) {
@@ -108,6 +107,40 @@ function Subscription() {
       window.history.replaceState({}, "", cleanUrl);
     }
   }, []);
+
+  // HANDLE IMMEDIATE STRIPE CANCELLATION
+  async function handleStripeCancellation(sessionId) {
+    if (!sessionId) {
+      setPaymentNotice(
+        "Payment was cancelled, but the Stripe session ID was not received. Please contact support if your payment status is unclear."
+      );
+      return;
+    }
+
+    try {
+      setPaymentNotice(
+        "Cancelling your payment session. Please wait..."
+      );
+
+      const response = await cancelStripeCheckout(sessionId);
+
+      sessionStorage.removeItem("mindspring_pending_plan_id");
+
+      setPaymentNotice(
+        response.message ||
+          "Payment cancelled successfully. No credits have been added."
+      );
+
+      await loadSubscriptionData(false);
+    } catch (err) {
+      console.error("Stripe cancellation error:", err);
+
+      setPaymentNotice(
+        err.message ||
+          "Unable to confirm payment cancellation. Please try again or contact support."
+      );
+    }
+  }
 
   // VERIFY PAYMENT AFTER STRIPE RETURN
   async function verifySubscriptionAfterPayment() {
@@ -490,7 +523,7 @@ function Subscription() {
         </div>
 
         {/* PLAN CONFIRMATION POPUP */}
-        {selectedPlan && (
+        {selectedPlan && createPortal(
           <div
             className="subscription-modal-overlay"
             onClick={handleClosePopup}
@@ -609,7 +642,8 @@ function Subscription() {
                 </button>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
 
         {/* FOOTER BENEFITS */}

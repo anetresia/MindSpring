@@ -1,11 +1,11 @@
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Ban, Check, Clock, CreditCard, Crown, Pencil, Plus, Users } from "lucide-react";
 
 import AdminSidebar from "../components/admin/AdminSidebar";
 import AdminHeader from "../components/admin/AdminHeader";
 
-import { API_URL, getAuthHeaders } from "../api";
+import { API_URL, getAdminParent, getAuthHeaders } from "../api";
 import welcomeArt from "../assets/subscription-welcome.png";
 import totalArt from "../assets/subscription-total-plans.png";
 import activeArt from "../assets/subscription-active.png";
@@ -21,6 +21,138 @@ const planArtwork = {
   books: booksArt,
   premium: premiumArt,
 };
+
+const subscriptionTotals = [
+  ["total", "Subscription records"],
+  ["active", "Active"],
+  ["pending", "Pending"],
+  ["expired", "Expired"],
+  ["cancelled", "Cancelled"],
+];
+
+function matchesSearch(query, values) {
+  return values.some((value) =>
+    String(value ?? "").toLowerCase().includes(query.trim().toLowerCase())
+  );
+}
+
+function RecordFilters({ search, status, onChange, searchLabel, statusLabel, statuses, formatStatus }) {
+  return (
+    <div className="admin-sub-record-filters">
+      <label>
+        {searchLabel}
+        <input
+          type="search"
+          value={search}
+          onChange={(event) => onChange({ search: event.target.value, status })}
+        />
+      </label>
+      <label>
+        {statusLabel}
+        <select value={status} onChange={(event) => onChange({ search, status: event.target.value })}>
+          <option value="">All</option>
+          {statuses.map((value) => (
+            <option key={value} value={value}>{formatStatus(value)}</option>
+          ))}
+        </select>
+      </label>
+    </div>
+  );
+}
+
+function SubscriberDetails({ subscriber, onClose, formatDate, formatStatus, formatPrice }) {
+  const dialog = useRef(null);
+  const titleId = useId();
+  const parentId = subscriber.parent?.user_id;
+  const [household, setHousehold] = useState(null);
+  const [householdError, setHouseholdError] = useState("");
+
+  useEffect(() => {
+    dialog.current.showModal();
+  }, []);
+
+  useEffect(() => {
+    if (parentId == null) return;
+
+    let current = true;
+    getAdminParent(parentId).then((response) => {
+      if (current) setHousehold(response.parent);
+    }).catch((error) => {
+      if (current) setHouseholdError(error.message || "Unable to load household details.");
+    });
+    return () => {
+      current = false;
+    };
+  }, [parentId]);
+
+  const plan = subscriber.plan;
+  const credits = subscriber.credits;
+  const payments = subscriber.payments ?? [];
+
+  return (
+    <dialog ref={dialog} className="admin-sub-modal admin-sub-details" onClose={onClose} aria-labelledby={titleId}>
+      <div className="admin-sub-modal-header">
+        <div>
+          <h2 id={titleId}>Subscription #{subscriber.subscription_id}</h2>
+          <p>{subscriber.parent?.name || "Parent unavailable"}</p>
+        </div>
+        <button type="button" aria-label="Close subscription details" onClick={() => dialog.current.close()}>
+          ×
+        </button>
+      </div>
+      <dl className="admin-sub-details-grid">
+        <div><dt>Stored status</dt><dd>{formatStatus(subscriber.status)}</dd></div>
+        <div><dt>Plan</dt><dd>{plan?.plan_name ?? "—"}</dd></div>
+        <div><dt>Plan code</dt><dd>{plan?.plan_code ?? "—"}</dd></div>
+        <div><dt>Plan type</dt><dd>{plan ? formatStatus(plan.plan_type) : "—"}</dd></div>
+        <div><dt>Created</dt><dd>{formatDate(subscriber.created_at)}</dd></div>
+        <div><dt>Starts</dt><dd>{formatDate(subscriber.starts_at)}</dd></div>
+        <div><dt>Ends</dt><dd>{subscriber.expires_at ? formatDate(subscriber.expires_at) : "No end date recorded"}</dd></div>
+        <div><dt>Shared credits</dt><dd>{credits ? `${credits.remaining} remaining · ${credits.used} used · ${credits.total} total` : "—"}</dd></div>
+      </dl>
+      <section>
+        <h3>Household</h3>
+        <p>Plan child limit: {plan?.max_children ?? "—"}</p>
+        {parentId == null ? <p>Parent details unavailable.</p> : householdError ? (
+          <p role="alert">{householdError}</p>
+        ) : household ? (
+          <>
+            <p>Registered children: {household.children_count}</p>
+            {household.children?.length > 0 && (
+              <ul>
+                {household.children.map((child) => <li key={child.child_id}>{child.child_name}</li>)}
+              </ul>
+            )}
+          </>
+        ) : <p role="status">Loading household details…</p>}
+      </section>
+      <section>
+        <h3>Linked payments</h3>
+        {payments.length ? (
+          <div className="admin-sub-table-wrapper">
+            <table className="admin-sub-table admin-sub-details-table">
+              <thead>
+                <tr><th>Payment ID</th><th>Amount</th><th>Provider</th><th>Status</th><th>Created</th><th>Verified</th></tr>
+              </thead>
+              <tbody>
+                {payments.map((payment) => (
+                  <tr key={payment.payment_id}>
+                    <td>{payment.payment_id}</td>
+                    <td>{payment.currency} {formatPrice(payment.amount_lkr)}</td>
+                    <td>{payment.provider}</td>
+                    <td>{formatStatus(payment.status)}</td>
+                    <td>{formatDate(payment.created_at)}</td>
+                    <td>{formatDate(payment.verified_at)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : <p>No linked payments.</p>}
+      </section>
+    </dialog>
+  );
+}
 
 function PlanStat({ label, count, icon: Icon, artwork, tone }) {
   return (
@@ -39,7 +171,12 @@ function AdminSubscriptions() {
   const [activeTab, setActiveTab] = useState("plans");
 
   const [plans, setPlans] = useState([]);
-  const [subscribers, setSubscribers] = useState([]);
+  const [subscriberData, setSubscriberData] = useState(null);
+  const subscribers = subscriberData?.subscribers;
+  const [selectedSubscriber, setSelectedSubscriber] = useState(null);
+  const [planFilters, setPlanFilters] = useState({ search: "", status: "" });
+  const [subscriberFilters, setSubscriberFilters] = useState({ search: "", status: "" });
+  const [paymentFilters, setPaymentFilters] = useState({ search: "", status: "" });
 
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -169,7 +306,7 @@ function AdminSubscriptions() {
         { method: "GET" }
       );
 
-      setSubscribers(data.subscribers || []);
+      setSubscriberData(data);
     } catch (err) {
       setError(err.message || "Unable to load subscribers.");
     }
@@ -440,10 +577,17 @@ function AdminSubscriptions() {
   // SUBSCRIBER STATISTICS
   // ========================================
 
-  const activeSubscribers = subscribers.filter(
-    (item) =>
-      String(item.status || "").toUpperCase() === "ACTIVE"
-  ).length;
+  const visiblePlans = plans.filter((plan) =>
+    (!planFilters.status || plan.status === planFilters.status) &&
+    matchesSearch(planFilters.search, [plan.name, plan.code, plan.type])
+  );
+  const visibleSubscribers = (subscribers ?? []).filter((item) =>
+    (!subscriberFilters.status || item.status === subscriberFilters.status) &&
+    matchesSearch(subscriberFilters.search, [
+      item.subscription_id, item.parent?.name, item.parent?.email,
+      item.parent?.phone, item.plan?.plan_name, item.plan?.plan_code,
+    ])
+  );
 
   // ========================================
   // PAYMENT HISTORY
@@ -452,7 +596,7 @@ function AdminSubscriptions() {
   const paymentHistory = useMemo(() => {
     const result = [];
 
-    subscribers.forEach((subscriber) => {
+    (subscribers ?? []).forEach((subscriber) => {
       const payments =
         subscriber.payment_history ||
         subscriber.payments ||
@@ -487,6 +631,17 @@ function AdminSubscriptions() {
       );
     });
   }, [subscribers]);
+
+  const paymentStatuses = [...new Set(paymentHistory.map((payment) =>
+    payment.payment_status || payment.status
+  ).filter(Boolean))].sort();
+  const visiblePayments = paymentHistory.filter((payment) =>
+    (!paymentFilters.status || (payment.payment_status || payment.status) === paymentFilters.status) &&
+    matchesSearch(paymentFilters.search, [
+      payment.parent_name, payment.parent_email, payment.plan_name,
+      payment.payment_id, payment.provider, payment.currency,
+    ])
+  );
 
   // ========================================
   // REFRESH CURRENT TAB
@@ -636,17 +791,26 @@ function AdminSubscriptions() {
 
                 </div>
 
-                {plans.length === 0 ? (
+                <RecordFilters
+                  {...planFilters}
+                  onChange={setPlanFilters}
+                  searchLabel="Search by plan name, code, or type"
+                  statusLabel="Plan availability"
+                  statuses={["Active", "Inactive"]}
+                  formatStatus={getStatus}
+                />
+
+                {visiblePlans.length === 0 ? (
                   <div className="admin-subscription-empty">
                     <span>♛</span>
-                    <h2>No Subscription Plans</h2>
+                    <h2>{plans.length ? "No matching plans" : "No Subscription Plans"}</h2>
                     <p>
-                      No plans were found in the database.
+                      {plans.length ? "Try a different search or availability." : "No plans were found in the database."}
                     </p>
                   </div>
                 ) : (
                   <div className="admin-plan-grid">
-                    {plans.map((plan) => {
+                    {visiblePlans.map((plan) => {
                       const tone = plan.type === "FREE"
                         ? "free"
                         : /\bpro\b|\bpremium\b/i.test(plan.name)
@@ -675,6 +839,9 @@ function AdminSubscriptions() {
                           </div>
 
                           <h3>{plan.name}</h3>
+                          <p className="admin-sub-plan-meta">
+                            {plan.code} · {getStatus(plan.type)} · {getStatus(plan.billingType)}
+                          </p>
 
                           <h2>
                             LKR {formatPrice(plan.price)}
@@ -748,26 +915,34 @@ function AdminSubscriptions() {
                   </button>
                 </div>
 
-                <div className="admin-subscription-stats">
-                  <div className="admin-sub-stat-card">
-                    <span>♙</span>
-                    <p>Total Subscriptions</p>
-                    <h3>{subscribers.length}</h3>
-                  </div>
+                {subscriberData && (
+                  <dl className="admin-sub-record-totals" aria-label="Stored subscription status totals">
+                    {subscriptionTotals.map(([key, label]) => (
+                      <div key={key}>
+                        <dt>{label}</dt>
+                        <dd>{subscriberData[key]}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                )}
 
-                  <div className="admin-sub-stat-card">
-                    <span>✓</span>
-                    <p>Active Subscriptions</p>
-                    <h3>{activeSubscribers}</h3>
-                  </div>
-                </div>
+                <RecordFilters
+                  {...subscriberFilters}
+                  onChange={setSubscriberFilters}
+                  searchLabel="Search by parent, plan, or subscription ID"
+                  statusLabel="Subscription status"
+                  statuses={subscriptionTotals.slice(1).map(([key]) => key.toUpperCase())}
+                  formatStatus={getStatus}
+                />
 
-                {subscribers.length === 0 ? (
+                {visibleSubscribers.length === 0 ? (
                   <div className="admin-subscription-empty">
                     <span>♙</span>
-                    <h2>No Subscribers Found</h2>
+                    <h2>{subscribers?.length ? "No matching subscriptions" : "No Subscribers Found"}</h2>
                     <p>
-                      Parent subscription records will appear here.
+                      {subscribers?.length
+                        ? "Try a different search or subscription status."
+                        : "Parent subscription records will appear here."}
                     </p>
                   </div>
                 ) : (
@@ -781,11 +956,12 @@ function AdminSubscriptions() {
                           <th>Status</th>
                           <th>Start Date</th>
                           <th>End Date</th>
+                          <th>Details</th>
                         </tr>
                       </thead>
 
                       <tbody>
-                        {subscribers.map((item, index) => {
+                        {visibleSubscribers.map((item, index) => {
                           // Backend response shape:
                           // parent: { name, email, phone }
                           // plan: { plan_name, ... }
@@ -853,6 +1029,16 @@ function AdminSubscriptions() {
                               <td>
                                 {formatDate(item.expires_at)}
                               </td>
+                              <td>
+                                <button
+                                  type="button"
+                                  className="admin-sub-cancel-btn admin-sub-details-trigger"
+                                  aria-label={`View subscription ${item.subscription_id} details`}
+                                  onClick={() => setSelectedSubscriber(item)}
+                                >
+                                  View details
+                                </button>
+                              </td>
                             </tr>
                           );
                         })}
@@ -887,12 +1073,23 @@ function AdminSubscriptions() {
                   </button>
                 </div>
 
-                {paymentHistory.length === 0 ? (
+                <RecordFilters
+                  {...paymentFilters}
+                  onChange={setPaymentFilters}
+                  searchLabel="Search by parent, plan, provider, or payment ID"
+                  statusLabel="Payment status"
+                  statuses={paymentStatuses}
+                  formatStatus={getStatus}
+                />
+
+                {visiblePayments.length === 0 ? (
                   <div className="admin-subscription-empty">
                     <span>▤</span>
-                    <h2>No Payment Records</h2>
+                    <h2>{paymentHistory.length ? "No matching payments" : "No Payment Records"}</h2>
                     <p>
-                      Payment records will appear here when available.
+                      {paymentHistory.length
+                        ? "Try a different search or payment status."
+                        : "Payment records will appear here when available."}
                     </p>
                   </div>
                 ) : (
@@ -903,14 +1100,16 @@ function AdminSubscriptions() {
                           <th>Parent</th>
                           <th>Plan</th>
                           <th>Amount</th>
+                          <th>Provider</th>
                           <th>Payment Status</th>
-                          <th>Payment Date</th>
-                          <th>Reference</th>
+                          <th>Created</th>
+                          <th>Verified</th>
+                          <th>Payment ID</th>
                         </tr>
                       </thead>
 
                       <tbody>
-                        {paymentHistory.map((payment, index) => {
+                        {visiblePayments.map((payment, index) => {
                           const amount =
                             payment.amount_lkr ??
                             payment.amount ??
@@ -943,8 +1142,9 @@ function AdminSubscriptions() {
                               <td>{payment.plan_name || "-"}</td>
 
                               <td>
-                                LKR {formatPrice(amount)}
+                                {payment.currency} {formatPrice(amount)}
                               </td>
+                              <td>{payment.provider || "—"}</td>
 
                               <td>
                                 <span
@@ -966,11 +1166,10 @@ function AdminSubscriptions() {
                               <td>
                                 {formatDate(payment.created_at)}
                               </td>
+                              <td>{formatDate(payment.verified_at)}</td>
 
                               <td>
                                 {payment.payment_id ||
-                                  payment.stripe_payment_intent_id ||
-                                  payment.stripe_session_id ||
                                   payment.id ||
                                   "-"}
                               </td>
@@ -991,6 +1190,16 @@ function AdminSubscriptions() {
           </footer>
         </div>
       </main>
+
+      {selectedSubscriber && (
+        <SubscriberDetails
+          subscriber={selectedSubscriber}
+          onClose={() => setSelectedSubscriber(null)}
+          formatDate={formatDate}
+          formatStatus={getStatus}
+          formatPrice={formatPrice}
+        />
+      )}
 
       {/* ================================== */}
       {/* ADD / EDIT PLAN MODAL */}

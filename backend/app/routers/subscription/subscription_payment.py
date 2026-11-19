@@ -73,6 +73,13 @@ class StripeCheckoutRequest(BaseModel):
     plan_id: int = Field(gt=0)
 
 
+class StripeCancelRequest(BaseModel):
+    session_id: str = Field(
+        min_length=10,
+        max_length=255,
+    )
+
+
 # ==========================================
 # CREATE STRIPE CHECKOUT SESSION
 # ==========================================
@@ -114,7 +121,10 @@ def create_stripe_checkout(
                 payment.provider_payment_id
             )
 
-            if existing_session.url and existing_session.status == "open":
+            if (
+                existing_session.url
+                and existing_session.status == "open"
+            ):
                 return {
                     "success": True,
                     "test_mode": True,
@@ -166,9 +176,12 @@ def create_stripe_checkout(
                 "&session_id={CHECKOUT_SESSION_ID}"
             ),
 
+            # Pass the Checkout Session ID to the frontend
+            # when the parent clicks Cancel.
             cancel_url=(
                 f"{FRONTEND_URL}/parent-home"
                 "?stripe=cancelled"
+                "&session_id={CHECKOUT_SESSION_ID}"
             ),
 
             idempotency_key=(
@@ -244,6 +257,188 @@ def create_stripe_checkout(
 
 
 # ==========================================
+# CANCEL STRIPE CHECKOUT SESSION
+# ==========================================
+
+@router.post("/stripe-cancel/")
+def cancel_stripe_checkout(
+    request: StripeCancelRequest,
+    db: Session = Depends(get_db),
+    current_parent: User = Depends(get_current_parent),
+):
+    """
+    Cancel an open Stripe Checkout Session immediately.
+
+    Security:
+    - Requires an authenticated parent.
+    - Verifies that the Checkout Session belongs to that parent.
+    - Does not allow successful payments to be cancelled.
+    - Does not allocate credits.
+    """
+
+    configure_stripe()
+
+    checkout_session_id = request.session_id.strip()
+
+    try:
+        # Find the payment belonging to the logged-in parent.
+        payment = (
+            db.query(SubscriptionPayment)
+            .filter(
+                SubscriptionPayment.provider == "STRIPE",
+                SubscriptionPayment.provider_payment_id
+                == checkout_session_id,
+                SubscriptionPayment.parent_id
+                == current_parent.user_id,
+            )
+            .with_for_update()
+            .first()
+        )
+
+        if not payment:
+            raise HTTPException(
+                status_code=404,
+                detail="Stripe payment session was not found.",
+            )
+
+        # Never cancel a successful payment.
+        if payment.status == "SUCCESS":
+            raise HTTPException(
+                status_code=409,
+                detail="This payment was already successful and cannot be cancelled.",
+            )
+
+        if payment.status in ("FAILED", "CANCELLED"):
+            return {
+                "success": True,
+                "payment_status": payment.status,
+                "message": "This payment has already been cancelled or failed.",
+            }
+
+        # Retrieve the actual Checkout Session from Stripe.
+        stripe_session = stripe.checkout.Session.retrieve(
+            checkout_session_id
+        )
+
+        # Verify that this Stripe Session belongs to this parent
+        # and matches the local payment record.
+        metadata = (
+    stripe_session.metadata.to_dict()
+    if stripe_session.metadata
+    else {}
+)
+
+        if (
+            metadata.get("provider") != "STRIPE"
+            or metadata.get("parent_id") != str(current_parent.user_id)
+            or metadata.get("payment_id") != str(payment.payment_id)
+            or metadata.get("subscription_id")
+            != str(payment.subscription_id)
+        ):
+            raise HTTPException(
+                status_code=403,
+                detail="This Stripe Checkout Session does not belong to your account.",
+            )
+
+        # If Stripe already confirms payment, do not cancel.
+        if stripe_session.payment_status == "paid":
+            raise HTTPException(
+                status_code=409,
+                detail="Stripe has already confirmed this payment. Cancellation is not allowed.",
+            )
+
+        # Expire the Checkout Session immediately if it is still open.
+        if stripe_session.status == "open":
+
+            stripe_session = stripe.checkout.Session.expire(
+                checkout_session_id
+            )
+
+        # A completed session cannot be expired.
+        # Let the verified webhook handle its final payment status.
+        elif stripe_session.status == "complete":
+            raise HTTPException(
+                status_code=409,
+                detail=(
+                    "This Checkout Session has already been completed. "
+                    "Please wait for payment verification."
+                ),
+            )
+
+        # Only an expired session can be marked as failed locally.
+        if stripe_session.status != "expired":
+            raise HTTPException(
+                status_code=409,
+                detail=(
+                    "Stripe Checkout Session could not be confirmed as expired. "
+                    "Please try again."
+                ),
+            )
+
+        # Update local payment and pending subscription.
+        result = mark_stripe_payment_failed(
+            db=db,
+            checkout_session_id=checkout_session_id,
+        )
+
+        db.commit()
+
+        print("\n========== STRIPE CHECKOUT CANCELLED ==========")
+        print("Parent ID:", current_parent.user_id)
+        print("Payment ID:", payment.payment_id)
+        print("Session ID:", checkout_session_id)
+        print("Payment Status:", result.get("payment_status"))
+        print("================================================\n")
+
+        return {
+            "success": True,
+            "payment_status": result.get("payment_status"),
+            "message": (
+                "Stripe Checkout Session cancelled successfully. "
+                "No credits were allocated."
+            ),
+        }
+
+    except HTTPException:
+        db.rollback()
+        raise
+
+    except stripe.StripeError as error:
+        db.rollback()
+
+        print("\n========== STRIPE CANCELLATION ERROR ==========")
+        print("Error Type:", type(error).__name__)
+        print("Error Message:", str(error))
+        print("===============================================\n")
+
+        raise HTTPException(
+            status_code=502,
+            detail="Unable to cancel the Stripe Checkout Session.",
+        )
+
+    except ValueError as error:
+        db.rollback()
+
+        raise HTTPException(
+            status_code=400,
+            detail=str(error),
+        )
+
+    except Exception as error:
+        db.rollback()
+
+        print("\n========== CANCELLATION UNEXPECTED ERROR ==========")
+        print("Error Type:", type(error).__name__)
+        print("Error Message:", str(error))
+        print("====================================================\n")
+
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to process Stripe cancellation.",
+        )
+
+
+# ==========================================
 # STRIPE WEBHOOK
 # ==========================================
 
@@ -291,16 +486,16 @@ async def stripe_webhook(
             secret=webhook_secret,
         )
 
-    except ValueError as error:
-        print("ERROR: Invalid webhook payload:", str(error))
+    except ValueError:
+        print("ERROR: Invalid webhook payload.")
 
         raise HTTPException(
             status_code=400,
             detail="Invalid webhook payload.",
         )
 
-    except stripe.SignatureVerificationError as error:
-        print("ERROR: Invalid Stripe signature:", str(error))
+    except stripe.SignatureVerificationError:
+        print("ERROR: Invalid Stripe signature.")
 
         raise HTTPException(
             status_code=400,

@@ -249,6 +249,122 @@
   font-weight: 700;
 }
 
+.admin-sub-record-filters {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(160px, 220px);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.admin-sub-record-filters label {
+  display: grid;
+  gap: 5px;
+  color: var(--sub-muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.admin-sub-record-filters :is(input, select) {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 8px 12px;
+  border: 1px solid #e7d5f5;
+  border-radius: 14px;
+  background: #fffaff;
+  color: var(--sub-ink);
+  font: inherit;
+}
+
+.admin-sub-record-filters :is(input, select):focus-visible {
+  outline: 2px solid #793cd6;
+  outline-offset: 2px;
+}
+
+.admin-sub-record-totals {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(125px, 100%), 1fr));
+  gap: 10px;
+  margin: 0 0 16px;
+}
+
+.admin-sub-record-totals > div {
+  padding: 11px 14px;
+  border: 1px solid #ecdcf7;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #f2e8fb, #fff2fa);
+  box-shadow: var(--sub-shadow);
+}
+
+.admin-sub-record-totals dt,
+.admin-sub-details-grid dt,
+.admin-sub-plan-meta {
+  color: var(--sub-muted);
+  font-size: 13px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.admin-sub-record-totals dd {
+  margin: 2px 0 0;
+  font-size: 25px;
+  font-weight: 900;
+}
+
+.admin-sub-plan-meta {
+  margin: 2px 0 6px;
+}
+
+.admin-sub-details-trigger {
+  white-space: nowrap;
+}
+
+.admin-sub-modal.admin-sub-details {
+  position: fixed;
+  inset: 0;
+  width: min(780px, calc(100% - 28px));
+  max-width: none;
+  margin: auto;
+  color: var(--sub-ink);
+}
+
+.admin-sub-details::backdrop {
+  background: #23183c7a;
+}
+
+.admin-sub-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(156px, 100%), 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.admin-sub-details-grid > div {
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid #ecdcf7;
+  border-radius: 12px;
+  background: #f8effc;
+}
+
+.admin-sub-details-grid dd {
+  margin: 4px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.admin-sub-details section h3 {
+  margin: 18px 0 6px;
+}
+
+.admin-sub-details section p {
+  margin: 4px 0;
+}
+
+.admin-sub-details .admin-sub-details-table {
+  min-width: 590px;
+}
+
 .admin-sub-cancel-btn {
   border: 1px solid #e5d3fa;
   border-radius: 24px;
@@ -764,6 +880,10 @@
 }
 
 @media (max-width: 580px) {
+  .admin-sub-record-filters {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .admin-subscription-welcome,
   .admin-plan-grid,
   .admin-subscription-stats {

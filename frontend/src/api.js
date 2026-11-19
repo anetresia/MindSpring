@@ -837,6 +837,25 @@ export async function createStripeCheckout(planId, idempotencyKey) {
   });
 }
 
+
+// ========================================
+// SUBSCRIPTION - CANCEL STRIPE CHECKOUT
+// ========================================
+
+export async function cancelStripeCheckout(sessionId) {
+  if (!sessionId?.trim()) {
+    throw new Error("Stripe Checkout Session ID is required.");
+  }
+
+  return apiRequest("/subscriptions/stripe-cancel/", {
+    method: "POST",
+    body: JSON.stringify({
+      session_id: sessionId.trim(),
+    }),
+  });
+}
+
+
 // ========================================
 // LEARNING SESSION - START TIMER
 // ========================================
