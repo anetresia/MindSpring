@@ -539,3 +539,208 @@
     width: 100%;
   }
 }
+
+/* Parent Management pastel theme */
+
+.admin-parents-page .management-welcome {
+  min-height: clamp(150px, 13vw, 200px);
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+  gap: 12px;
+  padding: 0 clamp(18px, 3vw, 40px);
+  overflow: hidden;
+  border-radius: 24px;
+  background: linear-gradient(110deg, #fddaF8, #f9dff9 55%, #ead6fa);
+}
+
+.admin-parents-page .management-welcome-copy { padding-block: 20px; }
+
+.admin-parents-page .management-welcome h2 {
+  color: var(--admin-purple);
+  font-size: clamp(25px, 2.8vw, 39px);
+  font-weight: 950;
+  line-height: 1.12;
+}
+
+.admin-parents-page :is(.management-welcome p, .management-list-heading p) {
+  color: var(--admin-plum);
+  font-size: clamp(14px, 1.3vw, 18px);
+}
+
+.management-welcome-art {
+  position: relative;
+  align-self: end;
+  display: grid;
+  justify-items: center;
+  width: min(100%, 330px);
+  min-width: 0;
+  margin-inline: auto;
+}
+
+.management-welcome-art img {
+  display: block;
+  width: min(84%, 214px);
+  height: auto;
+}
+
+.management-welcome-art::before {
+  position: absolute;
+  inset: auto -7% 0;
+  height: 58%;
+  background:
+    radial-gradient(ellipse at 14% 100%, #fff2ff 61%, transparent 63%) left bottom / 49% 75% no-repeat,
+    radial-gradient(ellipse at 57% 100%, #fff2ff 61%, transparent 63%) right bottom / 56% 96% no-repeat;
+  content: "";
+  pointer-events: none;
+}
+
+.management-welcome-art img,
+.management-welcome-art svg { position: relative; }
+
+.management-welcome-art .management-welcome-heart,
+.management-welcome-art .management-welcome-star {
+  position: absolute;
+  width: clamp(17px, 2.5vw, 31px);
+  height: auto;
+}
+
+.management-welcome-heart { inset: 15% auto auto 4%; fill: #f17eb9; stroke: #d85b9e; }
+.management-welcome-star { inset: 27% 6% auto auto; fill: #ffe078; stroke: #e7a840; }
+
+.admin-parents-page .management-stat-grid {
+  display: grid;
+  grid-template-columns: minmax(0, min(100%, 350px));
+}
+
+.management-parent-stat {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  overflow: hidden;
+  padding: 15px 19px;
+  border: 1px solid #f1d8fa;
+  border-radius: 21px;
+  background: linear-gradient(125deg, #fff0fc, #f4e4ff);
+  box-shadow: 0 6px 16px #aa52ad13;
+}
+
+.management-icon-badge {
+  display: grid;
+  place-items: center;
+  width: 43px;
+  height: 43px;
+  flex: 0 0 auto;
+  border-radius: 15px;
+  background: #fffaff;
+  box-shadow: 0 4px 10px #9142b52a;
+  color: #9b39c5;
+}
+
+.management-parent-stat .management-icon-badge { color: #cf258d; }
+.management-parent-stat p { margin: 0 0 2px; font-weight: 900; }
+.management-parent-stat strong { display: block; font-size: 35px; font-weight: 950; line-height: 1.1; }
+.management-parent-stat span { display: block; margin-top: 4px; color: var(--admin-plum); font-size: 13px; }
+
+.management-stat-art {
+  position: absolute;
+  z-index: -1;
+  right: 12px;
+  bottom: 10px;
+  width: 74px;
+  height: 74px;
+  color: #c082e7;
+  opacity: 0.35;
+}
+
+.admin-parents-page .management-list-panel {
+  border-color: #f1e0f8;
+  border-radius: 23px;
+  background: #fffbff;
+  box-shadow: 0 8px 22px #81539f13;
+}
+
+.admin-parents-page .management-list-heading { justify-content: flex-start; }
+.admin-parents-page .management-list-heading h2 { color: var(--admin-purple); font-size: clamp(20px, 2vw, 28px); }
+
+.admin-parents-page .management-search {
+  border-color: #eed8f7;
+  border-radius: 999px;
+  background: #fcf3fc;
+}
+
+.admin-parents-page .management-search:focus-within {
+  outline: 2px solid #b45ccc;
+  outline-offset: 2px;
+}
+
+.admin-parents-page .management-search input::placeholder { color: #765b85; }
+
+.admin-parents-page .management-table-wrapper {
+  border: 1px solid #f1e2f8;
+  border-radius: 13px;
+}
+
+.admin-parents-page .management-table th {
+  background: linear-gradient(#f5e8fb, #f0e1f8);
+  color: #563672;
+}
+
+.admin-parents-page .management-table td {
+  padding-block: 11px;
+  border-color: #f1e6f7;
+  color: #543d72;
+  font-size: 13px;
+}
+
+.admin-parents-page .management-table tbody tr:last-child td { border-bottom: 0; }
+
+.admin-parents-page .management-avatar {
+  background: linear-gradient(145deg, #c41d82, #9a34c2);
+  color: #fff;
+}
+
+.management-cell-with-icon,
+.admin-parents-page .management-count,
+.admin-parents-page .management-view-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.management-cell-with-icon svg,
+.admin-parents-page .management-count svg {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+  color: #933cbf;
+}
+
+.admin-parents-page .management-count {
+  padding: 0 9px;
+  border-radius: 999px;
+  background: #f3e5fa;
+  color: var(--admin-purple);
+  white-space: nowrap;
+}
+
+.admin-parents-page .management-view-btn {
+  min-height: 36px;
+  border: 1px solid #e9cff6;
+  border-radius: 10px;
+  background: #fff8ff;
+  color: var(--admin-purple);
+  white-space: nowrap;
+}
+
+.admin-parents-page .management-view-btn:hover { background: #f4e4fb; }
+.admin-parents-page .management-list-footer { color: var(--admin-plum); }
+.admin-parents-page .management-close-btn { display: grid; place-items: center; }
+
+@media (max-width: 600px) {
+  .admin-parents-page .management-welcome { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .admin-parents-page .management-welcome-copy { padding-bottom: 0; }
+  .management-welcome-art { max-width: 210px; }
+  .management-welcome-art img { max-height: 125px; object-fit: contain; }
+}

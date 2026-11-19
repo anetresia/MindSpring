@@ -1,12 +1,39 @@
 
 import { useEffect, useMemo, useState } from "react";
+import { Ban, Check, Clock, CreditCard, Crown, Pencil, Plus, Users } from "lucide-react";
 
 import AdminSidebar from "../components/admin/AdminSidebar";
 import AdminHeader from "../components/admin/AdminHeader";
 
 import { API_URL, getAuthHeaders } from "../api";
+import welcomeArt from "../assets/subscription-welcome.png";
+import totalArt from "../assets/subscription-total-plans.png";
+import activeArt from "../assets/subscription-active.png";
+import inactiveArt from "../assets/subscription-inactive.png";
+import freeArt from "../assets/subscription-free-plan.png";
+import booksArt from "../assets/subscription-books-plan.png";
+import premiumArt from "../assets/subscription-premium-plan.png";
 
 import "../styles/admin/admin-subscriptions.css";
+
+const planArtwork = {
+  free: freeArt,
+  books: booksArt,
+  premium: premiumArt,
+};
+
+function PlanStat({ label, count, icon: Icon, artwork, tone }) {
+  return (
+    <div className={`admin-sub-stat-card admin-sub-tone-${tone}`}>
+      <span className="admin-sub-stat-icon"><Icon aria-hidden="true" /></span>
+      <div>
+        <p>{label}</p>
+        <h3>{count}</h3>
+      </div>
+      <img src={artwork} alt="" />
+    </div>
+  );
+}
 
 function AdminSubscriptions() {
   const [activeTab, setActiveTab] = useState("plans");
@@ -485,8 +512,8 @@ function AdminSubscriptions() {
   // ========================================
 
   return (
-    <div className="admin-layout">
-      <AdminSidebar />
+    <div className="admin-layout admin-subscription-layout">
+      <AdminSidebar illustrated />
 
       <main className="admin-main">
         <AdminHeader title="Subscription Management" />
@@ -504,31 +531,15 @@ function AdminSubscriptions() {
               </p>
             </div>
 
-            <div className="admin-subscription-welcome-icon">
-              ♛
-            </div>
+            <img className="admin-subscription-welcome-art" src={welcomeArt} alt="" />
           </section>
 
           {/* STATISTICS */}
 
           <section className="admin-subscription-stats">
-            <div className="admin-sub-stat-card">
-              <span>♛</span>
-              <p>Total Plans</p>
-              <h3>{plans.length}</h3>
-            </div>
-
-            <div className="admin-sub-stat-card">
-              <span>✓</span>
-              <p>Active Plans</p>
-              <h3>{activePlanCount}</h3>
-            </div>
-
-            <div className="admin-sub-stat-card">
-              <span>◷</span>
-              <p>Inactive Plans</p>
-              <h3>{inactivePlanCount}</h3>
-            </div>
+            <PlanStat label="Total Plans" count={plans.length} icon={Crown} artwork={totalArt} tone="free" />
+            <PlanStat label="Active Plans" count={activePlanCount} icon={Users} artwork={activeArt} tone="books" />
+            <PlanStat label="Inactive Plans" count={inactivePlanCount} icon={Clock} artwork={inactiveArt} tone="premium" />
           </section>
 
           {/* ERROR */}
@@ -551,43 +562,53 @@ function AdminSubscriptions() {
 
             {/* TABS */}
 
-            <div className="admin-subscription-tabs">
-              <button
-                type="button"
-                className={activeTab === "plans" ? "active" : ""}
-                onClick={() => {
-                  setActiveTab("plans");
-                  setError("");
-                }}
-              >
-                Manage Plans
-              </button>
+            <div className="admin-subscription-toolbar">
+              <div className="admin-subscription-tabs">
+                <button
+                  type="button"
+                  className={activeTab === "plans" ? "active" : ""}
+                  aria-pressed={activeTab === "plans"}
+                  onClick={() => {
+                    setActiveTab("plans");
+                    setError("");
+                  }}
+                >
+                  <Crown aria-hidden="true" /> Manage Plans
+                </button>
 
-              <button
-                type="button"
-                className={
-                  activeTab === "subscribers" ? "active" : ""
-                }
-                onClick={() => {
-                  setActiveTab("subscribers");
-                  setError("");
-                }}
-              >
-                Subscribers
-              </button>
+                <button
+                  type="button"
+                  className={
+                    activeTab === "subscribers" ? "active" : ""
+                  }
+                  aria-pressed={activeTab === "subscribers"}
+                  onClick={() => {
+                    setActiveTab("subscribers");
+                    setError("");
+                  }}
+                >
+                  <Users aria-hidden="true" /> Subscribers
+                </button>
 
-              <button
-                type="button"
-                className={
-                  activeTab === "payments" ? "active" : ""
-                }
-                onClick={() => {
-                  setActiveTab("payments");
-                  setError("");
-                }}
-              >
-                Payment History
-              </button>
+                <button
+                  type="button"
+                  className={
+                    activeTab === "payments" ? "active" : ""
+                  }
+                  aria-pressed={activeTab === "payments"}
+                  onClick={() => {
+                    setActiveTab("payments");
+                    setError("");
+                  }}
+                >
+                  <CreditCard aria-hidden="true" /> Payment History
+                </button>
+              </div>
+              {activeTab === "plans" && !loading && (
+                <button type="button" className="admin-sub-primary-btn" onClick={openAddForm}>
+                  <Plus aria-hidden="true" /> Add New Plan
+                </button>
+              )}
             </div>
 
             {/* LOADING */}
@@ -613,13 +634,6 @@ function AdminSubscriptions() {
                     </p>
                   </div>
 
-                  <button
-                    type="button"
-                    className="admin-sub-primary-btn"
-                    onClick={openAddForm}
-                  >
-                    + Add New Plan
-                  </button>
                 </div>
 
                 {plans.length === 0 ? (
@@ -632,67 +646,78 @@ function AdminSubscriptions() {
                   </div>
                 ) : (
                   <div className="admin-plan-grid">
-                    {plans.map((plan) => (
-                      <article
-                        className="admin-plan-card"
-                        key={plan.id}
-                      >
-                        <div className="admin-plan-card-top">
-                          <span className="admin-plan-icon">
-                            ♛
-                          </span>
+                    {plans.map((plan) => {
+                      const tone = plan.type === "FREE"
+                        ? "free"
+                        : /\bpro\b|\bpremium\b/i.test(plan.name)
+                          ? "premium"
+                          : "books";
 
-                          <span
-                            className={`admin-plan-status ${
-                              plan.status === "Active"
-                                ? "status-active"
-                                : "status-inactive"
-                            }`}
-                          >
-                            {plan.status}
-                          </span>
-                        </div>
+                      return (
+                        <article
+                          className={`admin-plan-card admin-sub-tone-${tone}`}
+                          key={plan.id}
+                        >
+                          <div className="admin-plan-card-top">
+                            <span className="admin-plan-icon">
+                              <Crown aria-hidden="true" />
+                            </span>
 
-                        <h3>{plan.name}</h3>
+                            <span
+                              className={`admin-plan-status ${
+                                plan.status === "Active"
+                                  ? "status-active"
+                                  : "status-inactive"
+                              }`}
+                            >
+                              {plan.status}
+                            </span>
+                          </div>
 
-                        <h2>
-                          LKR {formatPrice(plan.price)}
-                        </h2>
+                          <h3>{plan.name}</h3>
 
-                        <div className="admin-plan-details">
-                          <p>✓ {plan.credits} Video Credits</p>
-                          <p>
-                            ✓ {plan.children} Child
-                            {plan.children > 1 ? "ren" : ""}
-                          </p>
-                          <p>✓ {plan.validity}</p>
-                        </div>
+                          <h2>
+                            LKR {formatPrice(plan.price)}
+                          </h2>
 
-                        <div className="admin-plan-actions">
-                          <button
-                            type="button"
-                            onClick={() => openEditForm(plan)}
-                          >
-                            Edit
-                          </button>
+                          <div className="admin-plan-details">
+                            <div>
+                              <p><Check aria-hidden="true" /> {plan.credits} Video Credits</p>
+                              <p>
+                                <Check aria-hidden="true" /> {`${plan.children} Child${plan.children > 1 ? "ren" : ""}`}
+                              </p>
+                              <p><Check aria-hidden="true" /> {plan.validity}</p>
+                            </div>
+                            <img src={planArtwork[tone]} alt="" />
+                          </div>
 
-                          <button
-                            type="button"
-                            disabled={saving}
-                            className={
-                              plan.status === "Active"
-                                ? "deactivate-btn"
-                                : "activate-btn"
-                            }
-                            onClick={() => togglePlanStatus(plan)}
-                          >
-                            {plan.status === "Active"
-                              ? "Deactivate"
-                              : "Activate"}
-                          </button>
-                        </div>
-                      </article>
-                    ))}
+                          <div className="admin-plan-actions">
+                            <button
+                              type="button"
+                              onClick={() => openEditForm(plan)}
+                            >
+                              <Pencil aria-hidden="true" /> Edit
+                            </button>
+
+                            <button
+                              type="button"
+                              disabled={saving}
+                              className={
+                                plan.status === "Active"
+                                  ? "deactivate-btn"
+                                  : "activate-btn"
+                              }
+                              onClick={() => togglePlanStatus(plan)}
+                            >
+                              {plan.status === "Active" ? <Ban aria-hidden="true" /> : <Check aria-hidden="true" />}
+                              {plan.status === "Active"
+                                ? "Deactivate"
+                                : "Activate"}
+                            </button>
+                          </div>
+                        </article>
+                      );
+                    })}
                   </div>
                 )}
               </div>

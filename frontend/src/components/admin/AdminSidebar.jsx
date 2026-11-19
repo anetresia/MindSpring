@@ -1,9 +1,10 @@
-
+import { Baby, Crown, LayoutGrid, Mail, Play, Users } from "lucide-react";
 import { NavLink } from "react-router-dom";
+import sidebarArt from "../../assets/parent-sidebar-bg.png";
 import mindspringLogo from "../../assets/mindspring-logo.png";
 import "../../styles/admin/admin-sidebar.css";
 
-function AdminSidebar() {
+function AdminSidebar({ illustrated = false }) {
   return (
     <aside className="admin-sidebar">
 
@@ -29,7 +30,7 @@ function AdminSidebar() {
             `admin-nav-link ${isActive ? "active" : ""}`
           }
         >
-          <span>▦</span>
+          <span aria-hidden="true">{illustrated ? <LayoutGrid /> : "▦"}</span>
           Dashboard
         </NavLink>
 
@@ -39,7 +40,7 @@ function AdminSidebar() {
             `admin-nav-link ${isActive ? "active" : ""}`
           }
         >
-          <span>▶</span>
+          <span aria-hidden="true">{illustrated ? <Play /> : "▶"}</span>
           Video Management
         </NavLink>
 
@@ -49,7 +50,7 @@ function AdminSidebar() {
             `admin-nav-link ${isActive ? "active" : ""}`
           }
         >
-          <span>♙</span>
+          <span aria-hidden="true">{illustrated ? <Users /> : "♙"}</span>
           Parent Management
         </NavLink>
 
@@ -59,7 +60,7 @@ function AdminSidebar() {
             `admin-nav-link ${isActive ? "active" : ""}`
           }
         >
-          <span>♧</span>
+          <span aria-hidden="true">{illustrated ? <Baby /> : "♧"}</span>
           Child Management
         </NavLink>
 
@@ -69,7 +70,7 @@ function AdminSidebar() {
             `admin-nav-link ${isActive ? "active" : ""}`
           }
         >
-          <span>♛</span>
+          <span aria-hidden="true">{illustrated ? <Crown /> : "♛"}</span>
           Subscription Management
         </NavLink>
 
@@ -79,7 +80,7 @@ function AdminSidebar() {
             `admin-nav-link ${isActive ? "active" : ""}`
           }
         >
-          <span>✉</span>
+          <span aria-hidden="true">{illustrated ? <Mail /> : "✉"}</span>
           Contact Messages
         </NavLink>
 
@@ -87,6 +88,7 @@ function AdminSidebar() {
 
       {/* SIDEBAR FOOTER */}
       <div className="admin-sidebar-bottom">
+        {illustrated && <img className="admin-sidebar-art" src={sidebarArt} alt="" />}
         <p>MindSpring</p>
         <span>Learning made meaningful</span>
       </div>

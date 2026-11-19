@@ -1457,3 +1457,234 @@
         height: 145px;
     }
 }
+/* Video Management landing page */
+
+.admin-content-layout {
+  --content-ink: #50128c;
+  --content-muted: #6a5186;
+  --content-border: #eeddf8;
+  --content-surface: #fffcff;
+  --content-action: linear-gradient(110deg, #d82080, #bd086f);
+}
+
+.admin-content-layout .admin-header h1 {
+  font-size: clamp(26px, 2.8vw, 39px);
+}
+
+.admin-content-layout .admin-content-page {
+  padding: 6px var(--admin-inset) 44px;
+  color: var(--content-ink);
+}
+
+.admin-content-heading {
+  position: relative;
+  isolation: isolate;
+  min-height: clamp(150px, 13vw, 200px);
+  padding: clamp(18px, 2.25vw, 34px);
+  overflow: hidden;
+  border: 1px solid #f0dcfb;
+  border-radius: 24px;
+  background: linear-gradient(110deg, #f4ddfb, #fce3f9 48%, #ead3fa);
+  box-shadow: 0 8px 22px #9953b312;
+}
+
+.admin-content-banner-copy,
+.admin-video-count { z-index: 1; }
+
+.admin-content-heading h2 {
+  color: var(--content-ink);
+  font-size: clamp(24px, 2.75vw, 38px);
+  font-weight: 950;
+  line-height: 1.15;
+}
+
+.admin-content-heading p {
+  color: var(--content-muted);
+  font-size: clamp(14px, 1.35vw, 19px);
+}
+
+.admin-content-banner-art {
+  position: absolute;
+  inset: 0 20% 0 auto;
+  width: 42%;
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, #000 22%, #000 78%, transparent);
+}
+
+.admin-content-banner-art img {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  height: 175%;
+  width: auto;
+  max-width: none;
+}
+
+.admin-video-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 15px;
+  border: 1px solid #fff8ff;
+  border-radius: 999px;
+  background: #fff7ff;
+  color: var(--content-ink);
+  box-shadow: 0 5px 12px #824ca01c;
+  font-size: clamp(11px, 1.05vw, 14px);
+  white-space: normal;
+}
+
+.admin-video-count svg,
+.admin-content-tabs button > svg { color: #a42dc9; }
+
+.admin-content-layout .admin-content-tabs {
+  gap: 9px;
+  padding: 2px 0 7px;
+  margin-bottom: 24px;
+  border-color: var(--content-border);
+}
+
+.admin-content-layout .admin-content-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 9px clamp(10px, 1.5vw, 22px);
+  border-radius: 15px;
+  color: var(--content-ink);
+  font-size: clamp(13px, 1.2vw, 16px);
+}
+
+.admin-content-tabs button.active {
+  border-color: #f6c8ed;
+  background: linear-gradient(#fff3fc, #fbe6f7);
+  box-shadow: inset 0 -3px #e72b91;
+}
+
+.admin-content-layout .admin-content-tabs button.admin-refresh-btn {
+  border-color: #ebd8f7;
+  background: #fffaff;
+  box-shadow: 0 3px 9px #80539b12;
+}
+
+.admin-content-layout .admin-category-layout {
+  grid-template-columns: minmax(220px, 0.42fr) minmax(0, 1fr);
+  gap: clamp(14px, 1.65vw, 25px);
+}
+
+.admin-content-layout :is(.admin-category-panel, .admin-topic-panel, .admin-video-list-card, .admin-modal-card) {
+  padding: clamp(16px, 1.8vw, 26px);
+  border: 1px solid var(--content-border);
+  border-radius: 23px;
+  background: var(--content-surface);
+  box-shadow: 0 8px 23px #8851a414;
+}
+
+.admin-category-panel-title,
+.admin-selected-category-title {
+  justify-content: flex-start;
+  gap: 10px;
+}
+
+.admin-category-panel-title > svg,
+.admin-selected-category-title > svg {
+  align-self: flex-start;
+  width: clamp(24px, 2.6vw, 34px);
+  height: auto;
+  flex: 0 0 auto;
+  color: #9e42d1;
+  fill: #f4d8ff;
+}
+
+.admin-content-layout :is(.admin-panel-heading h2, .admin-selected-category-title h2, .admin-video-list-heading h2, .admin-modal-heading h2) {
+  color: var(--content-ink);
+  font-size: clamp(19px, 1.75vw, 26px);
+  font-weight: 950;
+  overflow-wrap: anywhere;
+}
+
+.admin-content-layout :is(.admin-panel-heading p, .admin-topic-panel-heading p, .admin-topic-info small, .admin-category-details small, .admin-subtitle) {
+  color: var(--content-muted);
+  font-size: clamp(12px, 1.1vw, 15px);
+}
+
+.admin-category-item.selected {
+  border-color: #f8d5f0;
+  background: linear-gradient(110deg, #fce8f9, #fcf0fc);
+}
+
+.admin-category-icon,
+.admin-topic-icon {
+  width: clamp(40px, 4.5vw, 58px);
+  height: clamp(40px, 4.5vw, 58px);
+  border-radius: 14px;
+  color: #9c44c0;
+}
+
+.admin-topic-icon img {
+  width: 86%;
+  height: 86%;
+  object-fit: contain;
+}
+
+.admin-content-layout .admin-topic-card {
+  gap: clamp(7px, 1vw, 15px);
+  border-color: var(--content-border);
+  border-radius: 16px;
+  background: #fffaff;
+}
+
+.admin-content-layout :is(.admin-category-details strong, .admin-topic-info strong) {
+  color: var(--content-ink);
+  font-size: clamp(13px, 1.25vw, 17px);
+}
+
+.admin-content-layout :is(.admin-add-lesson-btn, .admin-add-category-btn, .admin-submit-btn, .admin-secondary-btn, .admin-topic-edit-btn) {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  border-radius: 14px;
+  font-weight: 850;
+}
+
+.admin-content-layout :is(.admin-add-lesson-btn, .admin-add-category-btn, .admin-submit-btn) {
+  background: var(--content-action);
+  color: #fff;
+}
+
+.admin-content-layout :is(.admin-secondary-btn, .admin-topic-edit-btn) {
+  border: 1px solid #e9d1f8;
+  background: #fffaff;
+  color: var(--content-ink);
+}
+
+.admin-content-layout :is(.admin-category-edit, .admin-selected-category-title button, .admin-topic-status-btn) {
+  display: grid;
+  place-items: center;
+  color: #8a2cb3;
+}
+
+.admin-question-lesson-filter { max-width: 420px; margin-bottom: 18px; }
+.admin-question-count { margin-bottom: 14px; }
+
+@media (max-width: 1050px) {
+  .admin-content-banner-art { right: 0; width: 55%; opacity: 0.55; }
+  .admin-content-layout .admin-category-layout { grid-template-columns: minmax(180px, 0.4fr) minmax(0, 1fr); }
+}
+
+@media (max-width: 850px) {
+  .admin-content-layout .admin-category-layout { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 600px) {
+  .admin-content-heading { min-height: 150px; align-items: flex-start; }
+  .admin-content-banner-art { width: 62%; }
+  .admin-content-banner-art img { height: 140%; }
+  .admin-content-layout .admin-content-tabs { flex-wrap: wrap; gap: 4px; overflow: visible; }
+  .admin-content-layout .admin-content-tabs button { gap: 4px; padding: 7px 9px; }
+  .admin-content-layout .admin-content-tabs button > svg { width: 15px; height: 15px; }
+  .admin-content-layout .admin-topic-card { flex-wrap: wrap; }
+  .admin-content-layout .admin-topic-info { flex: 1 0 calc(100% - 54px); }
+}

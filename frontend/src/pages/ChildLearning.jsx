@@ -1,5 +1,6 @@
 
 import { useEffect, useRef, useState } from "react";
+import { ArrowLeft, ArrowRight, Check, Sparkles, Star, X } from "lucide-react";
 
 import {
   useParams,
@@ -9,6 +10,7 @@ import {
 
 import {
   getChild,
+  getChildRewards,
   getChildSelectedTopics,
   getChildTopicLessons,
   getChildLessonQuestions,
@@ -23,11 +25,27 @@ import {
   API_URL,
 } from "../api";
 
-import learningVideosBg from "../assets/learning-videos-bg.png";
-import mindspringLogo from "../assets/mindspring-logo.png";
+import mindSpringLogo from "../assets/mindspring-logo.png";
+import brushingTeethIllustration from "../assets/lesson-brushing-teeth.svg";
+import combingHairIllustration from "../assets/lesson-combing-hair.svg";
+import learningBook from "../assets/lessons-icon.png";
+import learningClapper from "../assets/watch-videos-icon.png";
 import activityRewardGirl from "../assets/activity-reward-girl.png";
 
 import "../styles/child-learning.css";
+
+function getLessonIllustration(lesson, topic) {
+  for (const title of [lesson?.title, topic?.topic_name || topic?.name || topic?.title]) {
+    if (/\b(?:tooth|teeth|dental|toothbrush)\b/i.test(title || "")) {
+      return brushingTeethIllustration;
+    }
+    if (/\b(?:hair|comb(?:ing)?)\b/i.test(title || "")) {
+      return combingHairIllustration;
+    }
+  }
+
+  return learningBook;
+}
 
 function ChildLearning() {
   const { childId } = useParams();
@@ -35,6 +53,7 @@ function ChildLearning() {
   const navigate = useNavigate();
 
   const videoSectionRef = useRef(null);
+  const rewardsDialogRef = useRef(null);
   const attemptKeyRef = useRef(null);
   const videoEndedRef = useRef(false);
 
@@ -42,6 +61,7 @@ function ChildLearning() {
   const timerStartedRef = useRef(false);
   const timerStartRequestRef = useRef(false);
   const timerLockedRef = useRef(false);
+  const leavingLearningRef = useRef(false);
   const previousRemainingSecondsRef = useRef(null);
   const fiveMinuteWarningShownRef = useRef(false);
   const oneMinuteWarningShownRef = useRef(false);
@@ -76,6 +96,7 @@ function ChildLearning() {
   }
 
   const [child, setChild] = useState(location.state?.child || null);
+  const [rewardBalance, setRewardBalance] = useState(null);
   const [topics, setTopics] = useState([]);
   const [lessons, setLessons] = useState([]);
   const [topicLessonGroups, setTopicLessonGroups] = useState([]);
@@ -452,50 +473,58 @@ function ChildLearning() {
 
   
 
+  function getRemainingLearningSeconds(response) {
+    if (Number.isFinite(response.remaining_seconds)) {
+      return Math.max(0, response.remaining_seconds);
+    }
+
+    const limitMinutes = Number(child?.daily_learning_limit);
+    if (limitMinutes > 0 && Number.isFinite(response.total_seconds)) {
+      return Math.max(0, limitMinutes * 60 - response.total_seconds);
+    }
+
+    return null;
+  }
+
+  function finishDailyLearning() {
+    if (timerLockedRef.current) return;
+
+    timerLockedRef.current = true;
+    setLearningLimitReached(true);
+    setRemainingSeconds(0);
+    setTimerPopup(null);
+    stopLearningMedia();
+    void handleBackToDashboard();
+  }
+
   // ========================================
   // LEARNING TIMER - START
   // ========================================
 
-  async function handleVideoPlay() {
-    if (
-      timerStartedRef.current ||
-      timerStartRequestRef.current ||
-      timerLockedRef.current
-    ) {
+  async function handleVideoPlay(event) {
+    if (timerLockedRef.current || leavingLearningRef.current) {
+      event.currentTarget.pause();
       return;
     }
+
+    if (timerStartedRef.current || timerStartRequestRef.current) return;
 
     timerStartRequestRef.current = true;
 
     try {
       const response = await startLearningSession(childId);
 
-      if (response.limit_reached) {
-        timerLockedRef.current = true;
-        setLearningLimitReached(true);
-        setRemainingSeconds(0);
-        setTimerPopup("over");
+      const remaining = getRemainingLearningSeconds(response);
 
-        stopLearningMedia();
-
+      if (response.limit_reached || remaining === 0) {
+        finishDailyLearning();
         return;
       }
 
       timerStartedRef.current = true;
       setTimerStarted(true);
 
-      if (typeof response.remaining_seconds === "number") {
-        setRemainingSeconds(response.remaining_seconds);
-        previousRemainingSecondsRef.current = response.remaining_seconds;
-      } else if (typeof response.total_seconds === "number") {
-        const limitSeconds =
-          Number(child?.daily_learning_limit || 30) * 60;
-
-        const remaining = Math.max(
-          0,
-          limitSeconds - response.total_seconds
-        );
-
+      if (remaining !== null) {
         setRemainingSeconds(remaining);
         previousRemainingSecondsRef.current = remaining;
       }
@@ -531,31 +560,12 @@ function ChildLearning() {
 
         if (!active) return;
 
-        let newRemainingSeconds = null;
-
-        if (typeof response.remaining_seconds === "number") {
-          newRemainingSeconds = response.remaining_seconds;
-        } else if (typeof response.total_seconds === "number") {
-          const limitSeconds =
-            Number(child?.daily_learning_limit || 30) * 60;
-
-          newRemainingSeconds = Math.max(
-            0,
-            limitSeconds - response.total_seconds
-          );
-        }
-
-        if (newRemainingSeconds !== null) {
-          setRemainingSeconds(newRemainingSeconds);
-        }
+        const newRemainingSeconds = getRemainingLearningSeconds(response);
 
         if (response.limit_reached || newRemainingSeconds === 0) {
-          timerLockedRef.current = true;
-          setLearningLimitReached(true);
-          setRemainingSeconds(0);
-          setTimerPopup("over");
-
-          stopLearningMedia();
+          finishDailyLearning();
+        } else if (newRemainingSeconds !== null) {
+          setRemainingSeconds(newRemainingSeconds);
         }
       } catch (err) {
         console.error("Learning timer heartbeat failed:", err);
@@ -722,12 +732,48 @@ function ChildLearning() {
     };
   }, [childId]);
 
+  // Refresh the accumulated balance after either answer mode saves its result.
+  useEffect(() => {
+    if (!childId) return;
+
+    let active = true;
+
+    async function loadRewardBalance() {
+      try {
+        const rewards = await getChildRewards(childId);
+        if (active) {
+          setRewardBalance({
+            childId,
+            total: Number.isFinite(rewards?.total_stars) ? rewards.total_stars : null,
+          });
+        }
+      } catch (err) {
+        if (active) {
+          setRewardBalance({ childId, total: null });
+          console.error("Unable to load child rewards:", err);
+        }
+      }
+    }
+
+    loadRewardBalance();
+    return () => {
+      active = false;
+    };
+  }, [childId, answerResults]);
+
   // Show rewards only after the answer-checking request has completed.
   useEffect(() => {
     if (answerResults) {
       setShowRewardsPopup(true);
     }
   }, [answerResults]);
+
+  useEffect(() => {
+    const dialog = rewardsDialogRef.current;
+    if (showRewardsPopup && answerResults && !timerPopup && !learningLimitReached && dialog && !dialog.open) {
+      dialog.showModal();
+    }
+  }, [showRewardsPopup, answerResults, timerPopup, learningLimitReached]);
 
   // ========================================
   // SCROLL VIDEO SECTION
@@ -1018,12 +1064,6 @@ function ChildLearning() {
   // ========================================
 
   function handleNextActivity() {
-    const currentIndex = lessons.findIndex(
-      (lesson) => lesson.lesson_id === currentLesson?.lesson_id
-    );
-
-    const nextLesson = lessons[currentIndex + 1];
-
     setShowRewardsPopup(false);
 
     // Continue to the next lesson inside the current topic first.
@@ -1036,10 +1076,7 @@ function ChildLearning() {
     }
 
     // Only after every lesson in this topic is completed, unlock next topic.
-    const nextTopicIndex = currentTopicIndex + 1;
-    const nextTopicGroup = topicLessonGroups[nextTopicIndex];
-
-    if (nextTopicGroup && nextTopicGroup.lessons.length > 0) {
+    if (nextTopicGroup) {
       resetQuestionData();
       setCurrentTopicIndex(nextTopicIndex);
       setSelectedTopic(nextTopicGroup.topic);
@@ -1059,6 +1096,9 @@ function ChildLearning() {
   // ========================================
 
   async function handleBackToDashboard() {
+    if (leavingLearningRef.current) return;
+    leavingLearningRef.current = true;
+
     const recorder = mediaRecorderRef.current;
 
     if (recorder && recorder.state !== "inactive") {
@@ -1079,8 +1119,10 @@ function ChildLearning() {
       setTimerStarted(false);
     }
 
+    const dailyLearningCompleted = timerLockedRef.current;
     navigate(`/child-dashboard/${childId}`, {
-      state: { child },
+      replace: dailyLearningCompleted,
+      state: { child, dailyLearningCompleted },
     });
   }
 
@@ -1099,8 +1141,9 @@ function ChildLearning() {
   const childName =
     child?.child_name || child?.name || "Friend";
 
-  const childStars =
-    child?.stars ?? child?.points ?? 0;
+  const childInitial = Array.from((child?.child_name || child?.name || "").trim())[0]?.toUpperCase();
+  const currentRewardBalance = rewardBalance?.childId === childId ? rewardBalance : null;
+  const totalStars = currentRewardBalance?.total;
 
   const isVoiceMode =
     String(child?.communication_method || "").toLowerCase() === "voice";
@@ -1110,76 +1153,69 @@ function ChildLearning() {
       (question) => !voiceAnswers[question.question_id]
     )?.question_id ?? null;
 
+  const currentLessonIndex = lessons.findIndex(
+    (lesson) => lesson.lesson_id === currentLesson?.lesson_id
+  );
+  const nextLesson =
+    currentLessonIndex >= 0 ? lessons[currentLessonIndex + 1] : undefined;
+  const nextTopicIndex = currentTopicIndex + 1;
+  const nextTopicGroup = topicLessonGroups[nextTopicIndex];
+  const hasNextActivity = Boolean(nextLesson || nextTopicGroup);
+  const earnedStars = Math.max(
+    0,
+    Math.min(
+      Number(answerResults?.score) || 0,
+      Number(answerResults?.total_questions) || 0
+    )
+  );
+
   return (
-    <main
-      className="child-learning-page"
-      style={{
-        "--learning-background": `url("${learningVideosBg}")`,
-      }}
-    >
+    <main className="child-learning-page">
       <div className="child-learning-shell">
 
         {/* HEADER */}
 
         <header className="learning-hero">
           <div className="learning-topbar">
-            <div className="learning-brand-area">
-              <div className="learning-logo">
-                <img
-                  src={mindspringLogo}
-                  alt="MindSpring"
-                  className="learning-logo-image"
-                />
-              </div>
+            <button
+              type="button"
+              className="child-learning-back-btn"
+              onClick={handleBackToDashboard}
+            >
+              <ArrowLeft aria-hidden="true" /> Back to Dashboard
+            </button>
 
-              <button
-                type="button"
-                className="child-learning-back-btn"
-                onClick={handleBackToDashboard}
-              >
-                <span aria-hidden="true">←</span>
-                Back to Dashboard
-              </button>
+            <div className="learning-logo">
+              <img src={mindSpringLogo} alt="MindSpring" className="learning-logo-image" />
+            </div>
+
+            <div className="learning-hero-title-wrap">
+              <h1><Sparkles aria-hidden="true" /> Learning Time</h1>
+              <p>Watch, Learn and Do Fun Activities!</p>
+            </div>
+
+            <div className="learning-hero-decoration" aria-hidden="true">
+              <img src={activityRewardGirl} alt="" />
             </div>
 
             <div className="learning-profile-actions">
               <div className="learning-child-pill">
-                <span className="learning-avatar">🧒</span>
+                {childInitial && <span className="learning-avatar" aria-hidden="true">{childInitial}</span>}
                 <strong>{childName}</strong>
               </div>
 
-              <div className="learning-stars-pill">
-                <span>⭐</span>
-                <strong>{childStars}</strong>
+              <div className="learning-stars-pill" role="status" aria-atomic="true">
+                <Star className="learning-total-star-icon" aria-hidden="true" />
+                <strong>
+                  {totalStars != null ? (
+                    <><span className="learning-sr-only">Total earned stars: </span>{totalStars}</>
+                  ) : currentRewardBalance ? (
+                    <span title="Total earned stars unavailable">Unavailable</span>
+                  ) : (
+                    <span aria-label="Loading total earned stars">...</span>
+                  )}
+                </strong>
               </div>
-            </div>
-          </div>
-
-          <div className="learning-hero-content">
-            <div
-              className="learning-hero-decoration learning-hero-left"
-              aria-hidden="true"
-            >
-              📚
-            </div>
-
-            <div className="learning-hero-title-wrap">
-              <div className="learning-clapper" aria-hidden="true">
-                🎬
-              </div>
-
-              <h1>My Learning Videos</h1>
-
-              <p>
-                Welcome {childName}! Let's learn something new today!
-              </p>
-            </div>
-
-            <div
-              className="learning-hero-decoration learning-hero-right"
-              aria-hidden="true"
-            >
-              🤖
             </div>
           </div>
         </header>
@@ -1218,44 +1254,6 @@ function ChildLearning() {
           </div>
         )}
 
-        {/* LESSONS IN PARENT-SELECTED ORDER */}
-
-        <section className="child-learning-lessons learning-wide-card">
-          <div className="learning-section-heading">
-            <span className="learning-heading-icon">📺</span>
-            <h3>Your Learning Activities</h3>
-          </div>
-
-          {lessonsLoading ? (
-            <p className="child-learning-message">
-              Loading videos...
-            </p>
-          ) : !topicLessonGroups.length || !selectedTopic ? (
-            <p className="child-learning-message">
-              No videos are available yet. Please ask your parent to select learning topics.
-            </p>
-          ) : (
-            <div className="child-learning-lesson-list">
-              <button
-                key={selectedTopic.topic_id}
-                type="button"
-                className="child-learning-lesson-btn active"
-                disabled
-                aria-current="step"
-              >
-                <span className="child-learning-lesson-order">
-                  {currentTopicIndex + 1}.
-                </span>
-                {selectedTopic.topic_name ||
-                  selectedTopic.name ||
-                  selectedTopic.title ||
-                  lessons[0]?.title ||
-                  "Learning Topic"}
-              </button>
-            </div>
-          )}
-        </section>
-
         {/* VIDEO AND ACTIVITY */}
 
         {currentLesson && (
@@ -1286,12 +1284,17 @@ function ChildLearning() {
                 Your browser does not support video playback.
               </video>
 
-              {currentLesson.lesson_script && (
-                <div className="child-learning-video-description">
-                  <h4>About this lesson</h4>
-                  <p>{currentLesson.lesson_script}</p>
+              <div className="child-learning-video-description">
+                <div>
+                  <h3><img src={learningClapper} alt="" /> {currentLesson.title}</h3>
+                  {currentLesson.lesson_script && <p>{currentLesson.lesson_script}</p>}
                 </div>
-              )}
+                <img
+                  className="learning-description-decoration"
+                  src={getLessonIllustration(currentLesson, selectedTopic)}
+                  alt=""
+                />
+              </div>
             </div>
 
             {/* ACTIVITY */}
@@ -1379,13 +1382,10 @@ function ChildLearning() {
                           className="child-learning-question-card"
                           key={question.question_id}
                         >
-                          <h4 className="child-learning-question-number">
-                            Question {index + 1}
-                          </h4>
-
-                          <p className="child-learning-question-text">
-                            {question.question_text}
-                          </p>
+                          <h3 className="child-learning-question-text">
+                            <span className="child-learning-question-number">{index + 1}</span>
+                            <span>{question.question_text}</span>
+                          </h3>
 
                           {/* IMAGE ANSWER OPTIONS - visible in both modes */}
 
@@ -1400,6 +1400,7 @@ function ChildLearning() {
                               const optionIsWrong =
                                 isWrongSelected(option);
 
+                              const optionLabel = option.answer_text || option.id;
                               let optionClass =
                                 "child-learning-answer-option";
 
@@ -1432,39 +1433,33 @@ function ChildLearning() {
                                   }
                                   aria-pressed={isSelected}
                                 >
-                                  <span className="child-learning-option-label">
-                                    {option.id}
+                                  <span className="child-learning-option-marker" aria-hidden="true">
+                                    {isSelected && <Check />}
                                   </span>
 
-                                  {option.image_url ? (
+                                  {option.image_url && (
                                     <img
                                       src={getQuestionImageSource(
                                         option.image_url
                                       )}
-                                      alt={`Option ${option.id}`}
+                                      alt=""
                                       className="child-learning-option-image"
                                     />
-                                  ) : (
-                                    <div className="child-learning-option-no-image">
-                                      Image not available
-                                    </div>
                                   )}
+
+                                  <span className="child-learning-option-label">
+                                    {optionLabel}
+                                  </span>
 
                                   {optionIsCorrect && (
                                     <span className="child-learning-answer-feedback">
-                                      ✓ Correct
+                                      <Check aria-hidden="true" /> Correct
                                     </span>
                                   )}
 
                                   {optionIsWrong && (
                                     <span className="child-learning-answer-feedback">
-                                      ✗ Try Again
-                                    </span>
-                                  )}
-
-                                  {!answerResults && isSelected && (
-                                    <span className="child-learning-selected-indicator">
-                                      ✓ Selected
+                                      <X aria-hidden="true" /> Try Again
                                     </span>
                                   )}
                                 </button>
@@ -1570,49 +1565,60 @@ function ChildLearning() {
           </section>
         )}
 
+        {/* LESSONS IN PARENT-SELECTED ORDER */}
+
+        <section className="child-learning-lessons learning-wide-card">
+          <div className="learning-section-heading">
+            <span className="learning-heading-icon">📺</span>
+            <h3>Your Learning Activities</h3>
+          </div>
+
+          {lessonsLoading ? (
+            <p className="child-learning-message">
+              Loading videos...
+            </p>
+          ) : !topicLessonGroups.length || !selectedTopic ? (
+            <p className="child-learning-message">
+              No videos are available yet. Please ask your parent to select learning topics.
+            </p>
+          ) : (
+            <div className="child-learning-lesson-list">
+              <button
+                key={selectedTopic.topic_id}
+                type="button"
+                className="child-learning-lesson-btn active"
+                disabled
+                aria-current="step"
+              >
+                <span className="child-learning-lesson-order">
+                  {currentTopicIndex + 1}.
+                </span>
+                {selectedTopic.topic_name ||
+                  selectedTopic.name ||
+                  selectedTopic.title ||
+                  lessons[0]?.title ||
+                  "Learning Topic"}
+              </button>
+            </div>
+          )}
+        </section>
+
         {/* DAILY TIMER POPUP */}
 
-        {timerPopup && (
+        {timerPopup && !learningLimitReached && (
           <div
             className="learning-timer-modal-overlay"
             role="presentation"
-            style={{
-              position: "fixed",
-              inset: 0,
-              zIndex: 99999,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "20px",
-              background: "rgba(20, 12, 35, 0.72)",
-              backdropFilter: "blur(5px)",
-            }}
           >
             <div
-              className={`learning-timer-modal ${
-                timerPopup === "over" ? "time-over" : "time-warning"
-              }`}
+              className="learning-timer-modal time-warning"
               role="alertdialog"
               aria-modal="true"
               aria-labelledby="learning-timer-popup-title"
               aria-describedby="learning-timer-popup-message"
-              style={{
-                width: "100%",
-                maxWidth: "430px",
-                padding: "32px 26px",
-                borderRadius: "24px",
-                background: "#fff",
-                textAlign: "center",
-                boxShadow: "0 20px 60px rgba(0,0,0,0.28)",
-                border: "3px solid #eadcff",
-              }}
             >
               <div
                 className="learning-timer-modal-icon"
-                style={{
-                  fontSize: "48px",
-                  marginBottom: "12px",
-                }}
               >
                 {timerPopup === "five"
                   ? "⏰"
@@ -1623,167 +1629,81 @@ function ChildLearning() {
 
               <h2
                 id="learning-timer-popup-title"
-                style={{
-                  margin: "0 0 12px",
-                  color: "#7542c8",
-                  fontSize: "24px",
-                }}
               >
                 {timerPopup === "five"
                   ? "5 Minutes Remaining!"
-                  : timerPopup === "one"
-                  ? "1 Minute Remaining!"
-                  : "Daily Learning Time Over"}
+                  : "1 Minute Remaining!"}
               </h2>
 
               <p
                 id="learning-timer-popup-message"
-                style={{ margin: "0 0 22px", lineHeight: 1.6 }}
               >
                 {timerPopup === "five"
                   ? "You have 5 minutes of learning time left!"
-                  : timerPopup === "one"
-                  ? "Only 1 minute of learning time left!"
-                  : "Your daily learning time is over! Please come back tomorrow."}
+                  : "Only 1 minute of learning time left!"}
               </p>
 
-              {timerPopup !== "over" && (
-                <button
-                  type="button"
-                  onClick={() => setTimerPopup(null)}
-                  style={{
-                    border: 0,
-                    borderRadius: "999px",
-                    padding: "11px 28px",
-                    color: "#fff",
-                    background: "linear-gradient(90deg, #a64bd6, #7542c8)",
-                    fontWeight: 700,
-                    cursor: "pointer",
-                  }}
-                >
-                  Continue Learning
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => setTimerPopup(null)}
+                className="learning-timer-modal-button"
+              >
+                Continue Learning
+              </button>
             </div>
           </div>
         )}
 
-        {/* ACTIVITY COMPLETED - REWARD POPUP */}
-
-        {showRewardsPopup && answerResults && (
-          <div
-            className="child-activity-rewards-overlay"
-            role="presentation"
+        {showRewardsPopup && answerResults && !timerPopup && !learningLimitReached && (
+          <dialog
+            ref={rewardsDialogRef}
+            className="child-activity-rewards-popup"
+            aria-labelledby="child-activity-rewards-title"
+            aria-describedby="child-activity-rewards-greeting"
+            onClose={() => setShowRewardsPopup(false)}
           >
-            <div
-              className="child-activity-rewards-popup"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="child-activity-rewards-title"
+            <button
+              type="button"
+              className="child-activity-rewards-close"
+              aria-label="Close rewards"
+              onClick={() => rewardsDialogRef.current?.close()}
             >
-              {/* CLOSE BUTTON */}
+              <X aria-hidden="true" />
+            </button>
+
+            <img
+              src={activityRewardGirl}
+              alt=""
+              className="child-activity-rewards-girl"
+            />
+
+            <div className="child-activity-rewards-content">
+              <h2 id="child-activity-rewards-title">Activity Completed!</h2>
+              <p id="child-activity-rewards-greeting">Great Job, {childName}!</p>
+
+              <div
+                className="child-activity-rewards-score"
+                role="img"
+                aria-label={`${earnedStars} ${earnedStars === 1 ? "star" : "stars"} earned`}
+              >
+                {Array.from({ length: earnedStars }, (_, index) => (
+                  <Star key={index} className="child-activity-rewards-star" aria-hidden="true" />
+                ))}
+                <Star className="child-activity-rewards-sparkle sparkle-start" aria-hidden="true" />
+                <Star className="child-activity-rewards-sparkle sparkle-end" aria-hidden="true" />
+              </div>
+
               <button
                 type="button"
-                className="child-activity-rewards-close"
-                aria-label="Close rewards"
-                onClick={() => setShowRewardsPopup(false)}
+                className="child-activity-rewards-next-btn"
+                onClick={handleNextActivity}
               >
-                ×
+                {hasNextActivity ? "Next Activity" : "Finish Learning"}
+                <ArrowRight aria-hidden="true" />
               </button>
-
-              {/* DECORATIVE STARS */}
-              <span className="reward-decoration reward-decoration-one">
-                ✨
-              </span>
-
-              <span className="reward-decoration reward-decoration-two">
-                ⭐
-              </span>
-
-              <span className="reward-decoration reward-decoration-three">
-                ⭐
-              </span>
-
-              {/* CELEBRATION GIRL - LEFT SIDE */}
-              <div className="child-activity-rewards-image">
-                <img
-                  src={activityRewardGirl}
-                  alt="Happy girl celebrating your achievement"
-                  className="child-activity-rewards-girl"
-                />
-              </div>
-
-              {/* REWARD CONTENT - RIGHT SIDE */}
-              <div className="child-activity-rewards-content">
-
-                <h2 id="child-activity-rewards-title">
-                  Activity Completed!
-                </h2>
-
-                <h3>
-                  Great Job, {childName}!
-                </h3>
-
-                {/* EARNED STARS */}
-                <div
-                  className="child-activity-rewards-score"
-                  aria-label={`${Math.max(
-                    0,
-                    Math.min(
-                      Number(answerResults.score) || 0,
-                      Number(answerResults.total_questions) || 0
-                    )
-                  )} stars earned`}
-                >
-                  {Array.from(
-                    {
-                      length: Math.max(
-                        0,
-                        Math.min(
-                          Number(answerResults.score) || 0,
-                          Number(answerResults.total_questions) || 0
-                        )
-                      ),
-                    },
-                    (_, index) => (
-                      <span
-                        key={index}
-                        className="child-activity-rewards-star"
-                        style={{ animationDelay: `${index * 0.12}s` }}
-                      >
-                        ⭐
-                      </span>
-                    )
-                  )}
-                </div>
-
-                <p className="child-activity-rewards-encouragement">
-                  You did an amazing job! Keep learning and shining!
-                </p>
-
-                {/* NEXT ACTIVITY */}
-                <button
-                  type="button"
-                  className="child-activity-rewards-next-btn"
-                  onClick={handleNextActivity}
-                >
-                  {lessons.findIndex(
-                    (lesson) =>
-                      lesson.lesson_id === currentLesson?.lesson_id
-                  ) < lessons.length - 1
-                    ? "Continue Activity →"
-                    : currentTopicIndex < topicLessonGroups.length - 1
-                    ? "Continue to Next Topic →"
-                    : "Finish Learning"}
-                </button>
-
-              </div>
-
-              {/* BOTTOM PINK WAVE */}
-              <div className="child-activity-rewards-wave"></div>
-
             </div>
-          </div>
+            <div className="child-activity-rewards-wave" aria-hidden="true" />
+          </dialog>
         )}
 
       </div>

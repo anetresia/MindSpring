@@ -1,11 +1,13 @@
 
 import { useEffect, useState } from "react";
+import { Baby, CalendarDays, Eye, Heart, Mail, Phone, Search, Star, Users, X } from "lucide-react";
 
 import AdminSidebar from "../components/admin/AdminSidebar";
 import AdminHeader from "../components/admin/AdminHeader";
 
 import { getAdminParents, getAdminParent } from "../api";
 
+import parentAndChild from "../assets/admin-parent-and-child.svg";
 import "../styles/admin/admin-dashboard.css";
 import "../styles/admin/admin-parents.css";
 
@@ -93,8 +95,8 @@ function AdminParents() {
   // ========================================
 
   return (
-    <div className="admin-layout">
-      <AdminSidebar />
+    <div className="admin-layout admin-dashboard-page admin-parents-page">
+      <AdminSidebar illustrated />
 
       <main className="admin-main">
         <AdminHeader title="Parent Management" />
@@ -104,7 +106,7 @@ function AdminParents() {
           {/* PAGE INTRO */}
 
           <section className="management-welcome">
-            <div>
+            <div className="management-welcome-copy">
               <h2>Parent Management</h2>
 
               <p>
@@ -113,8 +115,10 @@ function AdminParents() {
               </p>
             </div>
 
-            <div className="management-welcome-icon">
-              ♙
+            <div className="management-welcome-art" aria-hidden="true">
+              <Heart className="management-welcome-heart" />
+              <Star className="management-welcome-star" />
+              <img src={parentAndChild} alt="" />
             </div>
           </section>
 
@@ -122,14 +126,14 @@ function AdminParents() {
 
           <section className="management-stat-grid">
 
-            <div className="admin-stat-card stat-card-purple">
-              <div className="admin-stat-icon">♙</div>
-
-              <p>Total Parents</p>
-
-              <h3>{parents.length}</h3>
-
-              <span>Registered parents</span>
+            <div className="management-parent-stat">
+              <div className="management-icon-badge"><Users aria-hidden="true" /></div>
+              <div>
+                <p>Total Parents</p>
+                <strong>{parents.length}</strong>
+                <span>Registered parents</span>
+              </div>
+              <Users className="management-stat-art" aria-hidden="true" />
             </div>
 
           </section>
@@ -139,6 +143,7 @@ function AdminParents() {
           <section className="management-list-panel">
 
             <div className="management-list-heading">
+              <span className="management-icon-badge"><Users aria-hidden="true" /></span>
               <div>
                 <h2>Registered Parents</h2>
 
@@ -151,12 +156,13 @@ function AdminParents() {
             {/* SEARCH */}
 
             <div className="management-search">
-              <span>⌕</span>
+              <Search aria-hidden="true" />
 
               <input
                 type="text"
                 value={search}
                 onChange={handleSearch}
+                aria-label="Search by name, email or phone"
                 placeholder="Search by name, email or phone..."
               />
             </div>
@@ -218,18 +224,29 @@ function AdminParents() {
                           </div>
                         </td>
 
-                        <td>{parent.email || "—"}</td>
-
-                        <td>{parent.phone || "—"}</td>
-
                         <td>
-                          <span className="management-count">
-                            {parent.children_count ?? 0}
+                          <span className="management-cell-with-icon">
+                            <Mail aria-hidden="true" />{parent.email || "—"}
                           </span>
                         </td>
 
                         <td>
-                          {formatDate(parent.created_at)}
+                          <span className="management-cell-with-icon">
+                            <Phone aria-hidden="true" />{parent.phone || "—"}
+                          </span>
+                        </td>
+
+                        <td>
+                          <span className="management-count">
+                            <Baby aria-hidden="true" />
+                            {parent.children_count ?? 0} {parent.children_count === 1 ? "Child" : "Children"}
+                          </span>
+                        </td>
+
+                        <td>
+                          <span className="management-cell-with-icon">
+                            <CalendarDays aria-hidden="true" />{formatDate(parent.created_at)}
+                          </span>
                         </td>
 
                         <td>
@@ -240,7 +257,7 @@ function AdminParents() {
                               handleViewParent(parent.parent_id)
                             }
                           >
-                            View Details
+                            <Eye aria-hidden="true" /> View Details
                           </button>
                         </td>
 
@@ -294,8 +311,9 @@ function AdminParents() {
                 type="button"
                 className="management-close-btn"
                 onClick={closeModal}
+                aria-label="Close parent details"
               >
-                ×
+                <X aria-hidden="true" />
               </button>
             </div>
 

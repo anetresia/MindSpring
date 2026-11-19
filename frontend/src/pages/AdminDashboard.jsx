@@ -1,42 +1,57 @@
 
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { ArrowRight, Baby, ChartNoAxesColumnIncreasing, Layers, Play, RefreshCw, Users } from "lucide-react";
 
 import AdminSidebar from "../components/admin/AdminSidebar";
 import AdminHeader from "../components/admin/AdminHeader";
 
-import { getAdminLessons, getAdminLifeSkillTopics } from "../api";
+import {
+  getAdminChildren,
+  getAdminLessons,
+  getAdminLifeSkillTopics,
+  getAdminParents,
+} from "../api";
+
+import welcomeArt from "../assets/hero-bg.png";
+import videoArt from "../assets/watch-videos-icon.png";
+import bookArt from "../assets/lessons-icon.png";
+import parentArt from "../assets/admin-parent-and-child.svg";
+import childArt from "../assets/reward-girl.png";
 import "../styles/admin/admin-dashboard.css";
+
+const statCards = [
+  { label: "Total Videos", theme: "purple", icon: Play, art: videoArt, load: getAdminLessons },
+  { label: "Life Skill Topics", theme: "pink", icon: Layers, art: bookArt, load: getAdminLifeSkillTopics },
+  { label: "Registered Parents", theme: "peach", icon: Users, art: parentArt, load: getAdminParents },
+  { label: "Registered Children", theme: "lavender", icon: Baby, art: childArt, load: getAdminChildren },
+];
 
 function AdminDashboard() {
   const navigate = useNavigate();
 
-  const [totalVideos, setTotalVideos] = useState(0);
-  const [totalTopics, setTotalTopics] = useState(0);
-
+  const [totals, setTotals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   async function loadDashboardData() {
+    setLoading(true);
+    setError("");
+
     try {
-      setLoading(true);
-      setError("");
+      const results = await Promise.allSettled(statCards.map(({ load }) => load()));
+      const counts = results.map((result) => {
+        if (result.status !== "fulfilled") return null;
+        if (Array.isArray(result.value)) return result.value.length;
+        return Number.isInteger(result.value?.total) && result.value.total >= 0
+          ? result.value.total
+          : null;
+      });
 
-      const [lessonsData, topicsData] = await Promise.all([
-        getAdminLessons(),
-        getAdminLifeSkillTopics(),
-      ]);
-
-      setTotalVideos(
-        Array.isArray(lessonsData) ? lessonsData.length : 0
-      );
-
-      // Count ALL topics, including active and inactive topics.
-      setTotalTopics(
-        Array.isArray(topicsData) ? topicsData.length : 0
-      );
-    } catch (err) {
-      setError(err.message || "Unable to load dashboard data.");
+      setTotals(counts);
+      if (counts.includes(null)) {
+        setError("Some dashboard totals could not be loaded. Select Refresh to try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -47,30 +62,34 @@ function AdminDashboard() {
   }, []);
 
   return (
-    <div className="admin-layout">
-      <AdminSidebar />
+    <div className="admin-layout admin-dashboard-page">
+      <AdminSidebar illustrated />
 
       <main className="admin-main">
-        <AdminHeader title="Dashboard" />
+        <AdminHeader title="Dashboard" confirmLogout />
 
         <div className="admin-dashboard-content">
 
           <section className="admin-welcome">
-            <div>
+            <div className="admin-welcome-copy">
               <h2>Welcome to MindSpring Admin!</h2>
               <p>
-                Manage learning videos and life skill content
-                for children.
+                Manage learning videos and life skill content for children.
               </p>
             </div>
 
-            <div className="admin-welcome-icon">✦</div>
+            <div className="admin-welcome-art" aria-hidden="true">
+              <img src={welcomeArt} alt="" />
+            </div>
           </section>
 
           <div className="admin-dashboard-toolbar">
-            <div>
-              <h2>Dashboard Overview</h2>
-              <p>Here's an overview of your learning content.</p>
+            <div className="admin-overview-heading">
+              <span className="admin-overview-icon"><ChartNoAxesColumnIncreasing aria-hidden="true" /></span>
+              <div>
+                <h2>Dashboard Overview</h2>
+                <p>Here's an overview of your learning content.</p>
+              </div>
             </div>
 
             <button
@@ -84,57 +103,31 @@ function AdminDashboard() {
           </div>
 
           {error && (
-            <div className="admin-dashboard-error">
+            <div className="admin-dashboard-error" role="alert">
               {error}
             </div>
           )}
 
-          <section className="admin-stat-grid">
-
-            <div className="admin-stat-card stat-card-purple">
-              <div className="admin-stat-icon">▶</div>
-
-              <p>Total Videos</p>
-
-              <h3>
-                {loading ? "—" : totalVideos}
-              </h3>
-
-              <span>Learning videos</span>
-            </div>
-
-            <div className="admin-stat-card stat-card-pink">
-              <div className="admin-stat-icon">▤</div>
-
-              <p>Life Skill Topics</p>
-
-              <h3>
-                {loading ? "—" : totalTopics}
-              </h3>
-
-              <span>Active and inactive topics</span>
-            </div>
-
-            <div className="admin-stat-card stat-card-peach">
-              <div className="admin-stat-icon">＋</div>
-
-              <p>Content Management</p>
-
-              <h3>Manage</h3>
-
-              <span>Videos and lessons</span>
-            </div>
-
+          <section className="admin-stat-grid" aria-label="Admin totals" aria-busy={loading}>
+            {statCards.map(({ label, theme, icon: Icon, art }, index) => (
+              <div key={label} className={`admin-stat-card stat-card-${theme}`}>
+                <div className="admin-stat-icon"><Icon aria-hidden="true" /></div>
+                <p>{label}</p>
+                <strong className="admin-stat-total">
+                  {loading ? "?" : totals[index] ?? <span>Unavailable</span>}
+                </strong>
+                <img className="admin-stat-art" src={art} alt="" />
+              </div>
+            ))}
           </section>
 
           <section className="admin-quick-panel">
-            <div>
-              <h2>Video Management</h2>
-
-              <p>
-                Add and manage learning videos for the
-                selected Life Skill Topics.
-              </p>
+            <div className="admin-quick-heading">
+              <span className="admin-quick-icon"><Play aria-hidden="true" /></span>
+              <div>
+                <h2>Video Management</h2>
+                <p>Add and manage learning videos for the selected Life Skill Topics.</p>
+              </div>
             </div>
 
             <button

@@ -1,8 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
+import { BookOpen, CircleHelp, CirclePlay, EllipsisVertical, Folder, Layers, Pencil, Plus, RefreshCw } from "lucide-react";
 import AdminSidebar from "../components/admin/AdminSidebar";
 import AdminHeader from "../components/admin/AdminHeader";
 import { API_URL, getAuthHeaders } from "../api";
+import welcomeArt from "../assets/hero-bg.png";
+import brushingTeethArt from "../assets/brushing-teeth.svg";
+import combingHairArt from "../assets/combing-hair.svg";
+import "../styles/admin/admin-dashboard.css";
 import "../styles/admin/admin-content.css";
+
+function getTopicIllustration(title) {
+  if (/\b(?:hair|comb(?:ing)?)\b/i.test(title)) return combingHairArt;
+  if (/\b(?:tooth|teeth|toothbrush|dental)\b/i.test(title)) return brushingTeethArt;
+  return null;
+}
 
 const emptyCategory = {
   category_name: "",
@@ -853,24 +864,28 @@ function AdminContent() {
   }
 
   return (
-    <div className="admin-layout">
-      <AdminSidebar />
+    <div className="admin-layout admin-dashboard-page admin-content-layout">
+      <AdminSidebar illustrated />
 
       <main className="admin-main">
         <AdminHeader title="Content Management" />
 
         <div className="admin-content-page">
-          <div className="admin-content-heading">
-            <div>
+          <section className="admin-content-heading">
+            <div className="admin-content-banner-copy">
               <h2>Manage Learning Content</h2>
               <p>Organize categories, topics and learning videos.</p>
             </div>
 
+            <div className="admin-content-banner-art" aria-hidden="true">
+              <img src={welcomeArt} alt="" />
+            </div>
             <div className="admin-video-count">
+              <Layers aria-hidden="true" />
               {categories.length} Categories · {topics.length} Topics ·{" "}
               {lessons.length} Lessons
             </div>
-          </div>
+          </section>
 
           {error && (
             <div className="admin-message admin-error">{error}</div>
@@ -884,28 +899,33 @@ function AdminContent() {
             <button
               type="button"
               className={activeTab === "categories" ? "active" : ""}
+              aria-pressed={activeTab === "categories"}
               onClick={() => {
                 setActiveTab("categories");
                 setError("");
               }}
             >
+              <Layers aria-hidden="true" />
               Categories
             </button>
 
             <button
               type="button"
               className={activeTab === "lessons" ? "active" : ""}
+              aria-pressed={activeTab === "lessons"}
               onClick={() => {
                 setActiveTab("lessons");
                 setError("");
               }}
             >
+              <CirclePlay aria-hidden="true" />
               Lessons
             </button>
 
             <button
               type="button"
               className={activeTab === "questions" ? "active" : ""}
+              aria-pressed={activeTab === "questions"}
               onClick={() => {
                 setActiveTab("questions");
                 setError("");
@@ -919,6 +939,7 @@ function AdminContent() {
                 }
               }}
             >
+              <CircleHelp aria-hidden="true" />
               Questions
             </button>
 
@@ -928,7 +949,7 @@ function AdminContent() {
               onClick={loadData}
               disabled={loading}
             >
-              ↻ Refresh
+              <RefreshCw aria-hidden="true" /> Refresh
             </button>
           </div>
 
@@ -941,7 +962,8 @@ function AdminContent() {
               {activeTab === "categories" && (
                 <section className="admin-category-layout">
                   <div className="admin-category-panel">
-                    <div className="admin-panel-heading">
+                    <div className="admin-panel-heading admin-category-panel-title">
+                      <Folder aria-hidden="true" />
                       <div>
                         <h2>Categories</h2>
                         <p>{categories.length} main categories</p>
@@ -954,7 +976,7 @@ function AdminContent() {
                           No categories added yet.
                         </p>
                       ) : (
-                        categories.map((category, index) => (
+                        categories.map((category) => (
                           <div
                             key={category.category_id}
                             className={`admin-category-item ${
@@ -972,13 +994,7 @@ function AdminContent() {
                                 setSelectedCategoryId(category.category_id)
                               }
                             >
-                              <span className="admin-category-icon">
-                                {
-                                  ["⭐", "🧩", "❤️", "🏠", "💬", "🌞", "📚"][
-                                    index % 7
-                                  ]
-                                }
-                              </span>
+                              <span className="admin-category-icon"><Folder aria-hidden="true" /></span>
 
                               <span className="admin-category-details">
                                 <strong>{category.category_name}</strong>
@@ -997,7 +1013,7 @@ function AdminContent() {
                               onClick={() => openEditCategory(category)}
                               title="Edit category"
                             >
-                              ✎
+                              <Pencil aria-hidden="true" />
                             </button>
                           </div>
                         ))
@@ -1009,7 +1025,7 @@ function AdminContent() {
                       className="admin-add-category-btn"
                       onClick={openAddCategory}
                     >
-                      + Add Category
+                      <Plus aria-hidden="true" /> Add Category
                     </button>
                   </div>
 
@@ -1019,6 +1035,7 @@ function AdminContent() {
                         <div className="admin-topic-panel-heading">
                           <div>
                             <div className="admin-selected-category-title">
+                              <BookOpen aria-hidden="true" />
                               <h2>{selectedCategory.category_name}</h2>
 
                               <button
@@ -1028,7 +1045,7 @@ function AdminContent() {
                                 }
                                 title="Edit category"
                               >
-                                ✎
+                                <Pencil aria-hidden="true" />
                               </button>
                             </div>
 
@@ -1046,7 +1063,7 @@ function AdminContent() {
                             onClick={() => openAddLesson()}
                             disabled={activeTopics.length === 0}
                           >
-                            + Add Lesson
+                            <Plus aria-hidden="true" /> Add Lesson
                           </button>
                         </div>
 
@@ -1057,61 +1074,64 @@ function AdminContent() {
                               topic below.
                             </p>
                           ) : (
-                            selectedTopics.map((topic, index) => (
-                              <div
-                                className="admin-topic-card"
-                                key={topic.topic_id}
-                              >
-                                <div className="admin-topic-icon">
-                                  {
-                                    ["🦷", "🧼", "🛁", "👕", "⭐", "📖"][
-                                      index % 6
-                                    ]
-                                  }
+                            selectedTopics.map((topic) => {
+                              const illustration = getTopicIllustration(topic.topic_name);
+                              return (
+                                <div
+                                  className="admin-topic-card"
+                                  key={topic.topic_id}
+                                >
+                                  <div className="admin-topic-icon" aria-hidden="true">
+                                    {illustration ? (
+                                      <img src={illustration} alt="" />
+                                    ) : (
+                                      <BookOpen />
+                                    )}
+                                  </div>
+
+                                  <div className="admin-topic-info">
+                                    <strong>{topic.topic_name}</strong>
+                                    <small>
+                                      {getTopicLessonCount(topic.topic_id)}{" "}
+                                      activities
+                                    </small>
+                                  </div>
+
+                                  <span
+                                    className={`admin-status ${
+                                      topic.is_active === false
+                                        ? "inactive"
+                                        : "active"
+                                    }`}
+                                  >
+                                    {topic.is_active === false
+                                      ? "Inactive"
+                                      : "Active"}
+                                  </span>
+
+                                  <button
+                                    type="button"
+                                    className="admin-topic-edit-btn"
+                                    onClick={() => openEditTopic(topic)}
+                                  >
+                                    <Pencil aria-hidden="true" /> Edit
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    className="admin-topic-status-btn"
+                                    onClick={() => toggleTopicStatus(topic)}
+                                    title={
+                                      topic.is_active === false
+                                        ? "Activate topic"
+                                        : "Deactivate topic"
+                                    }
+                                  >
+                                    <EllipsisVertical aria-hidden="true" />
+                                  </button>
                                 </div>
-
-                                <div className="admin-topic-info">
-                                  <strong>{topic.topic_name}</strong>
-                                  <small>
-                                    {getTopicLessonCount(topic.topic_id)}{" "}
-                                    activities
-                                  </small>
-                                </div>
-
-                                <span
-                                  className={`admin-status ${
-                                    topic.is_active === false
-                                      ? "inactive"
-                                      : "active"
-                                  }`}
-                                >
-                                  {topic.is_active === false
-                                    ? "Inactive"
-                                    : "Active"}
-                                </span>
-
-                                <button
-                                  type="button"
-                                  className="admin-topic-edit-btn"
-                                  onClick={() => openEditTopic(topic)}
-                                >
-                                  Edit
-                                </button>
-
-                                <button
-                                  type="button"
-                                  className="admin-topic-status-btn"
-                                  onClick={() => toggleTopicStatus(topic)}
-                                  title={
-                                    topic.is_active === false
-                                      ? "Activate topic"
-                                      : "Deactivate topic"
-                                  }
-                                >
-                                  ⋮
-                                </button>
-                                    </div>
-                            ))
+                              );
+                            })
                           )}
                         </div>
 
@@ -1121,7 +1141,7 @@ function AdminContent() {
                             className="admin-add-category-btn"
                             onClick={openAddTopic}
                           >
-                            + Add Topic
+                            <Plus aria-hidden="true" /> Add Topic
                           </button>
 
                           <button
@@ -1268,8 +1288,7 @@ function AdminContent() {
                   </div>
 
                   <div
-                    className="admin-form-group"
-                    style={{ maxWidth: "420px", marginBottom: "18px" }}
+                    className="admin-form-group admin-question-lesson-filter"
                   >
                     <label>Select Lesson *</label>
 
@@ -1296,8 +1315,7 @@ function AdminContent() {
 
                   {selectedQuestionLessonId && (
                     <p
-                      className="admin-subtitle"
-                      style={{ marginBottom: "14px" }}
+                      className="admin-subtitle admin-question-count"
                     >
                       {questions.length} / 5 questions added for this lesson.
                     </p>

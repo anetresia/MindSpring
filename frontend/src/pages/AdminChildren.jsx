@@ -1,13 +1,19 @@
 
 import { useEffect, useState } from "react";
+import { CalendarDays, Eye, Mail, Play, Search, Users, Video, X } from "lucide-react";
 
 import AdminSidebar from "../components/admin/AdminSidebar";
 import AdminHeader from "../components/admin/AdminHeader";
 
 import { getAdminChildren, getAdminChild } from "../api";
 
+import welcomeArt from "../assets/hero-bg.png";
 import "../styles/admin/admin-dashboard.css";
 import "../styles/admin/admin-children.css";
+
+function isVideoLearner(child) {
+  return child.preferred_learning_mode?.trim().toLowerCase() === "video";
+}
 
 function AdminChildren() {
   const [children, setChildren] = useState([]);
@@ -94,42 +100,43 @@ function AdminChildren() {
   // ========================================
 
   return (
-    <div className="admin-layout">
-      <AdminSidebar />
+    <div className="admin-layout admin-dashboard-page admin-children-page">
+      <AdminSidebar illustrated />
 
       <main className="admin-main">
-        <AdminHeader />
+        <AdminHeader title="Child Management" />
 
         <div className="admin-dashboard-content">
 
           {/* PAGE INTRO */}
 
-          <div className="management-welcome">
-            <div>
-              <h1>Child Management</h1>
-
-              <p>
-                View all children registered in MindSpring.
-              </p>
+          <section className="admin-welcome">
+            <div className="admin-welcome-copy">
+              <h2>Child Management</h2>
+              <p>View and manage all children registered in MindSpring.</p>
             </div>
-          </div>
+            <div className="admin-welcome-art" aria-hidden="true">
+              <img src={welcomeArt} alt="" />
+            </div>
+          </section>
 
-          {/* STATISTICS */}
-
-          <div className="management-stat-grid">
+          <section className="management-stat-grid" aria-label="Child statistics" aria-busy={loading}>
             <div className="management-stat-card">
-
-              <div className="management-stat-icon">
-                ♧
-              </div>
-
+              <div className="management-stat-icon"><Users aria-hidden="true" /></div>
               <div>
                 <p>Total Children</p>
-                <h2>{children.length}</h2>
+                <strong>{children.length}</strong>
               </div>
-
             </div>
-          </div>
+
+            <div className="management-stat-card">
+              <div className="management-stat-icon"><Video aria-hidden="true" /></div>
+              <div>
+                <p>Video Learners</p>
+                <strong>{children.filter(isVideoLearner).length}</strong>
+              </div>
+            </div>
+          </section>
 
           {/* CHILD LIST */}
 
@@ -137,19 +144,20 @@ function AdminChildren() {
 
             <div className="management-section-header">
 
-              <div>
-                <h2>Registered Children</h2>
-
-                <p>
-                  View child profiles and learning information.
-                </p>
+              <div className="management-section-title">
+                <span className="management-stat-icon"><Users aria-hidden="true" /></span>
+                <div>
+                  <h2 id="registered-children-title">Registered Children</h2>
+                  <p>View child profiles and learning information.</p>
+                </div>
               </div>
 
               <div className="management-search">
-                <span>⌕</span>
+                <Search aria-hidden="true" />
 
                 <input
                   type="text"
+                  aria-label="Search child or parent"
                   placeholder="Search child or parent..."
                   value={search}
                   onChange={handleSearch}
@@ -166,7 +174,12 @@ function AdminChildren() {
 
             {/* CHILD TABLE */}
 
-            <div className="management-table-wrapper">
+            <div
+              className="management-table-wrapper"
+              tabIndex={0}
+              role="region"
+              aria-labelledby="registered-children-title"
+            >
               <table className="management-table">
 
                 <thead>
@@ -221,15 +234,24 @@ function AdminChildren() {
                         </td>
 
                         <td>
-                          {child.parent?.email || "N/A"}
+                          <span className="management-child-cell">
+                            <Mail aria-hidden="true" />
+                            {child.parent?.email || "N/A"}
+                          </span>
                         </td>
 
                         <td>
-                          {formatDate(child.date_of_birth)}
+                          <span className="management-child-cell">
+                            <CalendarDays aria-hidden="true" />
+                            {formatDate(child.date_of_birth)}
+                          </span>
                         </td>
 
                         <td>
-                          {child.preferred_learning_mode || "Not set"}
+                          <span className="management-child-cell">
+                            {isVideoLearner(child) && <Play aria-hidden="true" />}
+                            {child.preferred_learning_mode || "Not set"}
+                          </span>
                         </td>
 
                         <td>
@@ -240,7 +262,7 @@ function AdminChildren() {
                               className="management-view-btn"
                               onClick={() => handleView(child.child_id)}
                             >
-                              View
+                              <Eye aria-hidden="true" /> View
                             </button>
 
                           </div>
@@ -293,8 +315,9 @@ function AdminChildren() {
                 type="button"
                 className="management-close-btn"
                 onClick={closeModal}
+                aria-label="Close child details"
               >
-                ×
+                <X aria-hidden="true" />
               </button>
 
             </div>

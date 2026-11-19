@@ -794,6 +794,13 @@
   font-size: 28px;
 }
 
+.activity-icon > img {
+  display: block;
+  width: 84%;
+  height: 84%;
+  object-fit: contain;
+}
+
 /* Activity details */
 
 .activity-details {

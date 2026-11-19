@@ -186,3 +186,83 @@
     gap: 10px;
   }
 }
+
+/* Admin Dashboard logout confirmation */
+
+.admin-logout-dialog {
+  position: fixed;
+  inset: 0;
+  box-sizing: border-box;
+  width: min(460px, calc(100% - 32px));
+  max-height: calc(100dvh - 32px);
+  margin: auto;
+  padding: clamp(20px, 5vw, 36px);
+  overflow: auto;
+  border: 1px solid #f2d9f0;
+  border-radius: 26px;
+  background: linear-gradient(145deg, #fffafd, #fff1fb);
+  box-shadow: 0 20px 65px #38164b55;
+  color: #50128c;
+  text-align: center;
+}
+
+.admin-logout-dialog::backdrop {
+  background: rgb(34 18 49 / 60%);
+}
+
+.admin-logout-dialog-icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 14px;
+  border-radius: 17px;
+  background: linear-gradient(140deg, #ffe0f3, #ecd6ff);
+  color: #ab197d;
+}
+
+.admin-logout-dialog h2 {
+  margin: 0;
+  font-size: clamp(21px, 4vw, 27px);
+  line-height: 1.18;
+}
+
+.admin-logout-dialog p {
+  margin: 12px 0 24px;
+  color: #674b79;
+  line-height: 1.5;
+}
+
+.admin-logout-dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.admin-logout-dialog-actions button {
+  flex: 1 0 105px;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid #e8d5f4;
+  border-radius: 999px;
+  background: #fff;
+  color: #50128c;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.admin-logout-dialog-actions button:hover {
+  background: #f7e8fc;
+}
+
+.admin-logout-dialog-actions .admin-logout-confirm-btn {
+  border-color: transparent;
+  background: linear-gradient(110deg, #be156f, #822bb2);
+  color: #fff;
+}
+
+.admin-logout-dialog-actions .admin-logout-confirm-btn:hover {
+  background: #9d1d82;
+}

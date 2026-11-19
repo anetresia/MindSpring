@@ -3,6 +3,8 @@ import { useState } from "react";
 import "../../styles/parent-dashboard/dashboard-overview.css";
 
 import lessonsIcon from "../../assets/lessons-icon.png";
+import brushingTeethIcon from "../../assets/brushing-teeth.svg";
+import combingHairIcon from "../../assets/combing-hair.svg";
 import rewardsIcon from "../../assets/rewards-icon.png";
 import activityIcon from "../../assets/activity-icon.png";
 import subscriptionIcon from "../../assets/subscription-icon.png";
@@ -176,48 +178,13 @@ function DashboardOverview({
     ? recentActivities.data
     : [];
 
-  // ACTIVITY ICON
   function getActivityIcon(activity) {
-    const title = (
-      activity.lesson_title || ""
-    ).toLowerCase();
+    const title = activity.lesson_title?.toLowerCase() ?? "";
 
-    if (
-      title.includes("brush") ||
-      title.includes("tooth")
-    ) {
-      return "🪥";
-    }
+    if (/\b(?:hair|comb(?:ing)?)\b/.test(title)) return combingHairIcon;
+    if (/\b(?:tooth|teeth|toothbrush|dental)\b/.test(title)) return brushingTeethIcon;
 
-    if (
-      title.includes("hair") ||
-      title.includes("comb")
-    ) {
-      return "💇";
-    }
-
-    if (
-      title.includes("wash") ||
-      title.includes("bath")
-    ) {
-      return "🧼";
-    }
-
-    if (
-      title.includes("communication") ||
-      title.includes("talk")
-    ) {
-      return "💬";
-    }
-
-    if (
-      title.includes("food") ||
-      title.includes("eat")
-    ) {
-      return "🍎";
-    }
-
-    return "⭐";
+    return lessonsIcon;
   }
 
   return (
@@ -606,7 +573,7 @@ function DashboardOverview({
                   >
 
                     <div className="activity-icon">
-                      {getActivityIcon(activity)}
+                      <img src={getActivityIcon(activity)} alt="" />
                     </div>
 
                     <div className="activity-details">

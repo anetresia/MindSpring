@@ -1,8 +1,8 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 
-import { getChild, getChildRewards } from "../api";
+import { getChild, getChildRewards, getLearningSessionStatus } from "../api";
 
 import dashboardBg from "../assets/child-dashboard-bg.png";
 import mindSpringLogo from "../assets/mindspring-logo.png";
@@ -12,6 +12,21 @@ import rewardGirl from "../assets/reward-girl.png";
 
 import "../styles/child-dashboard.css";
 
+function hasCompletedDailyLearning(status, child) {
+  const data = status?.data ?? status;
+  if (data?.limit_reached === true) return true;
+  if (Number.isFinite(data?.remaining_seconds)) return data.remaining_seconds <= 0;
+
+  if (data?.limit_reached === false) return false;
+
+  const limitMinutes = Number(child?.daily_learning_limit);
+  if (limitMinutes > 0 && Number.isFinite(data?.total_seconds)) {
+    return data.total_seconds >= limitMinutes * 60;
+  }
+
+  throw new Error("Learning session status is unavailable.");
+}
+
 function ChildDashboard() {
   const { childId } = useParams();
   const navigate = useNavigate();
@@ -20,6 +35,13 @@ function ChildDashboard() {
   const [child, setChild] = useState(location.state?.child || null);
   const [loading, setLoading] = useState(!location.state?.child);
   const [error, setError] = useState("");
+  const [showDailyCompletion, setShowDailyCompletion] = useState(
+    location.state?.dailyLearningCompleted === true
+  );
+  const [checkingLearning, setCheckingLearning] = useState(false);
+  const [learningStatusError, setLearningStatusError] = useState("");
+  const dailyCompletionRef = useRef(null);
+  const learningStatusRequest = useRef(0);
 
   // TOTAL REWARD STARS
   const [totalStars, setTotalStars] = useState(0);
@@ -42,11 +64,22 @@ function ChildDashboard() {
       try {
         setLoading(true);
         setError("");
+        setCheckingLearning(false);
+        setLearningStatusError("");
 
         const response = await getChild(childId);
+        const childData = response.child || response.data || response;
+        if (!isMounted) return;
 
-        if (isMounted) {
-          setChild(response.child || response.data || response);
+        setChild(childData);
+
+        try {
+          const status = await getLearningSessionStatus(childId);
+          if (isMounted) {
+            setShowDailyCompletion(hasCompletedDailyLearning(status, childData));
+          }
+        } catch (err) {
+          console.error("Unable to check learning time:", err);
         }
       } catch (err) {
         if (isMounted) {
@@ -63,8 +96,25 @@ function ChildDashboard() {
 
     return () => {
       isMounted = false;
+      learningStatusRequest.current += 1;
     };
   }, [childId]);
+
+  useEffect(() => {
+    if (location.state?.dailyLearningCompleted) {
+      navigate(location.pathname, {
+        replace: true,
+        state: { ...location.state, dailyLearningCompleted: false },
+      });
+    }
+  }, [location.pathname, location.state, navigate]);
+
+  useEffect(() => {
+    const dialog = dailyCompletionRef.current;
+    if (showDailyCompletion && !loading && dialog && !dialog.open) {
+      dialog.showModal();
+    }
+  }, [showDailyCompletion, loading]);
 
   // LOAD CHILD TOTAL REWARD STARS
   useEffect(() => {
@@ -135,10 +185,34 @@ function ChildDashboard() {
   }
 
   // LEARNING VIDEOS
-  function handleVideosClick() {
-    navigate(`/child-learning/${childId}`, {
-      state: { child },
-    });
+  async function handleVideosClick() {
+    if (checkingLearning) return;
+
+    const request = ++learningStatusRequest.current;
+    setCheckingLearning(true);
+    setLearningStatusError("");
+
+    try {
+      const status = await getLearningSessionStatus(childId);
+      if (request !== learningStatusRequest.current) return;
+
+      if (hasCompletedDailyLearning(status, child)) {
+        setShowDailyCompletion(true);
+        return;
+      }
+
+      navigate(`/child-learning/${childId}`, {
+        state: { child },
+      });
+    } catch {
+      if (request === learningStatusRequest.current) {
+        setLearningStatusError("We couldn't check your learning time. Please try again.");
+      }
+    } finally {
+      if (request === learningStatusRequest.current) {
+        setCheckingLearning(false);
+      }
+    }
   }
 
   // OPEN REWARDS POPUP
@@ -268,6 +342,7 @@ function ChildDashboard() {
             type="button"
             className="child-dashboard-card watch-videos-card"
             onClick={handleVideosClick}
+            disabled={checkingLearning}
           >
             <span className="dashboard-card-icon">
               <img
@@ -277,7 +352,7 @@ function ChildDashboard() {
             </span>
 
             <span className="dashboard-card-title">
-              Watch Videos
+              {checkingLearning ? "Checking learning time?" : "Watch Videos"}
             </span>
           </button>
 
@@ -301,7 +376,36 @@ function ChildDashboard() {
 
         </section>
 
+        {learningStatusError && (
+          <p className="child-learning-status-error" role="alert">{learningStatusError}</p>
+        )}
       </div>
+
+      {showDailyCompletion && (
+        <dialog
+          ref={dailyCompletionRef}
+          className="child-daily-completion-dialog"
+          aria-labelledby="child-daily-completion-title"
+          aria-describedby="child-daily-completion-message"
+          onClose={() => setShowDailyCompletion(false)}
+        >
+          <img src={rewardGirl} alt="" />
+          <div>
+            <img className="child-daily-completion-logo" src={mindSpringLogo} alt="MindSpring" />
+            <h2 id="child-daily-completion-title">Daily Learning Time Completed!</h2>
+            <p id="child-daily-completion-message">
+              Great job! You have completed your learning time for today. Come back tomorrow for more fun learning!
+            </p>
+            <button
+              type="button"
+              className="child-rewards-done-button"
+              onClick={handleParentDashboard}
+            >
+              See You Tomorrow!
+            </button>
+          </div>
+        </dialog>
+      )}
 
       {/* MY REWARDS POPUP */}
       {showRewards && (
