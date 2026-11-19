@@ -904,7 +904,9 @@
   justify-content: center;
 
   padding: 20px;
+}
 
+body:has(.child-limit-overlay) .parent-dashboard-page .parent-dashboard-scroll::before {
   background: rgba(37, 17, 75, 0.45);
   backdrop-filter: blur(5px);
 }

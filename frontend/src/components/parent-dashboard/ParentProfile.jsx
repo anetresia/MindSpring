@@ -1,5 +1,6 @@
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 import {
   getParentProfile,
@@ -530,7 +531,7 @@ function ParentProfile({ onProfileUpdate, onLogout }) {
 
       {/* LOGOUT CONFIRMATION MODAL */}
 
-      {showLogoutConfirm && (
+      {showLogoutConfirm && createPortal(
         <div
           className="logout-modal-overlay"
           onClick={handleCancelLogout}
@@ -576,7 +577,8 @@ function ParentProfile({ onProfileUpdate, onLogout }) {
             </div>
 
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
     </div>

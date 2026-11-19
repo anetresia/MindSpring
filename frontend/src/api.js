@@ -32,7 +32,7 @@ async function handleResponse(response) {
       message = data.message;
     }
 
-    throw new Error(message);
+    throw Object.assign(new Error(message), { status: response.status });
   }
 
   return data;

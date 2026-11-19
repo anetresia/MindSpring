@@ -22,6 +22,7 @@ function DashboardOverview({
   dashboardStatsLoading = false,
   subscriptionData = null,
   subscriptionLoading = false,
+  subscriptionError = "",
   loading,
   error,
   onAddChild,
@@ -116,9 +117,7 @@ function DashboardOverview({
 
   // SUBSCRIPTION DETAILS
   const subscription =
-    subscriptionData?.subscription ||
-    subscriptionData ||
-    null;
+    subscriptionData?.subscription ?? null;
 
   const subscriptionPlan =
     subscription?.plan?.plan_name ||
@@ -131,13 +130,11 @@ function DashboardOverview({
 
   const remainingCredits =
     subscription?.credits?.remaining_credits ??
-    subscription?.remaining_credits ??
-    0;
+    subscription?.remaining_credits;
 
   const totalCredits =
     subscription?.credits?.total_credits ??
-    subscription?.total_credits ??
-    0;
+    subscription?.total_credits;
 
   // FORMAT ACTIVITY DATE
   function formatActivityDate(dateValue) {
@@ -316,6 +313,10 @@ function DashboardOverview({
 
             {subscriptionLoading ? (
               <h2>Loading...</h2>
+            ) : subscriptionError && !subscription ? (
+              <h2>Subscription unavailable</h2>
+            ) : !subscription ? (
+              <h2>No active subscription</h2>
             ) : (
               <>
                 <h2>{subscriptionPlan}</h2>
@@ -324,9 +325,12 @@ function DashboardOverview({
                   {subscriptionStatus}
                 </span>
 
-                <p className="subscription-credits">
-                  Credits: {remainingCredits} / {totalCredits}
-                </p>
+                {remainingCredits != null && totalCredits != null && (
+                  <p className="subscription-credits">
+                    {subscription.plan?.plan_type === "FAMILY" ? "Shared family credits" : "Credits"}: {remainingCredits} / {totalCredits}
+                  </p>
+                )}
+                {subscriptionError && <p>Could not refresh subscription information.</p>}
               </>
             )}
 

@@ -1,5 +1,5 @@
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import {
@@ -20,6 +20,7 @@ import LearningPreferences from "../components/parent-dashboard/LearningPreferen
 import TopicSelection from "../components/parent-dashboard/TopicSelection";
 import Rewards from "../components/parent-dashboard/Rewards";
 import Subscription from "../components/parent-dashboard/Subscription";
+import { useStripeCheckoutReturn } from "../components/parent-dashboard/useStripeCheckoutReturn";
 
 import parentDashboardBg from "../assets/parent-dashboard-bg.png";
 
@@ -47,7 +48,11 @@ function ParentDashboard() {
 
   // STATES
   const [parentData, setParentData] = useState(parent || {});
-  const [activeMenu, setActiveMenu] = useState("Dashboard");
+  const stripeOutcome = new URLSearchParams(location.search).get("stripe");
+  const [activeMenu, setActiveMenu] = useState(() =>
+    stripeOutcome === "success" || stripeOutcome === "cancelled" ? "Subscription" : "Dashboard"
+  );
+  const initialCancellation = useRef(stripeOutcome === "cancelled");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const [children, setChildren] = useState([]);
@@ -70,6 +75,8 @@ function ParentDashboard() {
   // PARENT SUBSCRIPTION
   const [subscriptionData, setSubscriptionData] = useState(null);
   const [subscriptionLoading, setSubscriptionLoading] = useState(true);
+  const [subscriptionError, setSubscriptionError] = useState("");
+  const subscriptionRequest = useRef(null);
 
   // DASHBOARD ADD CHILD POPUP
   const [showAddChildModal, setShowAddChildModal] = useState(false);
@@ -176,20 +183,34 @@ function ParentDashboard() {
   }, []);
 
   // LOAD CURRENT PARENT SUBSCRIPTION
-  const loadSubscription = useCallback(async () => {
-    try {
-      setSubscriptionLoading(true);
+  const loadSubscription = useCallback(({ background = false } = {}) => {
+    if (subscriptionRequest.current) return subscriptionRequest.current;
+    if (!background) setSubscriptionLoading(true);
 
-      const data = await getMySubscription();
-
-      setSubscriptionData(data || null);
-    } catch (error) {
-      console.error("Error loading parent subscription:", error);
-      setSubscriptionData(null);
-    } finally {
-      setSubscriptionLoading(false);
-    }
+    const request = Promise.resolve()
+      .then(getMySubscription)
+      .then((data) => {
+        setSubscriptionData(data);
+        setSubscriptionError("");
+        return data;
+      })
+      .catch((error) => {
+        setSubscriptionError(error.message || "Unable to load your subscription.");
+        return null;
+      })
+      .finally(() => {
+        subscriptionRequest.current = null;
+        setSubscriptionLoading(false);
+      });
+    subscriptionRequest.current = request;
+    return request;
   }, []);
+
+  const checkoutReturn = useStripeCheckoutReturn({
+    location,
+    navigate,
+    refreshSubscription: loadSubscription,
+  });
 
   // LOAD PARENT PROFILE
   const loadParentProfile = useCallback(async () => {
@@ -211,7 +232,7 @@ function ParentDashboard() {
     loadRewardTotals();
     loadRecentActivities();
     loadDashboardStats();
-    loadSubscription();
+    if (!initialCancellation.current) loadSubscription();
     loadParentProfile();
   }, [
     loadChildren,
@@ -392,6 +413,7 @@ function ParentDashboard() {
               dashboardStatsLoading={dashboardStatsLoading}
               subscriptionData={subscriptionData}
               subscriptionLoading={subscriptionLoading}
+              subscriptionError={subscriptionError}
               loading={childrenLoading}
               error={childrenError}
               onAddChild={() => setShowAddChildModal(true)}
@@ -447,7 +469,13 @@ function ParentDashboard() {
           {/* SUBSCRIPTION */}
 
           {activeMenu === "Subscription" && (
-            <Subscription />
+            <Subscription
+              subscriptionData={subscriptionData}
+              subscriptionLoading={subscriptionLoading}
+              subscriptionError={subscriptionError}
+              refreshSubscription={loadSubscription}
+              checkoutReturn={checkoutReturn}
+            />
           )}
 
           {/* PARENT PROFILE */}

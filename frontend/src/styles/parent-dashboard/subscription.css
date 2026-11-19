@@ -57,6 +57,32 @@
   line-height: 1.6;
 }
 
+.subscription-return-notice p {
+  margin: 0;
+}
+
+.subscription-return-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.subscription-return-actions button {
+  min-height: 44px;
+  padding: 6px 14px;
+  border: 1px solid #cdb2f2;
+  border-radius: 12px;
+  background: #fff;
+  color: var(--sub-dark-purple);
+  font-weight: 800;
+}
+
+.subscription-return-actions button:focus-visible {
+  outline: 2px solid var(--sub-purple);
+  outline-offset: 2px;
+}
+
 /* ==========================================
    ERROR MESSAGE
 ========================================== */

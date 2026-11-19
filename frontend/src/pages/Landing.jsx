@@ -151,7 +151,14 @@ function Landing({ onRegisterClick }) {
               Get Started →
             </button>
 
-            <a href="#about" className="hero-watch-button">
+            <a
+              href="#about"
+              className="hero-watch-button"
+              onClick={(event) => {
+                event.preventDefault();
+                onRegisterClick();
+              }}
+            >
               <span className="watch-play-icon">▶</span>
               Watch Video
             </a>
@@ -226,13 +233,6 @@ function Landing({ onRegisterClick }) {
             that helps children build real life skills through
             simple, engaging and interactive lessons.
           </p>
-
-          <a
-            href="#categories"
-            className="btn btn-outline-pink about-learn-more"
-          >
-            Learn More →
-          </a>
         </div>
 
         <div className="about-highlights">
@@ -316,7 +316,14 @@ function Landing({ onRegisterClick }) {
         </div>
 
         <div className="features-action">
-          <a href="#categories" className="features-explore-button">
+          <a
+            href="#categories"
+            className="features-explore-button"
+            onClick={(event) => {
+              event.preventDefault();
+              onRegisterClick();
+            }}
+          >
             Explore All Learning Videos <span>→</span>
           </a>
         </div>

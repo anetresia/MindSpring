@@ -1,208 +1,53 @@
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import {
   getSubscriptionPlans,
-  getMySubscription,
   createStripeCheckout,
-  cancelStripeCheckout,
 } from "../../api";
 
+import { pendingSubscriptionKey } from "./useStripeCheckoutReturn";
 import "../../styles/parent-dashboard/subscription.css";
 
-function Subscription() {
+function Subscription({
+  subscriptionData,
+  subscriptionLoading,
+  subscriptionError,
+  refreshSubscription,
+  checkoutReturn,
+}) {
   const [plans, setPlans] = useState([]);
-  const [subscription, setSubscription] = useState(null);
   const [selectedPlan, setSelectedPlan] = useState(null);
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [paymentMessage, setPaymentMessage] = useState("");
-  const [paymentNotice, setPaymentNotice] = useState("");
   const [paymentLoading, setPaymentLoading] = useState(false);
+  const plansRequest = useRef(null);
+  const subscription = subscriptionData?.subscription;
+  const freePlan = subscription?.plan?.plan_type === "FREE" ? subscription.plan : null;
 
-  // LOAD SUBSCRIPTION DATA
-  async function loadSubscriptionData(showLoading = true) {
-    try {
-      if (showLoading) setLoading(true);
+  const loadPlans = useCallback(() => {
+    if (plansRequest.current) return plansRequest.current;
 
-      setError("");
-
-      const [plansData, subscriptionData] = await Promise.all([
-        getSubscriptionPlans(),
-        getMySubscription(),
-      ]);
-
-      const plansList = Array.isArray(plansData)
-        ? plansData
-        : Array.isArray(plansData?.plans)
-        ? plansData.plans
-        : [];
-
-      const currentSubscription =
-        subscriptionData?.subscription ?? null;
-
-      // Backend eligibility filtering is preserved.
-      // Free plan is displayed separately below.
-      const eligiblePaidPlans = plansList.filter(
-        (plan) =>
-          plan.plan_type !== "FREE" &&
-          Number(plan.price_lkr) > 0
-      );
-
-      setPlans(eligiblePaidPlans);
-      setSubscription(currentSubscription);
-
-      return currentSubscription;
-    } catch (err) {
-      console.error("Unable to load subscription:", err);
-
-      if (showLoading) {
-        setError(
-          err.message || "Unable to load subscription details."
-        );
-      }
-
-      return null;
-    } finally {
-      if (showLoading) setLoading(false);
-    }
-  }
-
-  // INITIAL LOAD
-  useEffect(() => {
-    loadSubscriptionData();
+    setLoading(true);
+    setError("");
+    plansRequest.current = getSubscriptionPlans()
+      .then((data) => {
+        const list = Array.isArray(data) ? data : data?.plans ?? [];
+        setPlans(list.filter((plan) => plan.plan_type !== "FREE" && Number(plan.price_lkr) > 0));
+      })
+      .catch((error) => setError(error.message || "Unable to load membership plans."))
+      .finally(() => {
+        plansRequest.current = null;
+        setLoading(false);
+      });
+    return plansRequest.current;
   }, []);
 
-  // HANDLE STRIPE RETURN
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const stripeStatus = params.get("stripe");
-    const sessionId = params.get("session_id");
-
-    if (stripeStatus === "success") {
-      setPaymentNotice(
-        "Payment successful! We are verifying your payment and updating your subscription. Please wait..."
-      );
-
-      verifySubscriptionAfterPayment();
-    }
-
-    if (stripeStatus === "cancelled") {
-      handleStripeCancellation(sessionId);
-    }
-
-    if (stripeStatus) {
-      params.delete("stripe");
-      params.delete("session_id");
-
-      const query = params.toString();
-
-      const cleanUrl =
-        window.location.pathname +
-        (query ? `?${query}` : "") +
-        window.location.hash;
-
-      window.history.replaceState({}, "", cleanUrl);
-    }
-  }, []);
-
-  // HANDLE IMMEDIATE STRIPE CANCELLATION
-  async function handleStripeCancellation(sessionId) {
-    if (!sessionId) {
-      setPaymentNotice(
-        "Payment was cancelled, but the Stripe session ID was not received. Please contact support if your payment status is unclear."
-      );
-      return;
-    }
-
-    try {
-      setPaymentNotice(
-        "Cancelling your payment session. Please wait..."
-      );
-
-      const response = await cancelStripeCheckout(sessionId);
-
-      sessionStorage.removeItem("mindspring_pending_plan_id");
-
-      setPaymentNotice(
-        response.message ||
-          "Payment cancelled successfully. No credits have been added."
-      );
-
-      await loadSubscriptionData(false);
-    } catch (err) {
-      console.error("Stripe cancellation error:", err);
-
-      setPaymentNotice(
-        err.message ||
-          "Unable to confirm payment cancellation. Please try again or contact support."
-      );
-    }
-  }
-
-  // VERIFY PAYMENT AFTER STRIPE RETURN
-  async function verifySubscriptionAfterPayment() {
-    const expectedPlanId = sessionStorage.getItem(
-      "mindspring_pending_plan_id"
-    );
-
-    if (!expectedPlanId) {
-      setPaymentNotice(
-        "Payment was completed. We are checking your subscription. Please refresh if it does not update."
-      );
-
-      await loadSubscriptionData(false);
-      return;
-    }
-
-    const maxAttempts = 30;
-    const delay = 2000;
-
-    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      const latestSubscription = await loadSubscriptionData(false);
-
-      if (latestSubscription) {
-        const latestPlanId = Number(
-          latestSubscription.plan?.plan_id
-        );
-
-        const latestStatus = String(
-          latestSubscription.status || ""
-        ).toUpperCase();
-
-        if (
-          latestPlanId === Number(expectedPlanId) &&
-          latestStatus === "ACTIVE"
-        ) {
-          setPaymentNotice(
-            "Payment verified successfully! Your subscription and credits have been updated."
-          );
-
-          sessionStorage.removeItem(
-            "mindspring_pending_plan_id"
-          );
-
-          return;
-        }
-      }
-
-      if (attempt < maxAttempts) {
-        setPaymentNotice(
-          `Payment received. Updating your subscription... (${attempt}/${maxAttempts})`
-        );
-
-        await new Promise((resolve) => {
-          setTimeout(resolve, delay);
-        });
-      }
-    }
-
-    setPaymentNotice(
-      "Payment was completed, but subscription activation is taking longer than expected. Please contact the administrator to verify your payment. Do not pay again."
-    );
-  }
+    void Promise.resolve().then(loadPlans);
+  }, [loadPlans]);
 
   // FORMAT PRICE
   function formatPrice(price) {
@@ -237,15 +82,6 @@ function Subscription() {
 
     if (plan.plan_type === "FAMILY") {
       features.push("Shared Family Credits");
-    }
-
-    if (plan.billing_type === "ONE_TIME") {
-      features.push("No Expiry");
-    } else if (
-      plan.validity_days !== null &&
-      plan.validity_days !== undefined
-    ) {
-      features.push(`${plan.validity_days} Days Validity`);
     }
 
     return features;
@@ -308,10 +144,10 @@ function Subscription() {
         );
       }
 
-      sessionStorage.setItem(
-        "mindspring_pending_plan_id",
-        String(selectedPlan.plan_id)
-      );
+      sessionStorage.removeItem(pendingSubscriptionKey);
+      if (response.subscription_id != null) {
+        sessionStorage.setItem(pendingSubscriptionKey, String(response.subscription_id));
+      }
 
       window.location.assign(response.checkout_url);
     } catch (err) {
@@ -332,32 +168,23 @@ function Subscription() {
       : "🎬";
   }
 
-  // LOADING SCREEN
-  if (loading) {
-    return (
-      <section className="subscription-page">
-        <div className="subscription-container">
-          <div className="subscription-loading">
-            <span className="subscription-loading-icon">👑</span>
-            <p>Loading your membership plans...</p>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
   // MAIN PAGE
   return (
     <section className="subscription-page">
       <div className="subscription-container">
 
         {/* PAYMENT RETURN NOTICE */}
-        {paymentNotice && (
-          <div
-            className="subscription-modal-message"
-            role="status"
-          >
-            {paymentNotice}
+        {checkoutReturn.notice && (
+          <div className="subscription-modal-message subscription-return-notice">
+            <p role="status">{checkoutReturn.notice.message}</p>
+            {!checkoutReturn.notice.busy && (
+              <div className="subscription-return-actions">
+                {checkoutReturn.notice.retry && (
+                  <button type="button" onClick={checkoutReturn.retry}>Try again</button>
+                )}
+                <button type="button" onClick={checkoutReturn.dismiss}>Dismiss</button>
+              </div>
+            )}
           </div>
         )}
 
@@ -368,11 +195,22 @@ function Subscription() {
 
             <button
               type="button"
-              onClick={() => loadSubscriptionData()}
+              onClick={loadPlans}
             >
               Try Again
             </button>
           </div>
+        )}
+
+        {subscriptionError && (
+          <div className="subscription-error" role="alert">
+            <p>{subscriptionError}</p>
+            <button type="button" onClick={() => refreshSubscription()}>Retry subscription refresh</button>
+          </div>
+        )}
+        {subscriptionLoading && <p role="status">Loading your subscription…</p>}
+        {!subscriptionLoading && !subscriptionError && subscriptionData?.has_subscription === false && (
+          <div className="current-subscription-card">No active subscription</div>
         )}
 
         {/* CURRENT SUBSCRIPTION */}
@@ -391,15 +229,18 @@ function Subscription() {
                 {subscription.plan?.plan_name || "Active Plan"}
               </h2>
 
-              <p>
-                {subscription.credits?.remaining_credits ?? 0}
-                {" "}credits remaining out of{" "}
-                {subscription.credits?.total_credits ?? 0}
-              </p>
+              {subscription.credits && (
+                <p>
+                  {subscription.credits.remaining_credits} of {subscription.credits.total_credits}
+                  {" "}{subscription.plan?.plan_type === "FAMILY" ? "shared family credits" : "credits"} remaining
+                </p>
+              )}
+              {subscription.starts_at && <p>Started {new Date(subscription.starts_at).toLocaleDateString()}</p>}
+              {subscription.expires_at && <p>Ends {new Date(subscription.expires_at).toLocaleDateString()}</p>}
             </div>
 
             <div className="current-subscription-status">
-              {subscription.status || "ACTIVE"}
+              {subscription.status}
             </div>
           </div>
         )}
@@ -420,7 +261,9 @@ function Subscription() {
         </div>
 
         {/* SUBSCRIPTION PLAN CARDS */}
-        <div className="subscription-plans-grid">
+        {loading && <p role="status">Loading your membership plans…</p>}
+        {!loading && !error && plans.length === 0 && <p>No paid plans are available for your household.</p>}
+        {!loading && <div className="subscription-plans-grid">
 
           {/* FREE PLAN - DISPLAY ONLY, NO BUTTON */}
           <article className="subscription-plan-card free-plan-card">
@@ -431,7 +274,7 @@ function Subscription() {
             <h3>Free</h3>
 
             <div className="subscription-plan-price">
-              <strong>LKR 0</strong>
+              {freePlan && <strong>{formatPrice(freePlan.price_lkr)}</strong>}
             </div>
 
             <p className="subscription-plan-billing">
@@ -441,20 +284,9 @@ function Subscription() {
             <div className="subscription-plan-divider" />
 
             <ul className="subscription-plan-features">
-              <li>
-                <span>✓</span>
-                3 Video Credits
-              </li>
-
-              <li>
-                <span>✓</span>
-                1 Child
-              </li>
-
-              <li>
-                <span>✓</span>
-                No Expiry
-              </li>
+              {freePlan && getPlanFeatures(freePlan).map((feature) => (
+                <li key={feature}><span aria-hidden="true">✓</span> {feature}</li>
+              ))}
             </ul>
 
             {/* Intentionally no button on Free plan */}
@@ -520,7 +352,7 @@ function Subscription() {
               </article>
             );
           })}
-        </div>
+        </div>}
 
         {/* PLAN CONFIRMATION POPUP */}
         {selectedPlan && createPortal(
@@ -584,14 +416,8 @@ function Subscription() {
                 </div>
 
                 <div>
-                  <span>Validity</span>
-                  <strong>
-                    {selectedPlan.billing_type === "ONE_TIME"
-                      ? "No Expiry"
-                      : selectedPlan.validity_days != null
-                      ? `${selectedPlan.validity_days} Days`
-                      : "—"}
-                  </strong>
+                  <span>Billing</span>
+                  <strong>One-time payment</strong>
                 </div>
               </div>
 

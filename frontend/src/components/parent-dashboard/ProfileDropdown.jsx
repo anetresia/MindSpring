@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import "../../styles/parent-dashboard/profile-dropdown.css";
 
 const API_BASE_URL = "http://127.0.0.1:8000";
@@ -220,7 +221,7 @@ function ProfileDropdown({
 
       {/* LOGOUT CONFIRMATION */}
 
-      {showLogoutConfirm && (
+      {showLogoutConfirm && createPortal(
         <div
           className="logout-modal-overlay"
           onClick={handleCancelLogout}
@@ -265,7 +266,8 @@ function ProfileDropdown({
 
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
     </div>

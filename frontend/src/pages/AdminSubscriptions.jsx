@@ -101,7 +101,7 @@ function SubscriberDetails({ subscriber, onClose, formatDate, formatStatus, form
         </button>
       </div>
       <dl className="admin-sub-details-grid">
-        <div><dt>Stored status</dt><dd>{formatStatus(subscriber.status)}</dd></div>
+        <div><dt>Subscription status</dt><dd>{formatStatus(subscriber.status)}</dd></div>
         <div><dt>Plan</dt><dd>{plan?.plan_name ?? "—"}</dd></div>
         <div><dt>Plan code</dt><dd>{plan?.plan_code ?? "—"}</dd></div>
         <div><dt>Plan type</dt><dd>{plan ? formatStatus(plan.plan_type) : "—"}</dd></div>
@@ -132,7 +132,7 @@ function SubscriberDetails({ subscriber, onClose, formatDate, formatStatus, form
           <div className="admin-sub-table-wrapper">
             <table className="admin-sub-table admin-sub-details-table">
               <thead>
-                <tr><th>Payment ID</th><th>Amount</th><th>Provider</th><th>Status</th><th>Created</th><th>Verified</th></tr>
+                <tr><th>Payment ID</th><th>Amount</th><th>Provider</th><th>Payment status</th><th>Created</th><th>Verified</th></tr>
               </thead>
               <tbody>
                 {payments.map((payment) => (
@@ -190,6 +190,7 @@ function AdminSubscriptions() {
     price: "",
     credits: "",
     children: "1",
+    billingType: "ONE_TIME",
     validity: "No expiry",
   });
 
@@ -343,6 +344,7 @@ function AdminSubscriptions() {
       price: "",
       credits: "",
       children: "1",
+      billingType: "ONE_TIME",
       validity: "No expiry",
     });
 
@@ -358,6 +360,7 @@ function AdminSubscriptions() {
       price: String(plan.price),
       credits: String(plan.credits),
       children: String(plan.children),
+      billingType: plan.billingType,
       validity: plan.validity,
     });
 
@@ -371,6 +374,7 @@ function AdminSubscriptions() {
     setFormData((previous) => ({
       ...previous,
       [name]: value,
+      ...(name === "billingType" && value === "ONE_TIME" ? { validity: "No expiry" } : {}),
     }));
   }
 
@@ -455,12 +459,7 @@ function AdminSubscriptions() {
       const planType =
         price === 0 ? "FREE" : children > 1 ? "FAMILY" : "INDIVIDUAL";
 
-      const billingType =
-        planType === "FREE"
-          ? "FREE"
-          : planType === "FAMILY"
-            ? "MONTHLY"
-            : "ONE_TIME";
+      const billingType = planType === "FREE" ? "FREE" : formData.billingType;
 
       if (planType === "FREE" && validityDays !== null) {
         setError("The Free plan must have no expiry.");
@@ -468,12 +467,12 @@ function AdminSubscriptions() {
       }
 
       if (billingType === "MONTHLY" && !validityDays) {
-        setError("Please select a validity period for a Family plan.");
+        setError("Please select a validity period for monthly billing.");
         return;
       }
 
       if (billingType === "ONE_TIME" && validityDays !== null) {
-        setError("Individual one-time plans must have no expiry.");
+        setError("One-time plans must have no expiry.");
         return;
       }
 
@@ -953,7 +952,7 @@ function AdminSubscriptions() {
                           <th>Parent</th>
                           <th>Plan</th>
                           <th>Credits</th>
-                          <th>Status</th>
+                          <th>Subscription Status</th>
                           <th>Start Date</th>
                           <th>End Date</th>
                           <th>Details</th>
@@ -1301,7 +1300,22 @@ function AdminSubscriptions() {
               </label>
 
               <label>
-                Plan Validity
+                Billing Type
+                <select
+                  name="billingType"
+                  value={!editingPlan && Number(formData.price) === 0 ? "FREE" : formData.billingType}
+                  onChange={handleFormChange}
+                  disabled={Boolean(editingPlan) || Number(formData.price) === 0}
+                >
+                  <option value="FREE" disabled>Free</option>
+                  <option value="ONE_TIME">One-time</option>
+                  <option value="MONTHLY">Monthly (catalog setting)</option>
+                </select>
+                {editingPlan && <small>Billing type is fixed after creation.</small>}
+              </label>
+
+              <label>
+                Catalog Validity
 
                 <select
                   name="validity"
@@ -1313,14 +1327,17 @@ function AdminSubscriptions() {
                   <option value="60 days">60 days</option>
                   <option value="90 days">90 days</option>
                   <option value="365 days">365 days</option>
+                  {editingPlan && !["No expiry", "30 days", "60 days", "90 days", "365 days"].includes(editingPlan.validity) && (
+                    <option value={editingPlan.validity}>{editingPlan.validity}</option>
+                  )}
                 </select>
               </label>
 
               {!editingPlan && (
                 <p className="admin-sub-form-note">
-                  Plan type and billing type are determined
-                  automatically from the price and maximum
-                  children. Family plans require a validity period.
+                  Plan type is based on price and maximum children. Stripe checkout
+                  uses a one-time payment. Monthly catalog settings do not enable
+                  automatic renewal or set the subscription end date.
                 </p>
               )}
 

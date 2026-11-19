@@ -46,8 +46,8 @@
 .children-save-btn {
   border: none;
   border-radius: 10px;
-  background: #39834b;
-  color: white;
+  background: #FF2995;
+  color: #492080;
   padding: 12px 20px;
   font-size: 14px;
   font-weight: 700;
@@ -58,7 +58,7 @@
 
 .children-add-btn:hover,
 .children-save-btn:hover {
-  background: #2d6d3d;
+  background: #F01D87;
 }
 
 .children-add-btn:active,
@@ -823,8 +823,8 @@
   border: none;
   border-radius: 10px;
 
-  background: #39834b;
-  color: white;
+  background: #FF2995;
+  color: #492080;
 
   font-size: 14px;
   font-weight: 700;
@@ -836,7 +836,7 @@
 }
 
 .children-start-learning-btn:hover {
-  background: #2d6d3d;
+  background: #F01D87;
 }
 
 .children-start-learning-btn:active {
@@ -1362,8 +1362,8 @@
   padding: 12px 18px;
   border: none;
   border-radius: 14px;
-  background: linear-gradient(110deg, #40a65d, #2f914c);
-  color: #ffffff;
+  background: #FF2995;
+  color: #492080;
   font-family: inherit;
   font-size: 14px;
   font-weight: 800;
@@ -1373,9 +1373,20 @@
 }
 
 .children-start-learning-btn:hover {
-  background: linear-gradient(110deg, #35964f, #267c40);
+  background: #F01D87;
   transform: translateY(-2px);
   box-shadow: 0 7px 16px rgba(53, 151, 79, 0.24);
+}
+
+.my-children-page .children-page-heading > .children-add-btn,
+.my-children-page .children-start-learning-btn {
+  background: linear-gradient(100deg, #8b0ded, #ff2995);
+  color: #ffffff;
+}
+
+.my-children-page .children-page-heading > .children-add-btn:hover,
+.my-children-page .children-start-learning-btn:hover {
+  background: linear-gradient(100deg, #790bd5, #f01d87);
 }
 
 /* Responsive cards */
@@ -1415,8 +1426,6 @@
 .child-limit-overlay {
   position: fixed;
   inset: 0;
-  width: 100vw;
-  height: 100vh;
   z-index: 999999;
 
   display: flex;
@@ -1425,7 +1434,9 @@
 
   padding: 20px;
   box-sizing: border-box;
+}
 
+body:has(.child-limit-overlay) .parent-dashboard-page .parent-dashboard-scroll::before {
   background: rgba(48, 25, 75, 0.45);
 
   backdrop-filter: blur(7px);

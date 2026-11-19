@@ -94,16 +94,8 @@ section {
     box-shadow: 0 12px 25px #ff299545;
 }
 
-.btn-outline-pink {
-    border: 1px solid var(--pink);
-    color: var(--pink);
-    background: white;
-}
 
-.btn-outline-pink:hover {
-    color: white;
-    background: var(--pink);
-}
+
 
 /* =====================================================
    HERO SECTION
