@@ -11,7 +11,7 @@ import {
 import "../../styles/parent-dashboard/parent-profile.css";
 import "../../styles/parent-dashboard/profile-dropdown.css";
 
-const API_BASE_URL = "http://127.0.0.1:8000";
+const API_BASE_URL = "https://mindspring-production.up.railway.app";
 
 function getInitials(name) {
   return (name || "Parent")

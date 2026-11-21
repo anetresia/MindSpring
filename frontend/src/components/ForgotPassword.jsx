@@ -4,7 +4,7 @@ import { useState } from "react";
 import logo from "../assets/mindspring-logo.png";
 import "../styles/forgot-password.css";
 
-const API_URL = "http://127.0.0.1:8000";
+const API_URL = "https://mindspring-production.up.railway.app";
 
 function ForgotPassword({ onClose, onBackToLogin }) {
   const [step, setStep] = useState(1);

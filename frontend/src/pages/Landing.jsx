@@ -74,7 +74,7 @@ function Landing({ onRegisterClick }) {
     setContactLoading(true);
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/contact/", {
+      const response = await fetch("https://mindspring-production.up.railway.app/contact/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
