@@ -1,5 +1,5 @@
 
-export const API_URL = "http://127.0.0.1:8000";
+export const API_URL = "https://mindspring-production.up.railway.app";
 
 // ========================================
 // GET SAVED ACCESS TOKEN
